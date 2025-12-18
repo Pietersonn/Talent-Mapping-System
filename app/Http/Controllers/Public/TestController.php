@@ -316,40 +316,22 @@ class TestController extends BaseController
         $rows = [];
         foreach ($questions as $q) {
             $sel = $responsesInput[$q->id] ?? null;
-            $rows[] = [
-                'session_id' => $session->id,
-                'question_id' => $q->id,
-                'question_version_id' => $activeVersion->id,
-                'page_number' => $page,
-                'selected_option' => $sel,
-                'updated_at' => $now,
-                'created_at' => $now
-            ];
-        }
+            $responseId = SJTResponse::where('session_id', $session->id)
+                ->where('question_id', $q->id)
+                ->value('id') ?? $this->generateResponseId('SJR');
 
-        try {
-            // Note: DB structure requires manual ID if auto-increment is not used.
-            // Assuming SJTResponse model handles ID generation for updateOrCreate,
-            // but upsert might be safer here since it relies on primary keys.
-            // Using updateOrCreate fallback for safety in case of non-standard primary keys on responses table.
-            SJTResponse::upsert($rows, ['session_id', 'question_id'], ['question_version_id', 'page_number', 'selected_option', 'updated_at']);
-        } catch (\Throwable $e) {
-            foreach ($questions as $q) {
-                $opt = $responsesInput[$q->id] ?? null;
-                // Menggunakan ID generator respons yang ada
-                $responseId = SJTResponse::where('session_id', $session->id)->where('question_id', $q->id)->value('id') ?? $this->generateResponseId('SJR');
-
-                SJTResponse::updateOrCreate(
-                    ['id' => $responseId], // Mencari berdasarkan ID atau membuat baru dengan ID yang di-generate
-                    [
-                        'session_id' => $session->id,
-                        'question_id' => $q->id,
-                        'question_version_id' => $activeVersion->id,
-                        'page_number'         => $page,
-                        'selected_option'     => $opt,
-                    ]
-                );
-            }
+            SJTResponse::updateOrCreate(
+                ['id' => $responseId],
+                [
+                    'session_id' => $session->id,
+                    'question_id' => $q->id,
+                    'question_version_id' => $activeVersion->id,
+                    'page_number'         => $page,
+                    'selected_option'     => $sel,
+                    'updated_at'          => $now,
+                    'created_at'          => $now // created_at ignored on update
+                ]
+            );
         }
 
         $lastPageNumber = 5;
@@ -365,25 +347,28 @@ class TestController extends BaseController
             return redirect()->route('test.sjt.page', ['page' => $next])->with('success', "Halaman {$page} selesai!");
         }
 
-        // terakhir: update session completed
+        // --- TES SELESAI ---
+
+        // 1. Tandai session completed
         $session->update([
             'current_step' => 'thanks',
             'is_completed' => true,
             'completed_at' => now(),
         ]);
 
-        // -> Hitung hasil cepat & simpan ke test_results (langsung)
+        // 2. Hitung hasil (Scoring)
         try {
-            // PERBAIKAN: Fungsi ini sekarang akan membuat TestResult dengan ID yang benar
-            // jika belum ada, berkat perbaikan di ScoringHelper.
             ScoringHelper::calculateAndSaveResults($session->id);
         } catch (\Throwable $e) {
             Log::error('ScoringHelper failed: ' . $e->getMessage(), ['session' => $session->id]);
-            // tetap lanjutkan job untuk PDF/email, tetapi beri tahu admin/log
         }
 
-        // Dispatch job untuk membuat PDF + kirim email (asynchronous)
-        GenerateAssessmentReport::dispatch($session->id)->onQueue('emails');
+        // 3. Generate Report & Kirim Email
+        try {
+            GenerateAssessmentReport::dispatchAfterResponse($session->id);
+        } catch (\Throwable $e) {
+            Log::error('Failed to dispatch report generation: ' . $e->getMessage());
+        }
 
         $nextUrl = route('test.thank-you');
 
@@ -464,8 +449,6 @@ class TestController extends BaseController
 
     /**
      * Generator ID respons ST30/SJT yang konsisten
-     * Catatan: Karena kita tidak tahu persis bagaimana Model SJTResponse dan ST30Response
-     * mengelola ID-nya, kita buat generator lokal untuk Response.
      */
     private function generateResponseId(string $prefix): string
     {
@@ -479,8 +462,6 @@ class TestController extends BaseController
         return $id;
     }
 
-    // FUNGSI generateTestResultId() yang duplikat TELAH DIHAPUS
-    // FUNGSI generateTestSessionId() yang duplikat TELAH DIHAPUS
     private function redirectToCurrentStep(TestSession $session): RedirectResponse
     {
         session(['test_session_token' => $session->session_token]);

@@ -42,7 +42,6 @@ class GenerateAssessmentReport implements ShouldQueue
             $eventName = $event->name ?? 'Talent Mapping'; // fallback kalau null
 
             // ---- 2) Ambil hasil dari test_results
-            // Job ini MENGASUMSIKAN ScoringHelper sudah selesai dan TestResult sudah ADA.
             $result = DB::table('test_results')->where('session_id', $this->sessionId)->first();
             if (!$result) {
                 Log::warning("GenerateAssessmentReport: Test result untuk session {$this->sessionId} tidak ditemukan (ScoringHelper mungkin gagal).");
@@ -112,22 +111,9 @@ class GenerateAssessmentReport implements ShouldQueue
                 'st30_strengths' => $st30Strengths,
                 'st30_weakness'  => $st30Weakness,
                 'pages'          => [
-                    'person',
-                    'person 2',
-                    'person 3',
-                    'person 4',
-                    'user',
-                    'person 5',
-                    'person 6',
-                    'person 7',
-                    'person 8',
-                    'person 9',
-                    'person 10',
-                    'person 11',
-                    'person 12',
-                    'person 13',
-                    'person 14',
-                    'person 15'
+                    'person', 'person 2', 'person 3', 'person 4', 'user',
+                    'person 5', 'person 6', 'person 7', 'person 8', 'person 9',
+                    'person 10', 'person 11', 'person 12', 'person 13', 'person 14', 'person 15'
                 ],
             ];
 
@@ -140,40 +126,39 @@ class GenerateAssessmentReport implements ShouldQueue
             $pdf = Pdf::loadView('public.pdf.report', $data)->setPaper('a4', 'landscape');
             $pdfContent = $pdf->output();
 
-            // ---- 5) Upload ke Supabase/S3 (visibility public)
-            $ok = Storage::disk('s3')->put($relativePath, $pdfContent, ['visibility' => 'public']);
+            // ---- 5) Upload ke Local Storage (Public Disk) ----
+            $ok = Storage::disk('public')->put($relativePath, $pdfContent);
+
             if (!$ok) {
-                throw new \Exception("Gagal meng-upload PDF ke Supabase (put() return false).");
+                throw new \Exception("Gagal meng-upload PDF ke Local Storage.");
             }
 
-            // Optional: retry ringan untuk exists() (headObject kadang delay)
-            $confirmed = false;
-            for ($i = 0; $i < 3 && !$confirmed; $i++) {
-                $confirmed = Storage::disk('s3')->exists($relativePath);
-                if (!$confirmed) usleep(200000); // 200ms
+            // Verifikasi file ada
+            if (!Storage::disk('public')->exists($relativePath)) {
+                Log::warning("Upload report sepertinya gagal, file tidak ditemukan di {$relativePath}");
+            } else {
+                Log::info("PDF berhasil disimpan di: storage/app/public/{$relativePath}");
             }
-            if (!$confirmed) {
-                Log::warning("Upload selesai tapi exists() belum konfirm untuk {$relativePath}");
-            }
-
-            Log::info("PDF berhasil DI-UPLOAD (verifikasi sebagian) di Supabase: {$relativePath}");
 
             // ---- 6) Update test_results
             DB::table('test_results')->where('session_id', $this->sessionId)->update([
-                'pdf_path'          => $relativePath,
+                'pdf_path'            => $relativePath,
                 'report_generated_at' => now(),
                 'updated_at'          => now(),
             ]);
 
-            // ---- 7) Bangun public URL (jika bucket public)
-            $publicUrl = $this->buildSupabasePublicUrl($relativePath);
+            // ---- 7) Generate Public URL (Local) ----
+            // Menghasilkan URL seperti: http://localhost/storage/reports/NamaFile.pdf
+            // Pastikan 'php artisan storage:link' sudah dijalankan
+            //$publicUrl = url('storage/' . $relativePath);
 
-            // ---- 8) Kirim email via mailer default (SendGrid API)
+            // ---- 8) Kirim email via SMTP
             if ($recipientEmail) {
                 try {
                     $body = "Halo {$recipientName},\n\n"
                         . "Terima kasih telah mengikuti program Talent Mapping.\n"
                         . "Berikut hasil asesmen Anda terlampir dalam format PDF.\n\n"
+                        //. "Anda juga dapat mengunduh laporan melalui tautan berikut:\n{$publicUrl}\n\n"
                         . "Semoga hasil ini dapat membantu Anda memahami potensi diri dengan lebih baik.\n\n"
                         . "Salam hangat,\nTim Talent Mapping";
 
@@ -207,14 +192,5 @@ class GenerateAssessmentReport implements ShouldQueue
             Log::error("GAGAL memproses job GenerateAssessmentReport untuk session {$this->sessionId}: " . $e->getMessage());
             throw $e;
         }
-    }
-
-    private function buildSupabasePublicUrl(string $relativePath): ?string
-    {
-        $base   = rtrim((string) env('AWS_URL'), '/');    // ex: https://xxxx.supabase.co
-        $bucket = trim((string) env('AWS_BUCKET', ''), '/'); // ex: report
-        if ($base === '' || $bucket === '') return null;
-
-        return "{$base}/storage/v1/object/public/{$bucket}/{$relativePath}";
     }
 }

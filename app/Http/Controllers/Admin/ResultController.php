@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\GenerateAssessmentReport;
 use App\Models\Event;
 use App\Models\TestResult;
 use Carbon\Carbon;
+use App\Jobs\GenerateAssessmentReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -98,7 +98,8 @@ class ResultController extends Controller
             'total_responses'  => $testResult->session->sjtResponses()->count(),
         ];
 
-        $pdfExists = !empty($testResult->pdf_path) && Storage::disk('local')->exists($testResult->pdf_path);
+        // UPDATE: Cek di disk 'public'
+        $pdfExists = !empty($testResult->pdf_path) && Storage::disk('public')->exists($testResult->pdf_path);
 
         return view('admin.results.show', compact('testResult','st30Details','sjtDetails','pdfExists'));
     }
@@ -111,19 +112,20 @@ class ResultController extends Controller
 
             $user = optional($testResult->session)->user;
 
-            // Pastikan PDF tersedia; kalau hilang → regenerate sinkron
-            if (empty($testResult->pdf_path) || !Storage::disk('local')->exists($testResult->pdf_path)) {
+            // Pastikan PDF tersedia di disk 'public'; kalau hilang → regenerate sinkron
+            if (empty($testResult->pdf_path) || !Storage::disk('public')->exists($testResult->pdf_path)) {
                 if ($testResult->session_id) {
                     GenerateAssessmentReport::dispatchSync($testResult->session_id);
                     $testResult->refresh();
                 }
             }
 
-            if (!$user || empty($testResult->pdf_path) || !Storage::disk('local')->exists($testResult->pdf_path)) {
+            if (!$user || empty($testResult->pdf_path) || !Storage::disk('public')->exists($testResult->pdf_path)) {
                 return back()->with('error', 'User atau file PDF tidak ditemukan. Regenerate report bila perlu.');
             }
 
-            $pdfPath = Storage::disk('local')->path($testResult->pdf_path);
+            // Ambil path absolute dari disk public
+            $pdfPath = Storage::disk('public')->path($testResult->pdf_path);
 
             Mail::raw(
                 "Halo {$user->name},\n\nBerikut hasil Talent Assessment Anda terlampir.\n\nTerima kasih.\n\n-- Tim Talent Mapping",
@@ -146,7 +148,7 @@ class ResultController extends Controller
     public function regeneratePdf(TestResult $testResult): RedirectResponse
     {
         try {
-            // Sinkron agar PDF langsung tersedia (penting saat admin mau langsung kirim)
+            // Sinkron agar PDF langsung tersedia
             GenerateAssessmentReport::dispatchSync($testResult->session_id);
             $testResult->refresh();
 
@@ -157,65 +159,30 @@ class ResultController extends Controller
     }
 
     /** Download PDF */
-public function downloadPdf(TestResult $testResult)
+    public function downloadPdf(TestResult $testResult)
     {
-        // TestResult Model sudah memiliki relasi ke Session dan User
         $testResult->load('session.user');
 
-        // Cek path PDF dari result
         if (empty($testResult->pdf_path)) {
             return back()->with('error', 'PDF file path is empty.');
         }
 
         $path = $testResult->pdf_path;
         $sessionId = optional($testResult->session)->id ?? $testResult->session_id;
-
-        // --- 1. Priority: External Public URL (Supabase/S3 Redirect) ---
-        // Jika path adalah URL, langsung redirect (atau jika kita konstruksi URL Supabase/S3)
-        if (preg_match('~^https?://~i', $path)) {
-            return redirect()->away($path);
-        }
-
-        // Coba konstruksi URL publik dari env (seperti di GenerateAssessmentReport)
-        $base = rtrim(config('filesystems.disks.s3.url') ?? env('AWS_URL', ''), '/');
-        $bucket = trim(config('filesystems.disks.s3.bucket') ?? env('AWS_BUCKET', ''), '/');
-
-        if (!empty($base) && !empty($bucket)) {
-             // Konstruksi URL publik Supabase/S3 (format: BASE/storage/v1/object/public/BUCKET/PATH)
-             $publicUrl = "{$base}/storage/v1/object/public/{$bucket}/{$path}";
-             return redirect()->away($publicUrl);
-        }
-
-        // --- 2. Fallback: Stream content from Disk ('s3' or 'local') ---
         $fileName = 'result-' . $sessionId . '.pdf';
 
-        // Iterasi melalui disk yang mungkin (S3/Supabase default, local)
-        foreach ([config('filesystems.default'), 'local'] as $disk) {
-             if (!$disk) continue;
-             try {
-                 if (Storage::disk($disk)->exists($path)) {
-                     $content = Storage::disk($disk)->get($path);
+        // UPDATE: Langsung cek ke disk 'public' (local storage)
+        // Kita tidak perlu cek S3/Supabase URL lagi
+        if (Storage::disk('public')->exists($path)) {
+            $content = Storage::disk('public')->get($path);
 
-                     return Response::make($content, 200, [
-                         'Content-Type'=> 'application/pdf',
-                         'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                     ]);
-                 }
-             } catch (\Throwable $e) {
-                 // Log the error and continue to the next disk
-                 \Illuminate\Support\Facades\Log::warning("PDF Stream failed from disk {$disk}: " . $e->getMessage());
-             }
+            return Response::make($content, 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            ]);
         }
 
-        // --- 3. Final Fallback (Coba path langsung jika semua gagal) ---
-        if (is_file($path)) {
-             return Response::make(file_get_contents($path), 200, [
-                 'Content-Type'=> 'application/pdf',
-                 'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-             ]);
-        }
-
-        abort(404, 'File PDF tidak ditemukan.');
+        abort(404, 'File PDF tidak ditemukan di penyimpanan lokal.');
     }
 
     /** Bulk action */
@@ -234,26 +201,23 @@ public function downloadPdf(TestResult $testResult)
                 $sent = 0;
                 foreach ($results as $result) {
                     try {
-                        // hanya kirim bila belum pernah terkirim (sesuai logic kamu)
-                        if (
-                            !$result->email_sent_at &&
-                            !empty($result->pdf_path)
-                        ) {
-                            // Pastikan file ada; kalau hilang regenerate sinkron
-                            if (!Storage::disk('local')->exists($result->pdf_path) && $result->session_id) {
+                        if (!$result->email_sent_at && !empty($result->pdf_path)) {
+
+                            // Cek keberadaan file di public disk
+                            if (!Storage::disk('public')->exists($result->pdf_path) && $result->session_id) {
                                 GenerateAssessmentReport::dispatchSync($result->session_id);
                                 $result->refresh();
                             }
 
-                            if (!Storage::disk('local')->exists($result->pdf_path)) {
+                            if (!Storage::disk('public')->exists($result->pdf_path)) {
                                 continue;
                             }
 
                             $result->load('session.user');
-                            $user    = optional($result->session)->user;
+                            $user = optional($result->session)->user;
                             if (!$user) continue;
 
-                            $pdfPath = Storage::disk('local')->path($result->pdf_path);
+                            $pdfPath = Storage::disk('public')->path($result->pdf_path);
 
                             Mail::raw(
                                 "Halo {$user->name},\n\nBerikut hasil Talent Assessment Anda terlampir.\n\nTerima kasih.\n\n-- Tim Talent Mapping",
@@ -281,7 +245,8 @@ public function downloadPdf(TestResult $testResult)
 
                 foreach ($results as $result) {
                     if (!empty($result->pdf_path)) {
-                        Storage::disk('local')->delete($result->pdf_path);
+                        // Hapus file dari public disk
+                        Storage::disk('public')->delete($result->pdf_path);
                     }
                     $result->delete();
                 }

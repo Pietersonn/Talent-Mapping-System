@@ -15,9 +15,6 @@ class ReportController extends Controller
 {
     /* ============================================================
      | Ambil daftar ID event yang dimiliki PIC login.
-     | Sesuaikan dengan skema DB-mu:
-     | - Skema A: kolom events.pic_user_id
-     | - Skema B: pivot event_user(role='pic')
      * ============================================================ */
     private function picEventIds(int $userId): array
     {
@@ -58,12 +55,11 @@ class ReportController extends Controller
     }
 
     /* ============================================================
-     | Base query Participants (ambil pdf_path & skor total top3)
-     | NOTE: bila ada kolom persisted `tr.sum_top3`, pakai itu (lebih cepat)
+     | Base query Participants
      * ============================================================ */
     private function baseParticipantsQuery(array $filters, array $allowedEventIds)
     {
-        // Ekspresi sum top-3 dari JSON (fallback bila tidak ada kolom agregat)
+        // Ekspresi sum top-3 dari JSON
         $sumExpr = "
             COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(tr.sjt_results,'$.top3[0].score')) AS DECIMAL(10,2)),0) +
             COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(tr.sjt_results,'$.top3[1].score')) AS DECIMAL(10,2)),0) +
@@ -104,10 +100,7 @@ class ReportController extends Controller
     }
 
     /* ============================================================
-     | 2) Participants — UI seperti Admin (tanpa tanggal)
-     | Mode:
-     |  - all      : semua peserta (skor 0 jika belum ada hasil), paginate
-     |  - top/bottom: hanya yang punya hasil (tr.sjt_results not null), limit N
+     | 2) Participants — UI seperti Admin
      * ============================================================ */
     public function participants(Request $req)
     {
@@ -130,7 +123,6 @@ class ReportController extends Controller
 
         $allowed = $this->picEventIds(Auth::id());
 
-        // Dropdown Event hanya milik PIC
         $events = collect();
         if ($allowed) {
             $events = Event::query()
@@ -141,14 +133,11 @@ class ReportController extends Controller
 
         [$q, $sumExpr] = $this->baseParticipantsQuery($filters, $allowed);
 
-        // Mode
         if ($mode === 'all') {
-            // semua (termasuk yang belum ada hasil), urut skor desc → nama → id
             $q->orderByRaw("{$sumExpr} DESC")->orderBy('u.name')->orderBy('ts.id');
             $pagination = $q->paginate(25)->withQueryString();
             $rows = collect($pagination->items());
         } else {
-            // Top/Bottom: hanya yang punya hasil
             $q->whereNotNull('tr.sjt_results');
             if ($mode === 'top') {
                 $q->orderByRaw("{$sumExpr} DESC")->orderBy('u.name')->orderBy('ts.id');
@@ -170,9 +159,7 @@ class ReportController extends Controller
     }
 
     /* ============================================================
-     | 3) Action: buka/stream Result PDF (aman)
-     | - verifikasi session.event_id ∈ event milik PIC
-     | - dukung URL/storage/local file
+     | 3) Action: buka/stream Result PDF (Local Only)
      * ============================================================ */
     public function participantResultPdf(int $sessionId)
     {
@@ -191,24 +178,14 @@ class ReportController extends Controller
 
         $path = $row->pdf_path;
 
-        // URL eksternal → redirect
-        if (preg_match('~^https?://~i', $path)) {
-            return redirect()->away($path);
-        }
-        // Storage disk
-        if (Storage::exists($path)) {
-            return Response::make(Storage::get($path), 200, [
+        // Cek di disk public (storage local)
+        if (Storage::disk('public')->exists($path)) {
+            return Response::make(Storage::disk('public')->get($path), 200, [
                 'Content-Type'        => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="result-' . $row->session_id . '.pdf"',
             ]);
         }
-        // Path lokal
-        if (is_file($path)) {
-            return Response::make(file_get_contents($path), 200, [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="result-' . $row->session_id . '.pdf"',
-            ]);
-        }
-        abort(404, 'File PDF tidak ditemukan.');
+
+        abort(404, 'File PDF fisik tidak ditemukan di server.');
     }
 }
