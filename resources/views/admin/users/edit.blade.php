@@ -1,326 +1,176 @@
 @extends('admin.layouts.app')
 
 @section('title', 'Edit User')
-@section('page-title', 'Edit User: ' . $user->name)
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">User Management</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.users.show', $user) }}">{{ $user->name }}</a></li>
-    <li class="breadcrumb-item active">Edit</li>
-@endsection
+@push('styles')
+<style>
+    /* --- STYLE TOMBOL (Sama dengan Create) --- */
+    .btn-add {
+        background: #22c55e;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3);
+    }
+    .btn-add:hover { background: #16a34a; transform: translateY(-1px); }
 
-@section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Main Form -->
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-user-edit mr-1"></i>
-                            Edit User Information
-                        </h3>
-                    </div>
-                    <form action="{{ route('admin.users.update', $user) }}" method="POST" id="editUserForm">
-                        @csrf
-                        @method('PUT')
+    .btn-cancel {
+        background: white; color: #64748b; border: 1px solid #e2e8f0;
+        padding: 10px 24px; border-radius: 12px; font-weight: 600; font-size: 0.9rem;
+        text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
 
-                        <div class="card-body">
-                            <!-- Basic Information -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="name" class="required">Full Name</label>
-                                        <input type="text"
-                                               class="form-control @error('name') is-invalid @enderror"
-                                               id="name"
-                                               name="name"
-                                               value="{{ old('name', $user->name) }}"
-                                               required>
-                                        @error('name')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="email" class="required">Email Address</label>
-                                        <input type="email"
-                                               class="form-control @error('email') is-invalid @enderror"
-                                               id="email"
-                                               name="email"
-                                               value="{{ old('email', $user->email) }}"
-                                               required>
-                                        @error('email')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
+    /* --- FORM CARD & INPUTS --- */
+    .form-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem; }
+    .form-label.required::after { content: "*"; color: #ef4444; margin-left: 4px; }
+    .form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; color: #0f172a; background-color: #f8fafc; transition: all 0.2s; }
+    .form-control:focus { background-color: white; border-color: #22c55e; outline: none; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1); }
 
-                            <!-- Role & Status -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="role" class="required">Role</label>
-                                        <select class="form-control @error('role') is-invalid @enderror"
-                                                id="role"
-                                                name="role"
-                                                required
-                                                {{ (Auth::user()->role !== 'admin' && $user->role === 'admin') ? 'disabled' : '' }}>
-                                            @if(Auth::user()->role === 'admin')
-                                                <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrator</option>
-                                            @endif
-                                            <option value="staff" {{ old('role', $user->role) == 'staff' ? 'selected' : '' }}>Staff</option>
-                                            <option value="pic" {{ old('role', $user->role) == 'pic' ? 'selected' : '' }}>Person in Charge</option>
-                                            <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>Regular User</option>
-                                        </select>
-                                        @error('role')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="is_active">Account Status</label>
-                                        <div class="mt-2">
-                                            <div class="custom-control custom-switch">
-                                                <input type="checkbox"
-                                                       class="custom-control-input"
-                                                       id="is_active"
-                                                       name="is_active"
-                                                       value="1"
-                                                       {{ old('is_active', $user->is_active) ? 'checked' : '' }}
-                                                       {{ Auth::id() === $user->id ? 'disabled' : '' }}>
-                                                <label class="custom-control-label" for="is_active">
-                                                    Active Account
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+    /* Password Eye */
+    .password-wrapper { position: relative; }
+    .btn-toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; transition: color 0.2s; }
+    .btn-toggle-password:hover { color: #22c55e; }
 
-                            <!-- Password Section -->
-                            <div class="form-group">
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="change_password">
-                                    <label class="custom-control-label" for="change_password">
-                                        Change Password
-                                    </label>
-                                </div>
-                            </div>
+    /* Switch */
+    .toggle-wrapper { display: flex; align-items: center; gap: 12px; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #22c55e; }
+    input:checked + .slider:before { transform: translateX(20px); }
 
-                            <div id="password_fields" style="display: none;">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="password">New Password</label>
-                                            <input type="password"
-                                                   class="form-control @error('password') is-invalid @enderror"
-                                                   id="password"
-                                                   name="password"
-                                                   minlength="8">
-                                            @error('password')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="password_confirmation">Confirm Password</label>
-                                            <input type="password"
-                                                   class="form-control"
-                                                   id="password_confirmation"
-                                                   name="password_confirmation">
-                                        </div>
-                                    </div>
-                                </div>
-                                <small class="text-muted">Leave empty to keep current password</small>
-                            </div>
-                        </div>
+    /* Divider */
+    .form-section-title { font-size: 0.85rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px dashed #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+    .form-actions { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; }
+</style>
+@endpush
 
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save mr-1"></i> Update User
-                            </button>
-                            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-secondary ml-2">
-                                <i class="fas fa-times mr-1"></i> Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Simple Sidebar -->
-            <div class="col-lg-4">
-                <!-- User Info -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-user mr-1"></i> Current User Info
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-3">
-                            <div class="user-avatar mb-2">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto"
-                                     style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
-                                    {{ substr($user->name, 0, 1) }}
-                                </div>
-                            </div>
-                            <h5 class="mb-1">{{ $user->name }}</h5>
-                            <span class="badge badge-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'staff' ? 'warning' : ($user->role === 'pic' ? 'info' : 'success')) }}">
-                                {{ ucfirst($user->role) }}
-                            </span>
-                            <span class="badge badge-{{ $user->is_active ? 'success' : 'secondary' }} ml-1">
-                                {{ $user->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-
-                        <table class="table table-sm">
-                            <tr>
-                                <td>Created:</td>
-                                <td>{{ $user->created_at->format('d M Y') }}</td>
-                            </tr>
-                            <tr>
-                                <td>Last Updated:</td>
-                                <td>{{ $user->updated_at->format('d M Y') }}</td>
-                            </tr>
-                            <tr>
-                                <td>Test Sessions:</td>
-                                <td>{{ $user->testSessions()->count() }}</td>
-                            </tr>
-                            @if($user->role === 'pic')
-                                <tr>
-                                    <td>Events as PIC:</td>
-                                    <td>{{ $user->picEvents()->count() }}</td>
-                                </tr>
-                            @endif
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                @if(Auth::user()->role === 'admin' && Auth::id() !== $user->id)
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-tools mr-1"></i> Quick Actions
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <button type="button"
-                                    class="btn btn-info btn-sm btn-block mb-2"
-                                    onclick="resetUserPassword()">
-                                <i class="fas fa-key mr-1"></i> Reset Password
-                            </button>
-
-                            <button type="button"
-                                    class="btn btn-{{ $user->is_active ? 'warning' : 'success' }} btn-sm btn-block mb-2"
-                                    onclick="confirmToggleStatus('{{ $user->name }}', '{{ route('admin.users.toggle-status', $user) }}', {{ $user->is_active ? 'true' : 'false' }})">
-                                <i class="fas fa-power-off mr-1"></i>
-                                {{ $user->is_active ? 'Deactivate' : 'Activate' }}
-                            </button>
-
-                            @if($user->role !== 'admin')
-                                <button type="button"
-                                        class="btn btn-danger btn-sm btn-block"
-                                        onclick="confirmDelete('{{ $user->name }}', '{{ route('admin.users.destroy', $user) }}')">
-                                    <i class="fas fa-trash mr-1"></i> Delete User
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-            </div>
+@section('header')
+    <div class="header-wrapper">
+        <div>
+            <h1 class="page-title"><i class="fas fa-user-edit"></i> Ubah Pengguna</h1>
         </div>
+        <a href="{{ route('admin.users.index') }}" class="btn-cancel">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
     </div>
 @endsection
 
+@section('content')
+<div class="form-card fade-in-up">
+    <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
+        @csrf
+        @method('PUT')
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem;">
+
+            <div>
+                <div class="form-section-title"><i class="far fa-id-card mr-2"></i> Identitas Pengguna</div>
+
+                <div class="form-group">
+                    <label class="form-label required">Nama Lengkap</label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
+                    @error('name') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Alamat Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
+                    @error('email') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nomor Telepon / WhatsApp</label>
+                    <input type="text" name="phone_number" class="form-control" value="{{ old('phone_number', $user->phone_number) }}">
+                </div>
+            </div>
+
+            <div>
+                <div class="form-section-title"><i class="fas fa-user-shield mr-2"></i> Akses & Keamanan</div>
+
+                <div class="form-group">
+                    <label class="form-label required">Peran (Role)</label>
+                    <select name="role" class="form-control" required>
+                        <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>User (Peserta)</option>
+                        <option value="pic" {{ old('role', $user->role) == 'pic' ? 'selected' : '' }}>PIC (Manajer Event)</option>
+                        <option value="staff" {{ old('role', $user->role) == 'staff' ? 'selected' : '' }}>Staff</option>
+                        <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrator</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Kata Sandi Baru <span class="text-gray-400 font-normal text-xs ml-1">(Opsional)</span></label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" id="password" class="form-control" placeholder="Biarkan kosong jika tetap">
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('password', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ulangi Sandi</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_confirmation" id="password_confirm" class="form-control" placeholder="******">
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('password_confirm', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status Akun</label>
+                    <div class="toggle-wrapper">
+                        <label class="switch">
+                            <input type="checkbox" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
+                            <span class="slider"></span>
+                        </label>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Aktifkan Akun</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">User dapat login ke dalam sistem</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ route('admin.users.index') }}" class="btn-cancel">Batal</a>
+            <button type="submit" class="btn-add">
+                <i class="fas fa-save"></i> Perbarui Data
+            </button>
+        </div>
+    </form>
+</div>
+@endsection
+
 @push('scripts')
-    <script>
-        // Toggle password fields
-        $('#change_password').change(function() {
-            if ($(this).is(':checked')) {
-                $('#password_fields').slideDown();
-                $('#password').attr('required', true);
-                $('#password_confirmation').attr('required', true);
-            } else {
-                $('#password_fields').slideUp();
-                $('#password').removeAttr('required').val('');
-                $('#password_confirmation').removeAttr('required').val('');
-            }
-        });
-
-        // Form validation
-        $('#editUserForm').on('submit', function(e) {
-            if ($('#change_password').is(':checked')) {
-                const password = $('#password').val();
-                const confirmPassword = $('#password_confirmation').val();
-
-                if (password !== confirmPassword) {
-                    e.preventDefault();
-                    showErrorToast('Passwords do not match!');
-                    return false;
-                }
-            }
-        });
-
-        // Quick actions
-        function confirmToggleStatus(userName, toggleUrl, currentStatus) {
-            const action = currentStatus ? 'deactivate' : 'activate';
-            confirmToggleStatus(
-                `${action.charAt(0).toUpperCase() + action.slice(1)} User?`,
-                `Are you sure you want to ${action} "${userName}"?`,
-                toggleUrl,
-                currentStatus
-            );
+<script>
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
         }
-
-        function confirmDelete(userName, deleteUrl) {
-            confirmDelete(
-                'Delete User?',
-                `Are you sure you want to delete "${userName}"? This cannot be undone.`,
-                deleteUrl
-            );
-        }
-
-        function resetUserPassword() {
-            customConfirm({
-                title: 'Reset Password?',
-                text: 'Generate a temporary password for this user?',
-                icon: 'question',
-                confirmButtonText: 'Yes, reset!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '{{ route('admin.users.reset-password', $user) }}';
-                }
-            });
-        }
-    </script>
-@endpush
-
-@push('styles')
-    <style>
-        .required::after {
-            content: " *";
-            color: red;
-        }
-
-        .user-avatar {
-            display: inline-block;
-        }
-
-        .table-sm td {
-            padding: 0.3rem;
-            border-top: 1px solid #dee2e6;
-            font-size: 0.875rem;
-        }
-
-        .table-sm td:first-child {
-            font-weight: 500;
-            width: 40%;
-        }
-    </style>
+    }
+</script>
 @endpush

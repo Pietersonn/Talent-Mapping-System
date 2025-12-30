@@ -20,7 +20,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'phone_number',  
+        'phone_number',
         'role',
         'is_active',
         'google_id',
@@ -42,7 +42,7 @@ class User extends Authenticatable
     }
 
     // ===== Helpers (role/status) =====
-    public function hasRole(string $role): bool
+    public function hasRole($role)
     {
         return $this->role === $role;
     }

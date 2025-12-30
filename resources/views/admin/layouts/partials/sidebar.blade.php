@@ -1,199 +1,180 @@
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <!-- Brand Logo -->
-        <a href="{{ route('admin.dashboard') }}" class="brand-link d-flex justify-content-left align-items-center">
-            <img src="{{ asset('dist/img/logo-bcti.png') }}" alt="TalentMapping Logo" class="brand-image" style="opacity:.9; max-height:50px;">
+{{--
+    Pastikan file AppServiceProvider sudah diupdate.
+    Variabel $user dikirim otomatis dari sana.
+--}}
+<aside
+    class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100 transition-transform duration-300 lg:static lg:translate-x-0 flex flex-col"
+    :class="sidebarOpen ? 'translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]' : '-translate-x-full'"
+>
+    <div class="h-24 flex items-center px-8 border-b border-gray-50/50 bg-white">
+        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 group transition-all">
+            <img src="{{ asset('assets/public/images/tm-logo.png') }}" alt="TalentMapping" class="h-9 w-auto group-hover:scale-105 transition-transform duration-300">
+            <div class="flex flex-col">
+                <span class="font-bold text-gray-800 text-lg leading-tight tracking-tight">Talent<span class="text-green-500">Mapping</span></span>
+                <span class="text-[10px] text-gray-400 font-medium tracking-widest uppercase">System</span>
+            </div>
+        </a>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-1 scroll-smooth">
+
+        <a href="{{ route('admin.dashboard') }}"
+           class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-th-large {{ request()->routeIs('admin.dashboard') ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+            </div>
+            Dashboard
         </a>
 
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Sidebar user panel (optional) -->
-            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="info">
-                    <a href="{{ route('admin.profile.edit') }}" class="d-block">
-                        {{ Auth::user()->name }}
-                        <small class="d-block text-muted">{{ ucfirst(Auth::user()->role) }}</small>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Sidebar Menu -->
-            <nav class="mt-2">
-                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-
-                    <!-- Dashboard -->
-                    <li class="nav-item">
-                        <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-tachometer-alt"></i>
-                            <p>Dashboard</p>
-                        </a>
-                    </li>
-
-                    <!-- Question Bank -->
-                    <li class="nav-item {{ request()->routeIs('admin.questions.*') || request()->routeIs('admin.st30.*') || request()->routeIs('admin.sjt.*') || request()->routeIs('admin.competencies.*') || request()->routeIs('admin.typologies.*') ? 'menu-open' : '' }}">
-                        <a href="#" class="nav-link {{ request()->routeIs('admin.questions.*') || request()->routeIs('admin.st30.*') || request()->routeIs('admin.sjt.*') || request()->routeIs('admin.competencies.*') || request()->routeIs('admin.typologies.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-question-circle"></i>
-                            <p>
-                                Question Bank
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.questions.index') }}" class="nav-link {{ request()->routeIs('admin.questions.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Question Versions</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.questions.st30.index') }}" class="nav-link {{ request()->routeIs('admin.st30.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>ST-30 Questions</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.questions.sjt.index') }}" class="nav-link {{ request()->routeIs('admin.sjt.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>SJT Questions</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.questions.competencies.index') }}" class="nav-link {{ request()->routeIs('admin.competencies.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Competencies</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.questions.typologies.index') }}" class="nav-link {{ request()->routeIs('admin.typologies.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Typologies</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- User Management (Admin Only) -->
-                    @if (Auth::user()->role === 'admin')
-                        <li class="nav-item">
-                            <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-users"></i>
-                                <p>User Management</p>
-                            </a>
-                        </li>
-                    @endif
-
-                    <!-- Event Management -->
-                    <li class="nav-item">
-                        <a href="{{ route('admin.events.index') }}" class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-calendar-alt"></i>
-                            <p>
-                                Event Management
-                                @if (Auth::user()->role === 'staff')
-                                    <small class="badge badge-info right">View Only</small>
-                                @endif
-                            </p>
-                        </a>
-                    </li>
-
-                    <!-- Results & Reports (lama) -->
-                    <li class="nav-item {{ request()->routeIs('admin.results.*') || request()->routeIs('admin.resend.*') ? 'menu-open' : '' }}">
-                        <a href="#" class="nav-link {{ request()->routeIs('admin.results.*') || request()->routeIs('admin.resend.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-chart-bar"></i>
-                            <p>
-                                Results
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.results.index') }}" class="nav-link {{ request()->routeIs('admin.results.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Results</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.resend.index') }}" class="nav-link {{ request()->routeIs('admin.resend.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>
-                                        Resend Requests
-                                        @if (Auth::user()->role === 'staff')
-                                            <small class="badge badge-info right">View Only</small>
-                                        @endif
-                                    </p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- REPORTS (baru, dropdown terpisah) -->
-                    @php
-                        $isReports = request()->routeIs('admin.reports.*');
-                    @endphp
-                    <li class="nav-item {{ $isReports ? 'menu-open' : '' }}">
-                        <a href="#" class="nav-link {{ $isReports ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-chart-line"></i>
-                            <p>
-                                Reports
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.reports.participants') }}" class="nav-link {{ request()->routeIs('admin.reports.participants') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>participants</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-
-                    <!-- Divider -->
-                    <li class="nav-header">QUICK ACTIONS</li>
-
-                    <!-- Back to Public Site -->
-                    <li class="nav-item">
-                        <a href="{{ route('home') }}" class="nav-link" target="_blank">
-                            <i class="nav-icon fas fa-external-link-alt"></i>
-                            <p>
-                                View Public Site
-                                <small class="badge badge-success right">Public</small>
-                            </p>
-                        </a>
-                    </li>
-
-                    <!-- Logout -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link text-danger" onclick="confirmLogout()">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <p>Logout</p>
-                        </a>
-                    </li>
-
-                </ul>
-            </nav>
-            <!-- /.sidebar-menu -->
+        <div class="pt-6 pb-2 px-4">
+            <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Bank Soal & Data</p>
         </div>
-        <!-- /.sidebar -->
-    </aside>
 
-    <script>
-        function confirmLogout() {
-            Swal.fire({
-                title: 'Logout?',
-                text: 'Are you sure you want to logout?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Yes, logout!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route('logout') }}';
-                    form.innerHTML = '@csrf';
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-    </script>
+        <a href="{{ route('admin.questions.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-layer-group {{ request()->routeIs('admin.questions.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            Question Versions
+        </a>
+
+        <a href="{{ route('admin.questions.st30.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.st30.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-list-ol {{ request()->routeIs('admin.st30.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            ST-30 Questions
+        </a>
+
+        <a href="{{ route('admin.questions.sjt.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.sjt.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-tasks {{ request()->routeIs('admin.sjt.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            SJT Questions
+        </a>
+
+        <a href="{{ route('admin.questions.competencies.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.competencies.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-award {{ request()->routeIs('admin.competencies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            Competencies
+        </a>
+
+        <a href="{{ route('admin.questions.typologies.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.typologies.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-fingerprint {{ request()->routeIs('admin.typologies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            Typologies
+        </a>
+
+        <div class="pt-6 pb-2 px-4">
+            <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Operasional</p>
+        </div>
+
+        {{-- Menggunakan $user yang dikirim dari AppServiceProvider --}}
+        @if ($user->role === 'admin')
+        <a href="{{ route('admin.users.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-users-cog {{ request()->routeIs('admin.users.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            User Management
+        </a>
+        @endif
+
+        <a href="{{ route('admin.events.index') }}"
+           class="flex items-center justify-between px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.events.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="flex items-center">
+                <div class="w-6 flex justify-center mr-3">
+                    <i class="fas fa-calendar-check {{ request()->routeIs('admin.events.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                </div>
+                Events
+            </div>
+            @if ($user->role === 'staff')
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            @endif
+        </a>
+
+        <div class="pt-6 pb-2 px-4">
+            <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Laporan & Hasil</p>
+        </div>
+
+        <a href="{{ route('admin.results.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.results.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-poll {{ request()->routeIs('admin.results.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            All Results
+        </a>
+
+        <a href="{{ route('admin.resend.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.resend.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-paper-plane {{ request()->routeIs('admin.resend.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            Resend Requests
+        </a>
+
+        <a href="{{ route('admin.reports.participants') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-file-invoice {{ request()->routeIs('admin.reports.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            Report Participants
+        </a>
+
+    </nav>
+
+    <div class="p-4 bg-white border-t border-gray-50">
+        <div class="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/80 hover:bg-green-50 transition-colors border border-gray-100 group">
+            <a href="{{ route('admin.profile.edit') }}" class="relative shrink-0">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-green-200">
+                    {{ substr($user->name, 0, 1) }}
+                </div>
+                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+            </a>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-gray-800 truncate">{{ $user->name }}</p>
+                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide truncate">{{ ucfirst($user->role) }}</p>
+            </div>
+            <button onclick="confirmLogout()" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Logout">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<script>
+    function confirmLogout() {
+        Swal.fire({
+            title: 'Logout?',
+            text: 'Yakin mau menyudahi sesi ini?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#22c55e',
+            cancelButtonColor: '#f3f4f6',
+            confirmButtonText: '<span style="font-weight:600">Yes, Logout</span>',
+            cancelButtonText: '<span style="color:#6b7280; font-weight:500">Batal</span>',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-[20px] border border-gray-100 shadow-xl',
+                confirmButton: 'rounded-xl px-6 py-2.5 shadow-lg shadow-green-100',
+                cancelButton: 'rounded-xl px-6 py-2.5'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route('logout') }}';
+                form.innerHTML = '@csrf';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>

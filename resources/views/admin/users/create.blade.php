@@ -1,328 +1,225 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create User')
-@section('page-title', 'Create New User')
+@section('title', 'Tambah Pengguna Baru')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">User Management</a></li>
-    <li class="breadcrumb-item active">Create</li>
+@push('styles')
+<style>
+    /* --- STYLE TOMBOL (FIXED) --- */
+    .btn-add {
+        background: #22c55e;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3);
+    }
+    .btn-add:hover {
+        background: #16a34a;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px -1px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-cancel {
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-cancel:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+
+    /* --- FORM CARD & INPUTS --- */
+    .form-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem; }
+    .form-label.required::after { content: "*"; color: #ef4444; margin-left: 4px; }
+
+    .form-control {
+        width: 100%; padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0; border-radius: 10px;
+        font-size: 0.9rem; color: #0f172a;
+        background-color: #f8fafc; transition: all 0.2s;
+    }
+    .form-control:focus {
+        background-color: white; border-color: #22c55e;
+        outline: none; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    }
+
+    /* Password Eye */
+    .password-wrapper { position: relative; }
+    .btn-toggle-password {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        background: none; border: none; color: #94a3b8; cursor: pointer;
+        transition: color 0.2s;
+    }
+    .btn-toggle-password:hover { color: #22c55e; }
+
+    /* Switch Custom */
+    .toggle-wrapper {
+        display: flex; align-items: center; gap: 12px;
+        padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #22c55e; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Section Divider */
+    .form-section-title {
+        font-size: 0.85rem; font-weight: 700; color: #94a3b8;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        border-bottom: 1px dashed #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem;
+    }
+
+    /* Action Buttons Area */
+    .form-actions {
+        margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;
+        display: flex; justify-content: flex-end; gap: 10px;
+    }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper">
+        <div>
+            <h1 class="page-title"><i class="fas fa-user-plus"></i> Tambah User Baru</h1>
+        </div>
+        <a href="{{ route('admin.users.index') }}" class="btn-cancel">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
+<div class="form-card fade-in-up">
+    <form action="{{ route('admin.users.store') }}" method="POST">
+        @csrf
 
-        <!-- Main Form -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-user-plus mr-1"></i>
-                        Create User
-                    </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem;">
+
+            <div>
+                <div class="form-section-title"><i class="far fa-id-card mr-2"></i> Identitas Pengguna</div>
+
+                <div class="form-group">
+                    <label class="form-label required">Nama Lengkap</label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Contoh: Budi Santoso" required>
+                    @error('name') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
-                <form action="{{ route('admin.users.store') }}" method="POST" id="createUserForm">
-                    @csrf
+                <div class="form-group">
+                    <label class="form-label required">Alamat Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="nama@perusahaan.com" required>
+                    @error('email') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                </div>
 
-                    <div class="card-body">
-                        <!-- Personal Information -->
-                        <div class="form-section mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-user mr-1"></i> Personal Information
-                            </h5>
+                <div class="form-group">
+                    <label class="form-label">Nomor Telepon / WhatsApp</label>
+                    <input type="text" name="phone_number" class="form-control" value="{{ old('phone_number') }}" placeholder="0812xxxx">
+                </div>
+            </div>
 
-                            <div class="form-group">
-                                <label for="name" class="required">Full Name</label>
-                                <input type="text"
-                                       class="form-control @error('name') is-invalid @enderror"
-                                       id="name"
-                                       name="name"
-                                       value="{{ old('name') }}"
-                                       required
-                                       maxlength="255"
-                                       placeholder="Enter user's full name">
-                                @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+            <div>
+                <div class="form-section-title"><i class="fas fa-user-shield mr-2"></i> Akses & Keamanan</div>
 
-                            <div class="form-group">
-                                <label for="email" class="required">Email Address</label>
-                                <input type="email"
-                                       class="form-control @error('email') is-invalid @enderror"
-                                       id="email"
-                                       name="email"
-                                       value="{{ old('email') }}"
-                                       required
-                                       maxlength="255"
-                                       placeholder="user@example.com">
-                                @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-text text-muted">Must be unique across the system</small>
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <label class="form-label required">Peran (Role)</label>
+                    <select name="role" class="form-control" style="background-image: none;" required>
+                        <option value="">-- Pilih Peran --</option>
+                        <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User (Peserta)</option>
+                        <option value="pic" {{ old('role') == 'pic' ? 'selected' : '' }}>PIC (Event Manager)</option>
+                        <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
+                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option>
+                    </select>
+                </div>
 
-                        <!-- Password Section (required on create) -->
-                        <div class="form-section mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-lock mr-1"></i> Password
-                            </h5>
-
-                            <div class="form-group">
-                                <label for="password" class="required">Password</label>
-                                <div class="input-group">
-                                    <input type="password"
-                                           class="form-control @error('password') is-invalid @enderror"
-                                           id="password"
-                                           name="password"
-                                           minlength="8"
-                                           required
-                                           placeholder="Enter password (min 8 chars)">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
-                                            <i class="fas fa-eye" id="password-eye"></i>
-                                        </button>
-                                    </div>
-                                    @error('password')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Password Strength Indicator -->
-                                <div class="password-strength mt-2" style="display: none;">
-                                    <div class="progress" style="height: 5px;">
-                                        <div id="password-strength-bar" class="progress-bar" style="width: 0%"></div>
-                                    </div>
-                                    <small id="password-strength-text" class="form-text text-muted">Password strength: Not set</small>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="password_confirmation" class="required">Confirm Password</label>
-                                <div class="input-group">
-                                    <input type="password"
-                                           class="form-control @error('password_confirmation') is-invalid @enderror"
-                                           id="password_confirmation"
-                                           name="password_confirmation"
-                                           required
-                                           placeholder="Confirm password">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password_confirmation')">
-                                            <i class="fas fa-eye" id="password_confirmation-eye"></i>
-                                        </button>
-                                    </div>
-                                    @error('password_confirmation')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Role & Permissions -->
-                        <div class="form-section mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-user-tag mr-1"></i> Role & Permissions
-                            </h5>
-
-                            <div class="form-group">
-                                <label for="role" class="required">User Role</label>
-                                <select class="form-control @error('role') is-invalid @enderror"
-                                        id="role"
-                                        name="role"
-                                        required>
-                                    <option value="">-- Select Role --</option>
-                                    @if(Auth::user()->role === 'admin')
-                                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>
-                                            Administrator - Full system access
-                                        </option>
-                                    @endif
-                                    <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>
-                                        Staff - Limited administrative access
-                                    </option>
-                                    <option value="pic" {{ old('role') == 'pic' ? 'selected' : '' }}>
-                                        Person in Charge - Event management access
-                                    </option>
-                                    <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>
-                                        Regular User - Assessment taking access
-                                    </option>
-                                </select>
-                                @error('role')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Role Description -->
-                            <div id="role-description" class="alert alert-info">
-                                <div id="admin-desc" class="role-desc">
-                                    <strong>Administrator:</strong> Full access to all system features including user management, question bank, settings, and system monitoring.
-                                </div>
-                                <div id="staff-desc" class="role-desc">
-                                    <strong>Staff:</strong> Access to question bank management, results viewing, and basic administrative functions. Cannot manage users or system settings.
-                                </div>
-                                <div id="pic-desc" class="role-desc">
-                                    <strong>Person in Charge:</strong> Can create and manage events, register participants, and view results for their assigned events.
-                                </div>
-                                <div id="user-desc" class="role-desc">
-                                    <strong>Regular User:</strong> Can take assessments, view personal results, and request result re-sends. No administrative access.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Account Status -->
-                        <div class="form-section">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-toggle-on mr-1"></i> Account Status
-                            </h5>
-
-                            <div class="form-group">
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox"
-                                           class="custom-control-input"
-                                           id="is_active"
-                                           name="is_active"
-                                           value="1"
-                                           {{ old('is_active', 1) ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="is_active">
-                                        Account Active
-                                    </label>
-                                </div>
-                                <small class="form-text text-muted">
-                                    Inactive users cannot log in to the system
-                                </small>
-                            </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label required">Kata Sandi</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" id="password" class="form-control" placeholder="******" required>
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('password', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
-
-                    <div class="card-footer">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-                                    <i class="fas fa-times mr-1"></i> Cancel
-                                </a>
-                            </div>
-                            <div class="col-md-6 text-right">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save mr-1"></i> Create User
-                                </button>
-                            </div>
+                    <div class="form-group">
+                        <label class="form-label required">Ulangi Sandi</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_confirmation" id="password_confirm" class="form-control" placeholder="******" required>
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('password_confirm', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                </form>
+                <div class="form-group">
+                    <label class="form-label">Status Akun</label>
+                    <div class="toggle-wrapper">
+                        <label class="switch">
+                            <input type="checkbox" name="is_active" value="1" {{ old('is_active', 1) ? 'checked' : '' }}>
+                            <span class="slider"></span>
+                        </label>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: #1e293b;">Aktifkan Akun</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">User dapat login ke dalam sistem</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- (Tidak ada sidebar untuk halaman create) -->
-
-    </div>
+        <div class="form-actions">
+            <a href="{{ route('admin.users.index') }}" class="btn-cancel">Batal</a>
+            <button type="submit" class="btn-add">
+                <i class="fas fa-save"></i> Simpan Data
+            </button>
+        </div>
+    </form>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    // Toggle password visibility
-    function togglePassword(fieldId) {
-        const field = document.getElementById(fieldId);
-        const eye = document.getElementById(fieldId + '-eye');
-        if (field.type === 'password') {
-            field.type = 'text';
-            eye.classList.remove('fa-eye');
-            eye.classList.add('fa-eye-slash');
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
         } else {
-            field.type = 'password';
-            eye.classList.remove('fa-eye-slash');
-            eye.classList.add('fa-eye');
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
         }
     }
-
-    // Password strength checker
-    function checkPasswordStrength(password) {
-        let score = 0;
-        if (password.length >= 8) score += 25;
-        if (/[A-Z]/.test(password)) score += 25;
-        if (/[a-z]/.test(password)) score += 25;
-        if (/[0-9]/.test(password)) score += 15;
-        if (/[^A-Za-z0-9]/.test(password)) score += 10;
-        return { score };
-    }
-
-    $(document).ready(function() {
-        // Role description visibility
-        function showRoleDescription(role) {
-            const allDescs = document.querySelectorAll('.role-desc');
-            allDescs.forEach(d => d.style.display = 'none');
-            if (role) {
-                const target = document.getElementById(role + '-desc');
-                if (target) target.style.display = 'block';
-            }
-        }
-        showRoleDescription($('#role').val());
-        $('#role').on('change', function(){ showRoleDescription(this.value); });
-
-        // Password strength indicator
-        $('#password').on('input', function() {
-            const password = $(this).val();
-            const strengthDiv = $('.password-strength');
-            if (password) {
-                strengthDiv.show();
-                const result = checkPasswordStrength(password);
-                const progressBar = $('#password-strength-bar');
-                const strengthText = $('#password-strength-text');
-
-                progressBar.css('width', result.score + '%');
-                if (result.score < 50) {
-                    progressBar.removeClass().addClass('progress-bar bg-danger');
-                    strengthText.text('Password strength: Weak').removeClass().addClass('form-text text-danger');
-                } else if (result.score < 75) {
-                    progressBar.removeClass().addClass('progress-bar bg-warning');
-                    strengthText.text('Password strength: Fair').removeClass().addClass('form-text text-warning');
-                } else {
-                    progressBar.removeClass().addClass('progress-bar bg-success');
-                    strengthText.text('Password strength: Strong').removeClass().addClass('form-text text-success');
-                }
-            } else {
-                strengthDiv.hide();
-            }
-        });
-
-        // Form validation (password match)
-        $('#createUserForm').on('submit', function(e) {
-            const password = $('#password').val();
-            const confirm = $('#password_confirmation').val();
-            let ok = true;
-            if (password !== confirm) {
-                $('#password_confirmation').addClass('is-invalid');
-                if (!$('#password_confirmation').next('.invalid-feedback').length) {
-                    $('#password_confirmation').after('<div class="invalid-feedback">Passwords do not match.</div>');
-                }
-                ok = false;
-            } else {
-                $('#password_confirmation').removeClass('is-invalid');
-                $('#password_confirmation').next('.invalid-feedback').remove();
-            }
-            if (!ok) {
-                e.preventDefault();
-                if (typeof showErrorToast === 'function') {
-                    showErrorToast('Please fix the form errors before submitting.');
-                } else {
-                    alert('Please fix the form errors before submitting.');
-                }
-            }
-        });
-    });
 </script>
-@endpush
-
-@push('styles')
-<style>
-    .required::after { content: " *"; color: red; }
-    .form-section { border-radius: 0.5rem; transition: all 0.3s ease; }
-    .password-strength .progress { border-radius: 10px; }
-    .role-desc { display: none; }
-    .form-text.text-danger { color: #dc3545 !important; }
-    .form-text.text-warning { color: #ffc107 !important; }
-    .form-text.text-success { color: #28a745 !important; }
-</style>
 @endpush

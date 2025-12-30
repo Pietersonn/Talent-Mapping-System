@@ -110,6 +110,7 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('destroy');
             Route::post('/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('toggle-status');
             Route::post('/{user}/reset-password', [AdminUserController::class, 'resetPassword'])->name('reset-password');
+            Route::get('/export/pdf', [AdminUserController::class, 'exportPdf'])->name('export.pdf');
         });
 
         // Events
@@ -179,13 +180,7 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::get('/insight',        [ReportController::class, 'insight'])->name('insight');
 
             // === PDF EXPORTS ===
-            Route::get('/pdf/health',         [ReportController::class, 'exportHealthPdf'])->name('pdf.health');
             Route::get('/pdf/participants',   [ReportController::class, 'exportParticipantsPdf'])->name('pdf.participants');
             Route::get('/pdf/events',         [ReportController::class, 'exportEventsPdf'])->name('pdf.events');
-            Route::get('/pdf/delivery',       [ReportController::class, 'exportDeliveryPdf'])->name('pdf.delivery');
-            Route::get('/pdf/resend',         [ReportController::class, 'exportResendPdf'])->name('pdf.resend');
-            Route::get('/pdf/data-quality',   [ReportController::class, 'exportDataQualityPdf'])->name('pdf.data_quality');
-            Route::get('/pdf/anomaly',        [ReportController::class, 'exportAnomalyPdf'])->name('pdf.anomaly');
-            Route::get('/pdf/insight',        [ReportController::class, 'exportInsightPdf'])->name('pdf.insight');
         });
     });

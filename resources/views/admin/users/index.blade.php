@@ -1,349 +1,222 @@
 @extends('admin.layouts.app')
 
-@section('title', 'User Management')
-@section('page-title', 'User Management')
+@section('title', 'Manajemen User')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item active">User Management</li>
+@push('styles')
+<style>
+    /* --- SEARCH & BUTTONS STYLE --- */
+    .search-group { position: relative; width: 320px; }
+    .search-input { width: 100%; height: 46px; padding: 10px 45px 10px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: #ffffff; transition: all 0.3s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #334155; }
+    .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+    .loading-spinner { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
+    .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; transition: opacity 0.2s; }
+
+    .btn-print { width: 46px; height: 46px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .btn-print:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; transform: translateY(-1px); }
+
+    .btn-add { height: 46px; padding: 0 24px; background: #22c55e; color: white; border-radius: 12px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3); transition: all 0.2s; }
+    .btn-add:hover { background: #16a34a; transform: translateY(-1px); }
+
+    /* --- TABLE STYLE --- */
+    .table-card { background: white; border: 1px solid #f1f5f9; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .custom-table th { text-align: left; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    .custom-table td { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 0.9rem; color: #334155; background: white; }
+    .custom-table tr:hover td { background-color: #f8fafc; }
+
+    .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot-active { background-color: #22c55e; }
+    .dot-inactive { background-color: #ef4444; }
+
+    .badge-role { padding: 6px 12px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+    .role-admin { background: #f3e8ff; color: #7e22ce; }
+    .role-user { background: #f1f5f9; color: #475569; }
+    .role-pic { background: #ffedd5; color: #c2410c; }
+    .role-staff { background: #e0f2fe; color: #0369a1; }
+
+    .action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-view { background: #ecfdf5; color: #059669; }
+    .btn-edit { background: #eff6ff; color: #2563eb; }
+    .btn-delete { background: #fef2f2; color: #dc2626; }
+    .btn-icon:hover { opacity: 0.8; transform: scale(1.05); }
+
+    @media print { body { display: none; } }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
+                <i class="fas fa-users" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 8px; margin-right: 8px;"></i>
+                Manajemen User
+            </h1>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="search-group">
+                <input type="text" id="realtimeSearch" class="search-input" placeholder="Cari data..." autocomplete="off">
+                <i class="fas fa-search search-icon"></i>
+                <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
+            </div>
+
+            <a href="{{ route('admin.users.export.pdf', request()->query()) }}"
+               class="btn-print"
+               id="btnExportPdf"
+               target="_blank"
+               title="Cetak PDF Laporan">
+                <i class="fas fa-print"></i>
+            </a>
+
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.users.create') }}" class="btn-add">
+                    <i class="fas fa-plus"></i>
+                </a>
+            @endif
+        </div>
+    </div>
 @endsection
 
 @section('content')
-    <div class="container-fluid">
-
-        <!-- Filter & Search Section -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-users mr-1"></i>
-                            User Management
-                        </h3>
-                        <div class="card-tools">
-                            @if(Auth::user()->role === 'admin')
-                                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-plus"></i> Add New User
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <form method="GET" action="{{ route('admin.users.index') }}">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <label for="search">Search Users:</label>
-                                    <input type="text" id="search" name="search" class="form-control"
-                                           placeholder="Search by name or email..." value="{{ request('search') }}">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="role">Filter by Role:</label>
-                                    <select id="role" name="role" class="form-control">
-                                        <option value="">All Roles</option>
-                                        <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Administrator</option>
-                                        <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Staff</option>
-                                        <option value="pic" {{ request('role') == 'pic' ? 'selected' : '' }}>Person in Charge</option>
-                                        <option value="user" {{ request('role') == 'user' ? 'selected' : '' }}>User</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="status">Filter by Status:</label>
-                                    <select id="status" name="status" class="form-control">
-                                        <option value="">All Status</option>
-                                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>&nbsp;</label><br>
-                                    <button type="submit" class="btn btn-info btn-sm">
-                                        <i class="fas fa-search"></i> Filter
-                                    </button>
-                                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary btn-sm ml-1">
-                                        <i class="fas fa-times"></i> Clear
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Statistics Cards -->
-        <div class="row">
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>{{ $statistics['total_users'] }}</h3>
-                        <p>Total Users</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ $statistics['active_users'] }}</h3>
-                        <p>Active Users</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>{{ $statistics['admins'] + $statistics['staff'] }}</h3>
-                        <p>Admin & Staff</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>{{ $statistics['pics'] + $statistics['regular_users'] }}</h3>
-                        <p>PIC & Users</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-friends"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Users Table -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Users List</h3>
-                        <div class="card-tools">
-                            <span class="badge badge-info">{{ $users->total() }} total users</span>
-                        </div>
-                    </div>
-                    <div class="card-body table-responsive p-0">
-                        @if($users->count() > 0)
-                            <table class="table table-hover text-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th width="200">Name</th>
-                                        <th width="200">Email</th>
-                                        <th width="100">Role</th>
-                                        <th width="80">Status</th>
-                                        <th width="100">Activity</th>
-                                        <th width="120">Created</th>
-                                        <th width="150">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($users as $user)
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div>
-                                                        <p>{{ $user->name }}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ $user->email }}</td>
-                                            <td>
-                                                <span class="badge badge-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'staff' ? 'warning' : ($user->role === 'pic' ? 'info' : 'success')) }}">
-                                                    {{ ucfirst($user->role) }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-{{ $user->is_active ? 'success' : 'secondary' }}">
-                                                    <i class="fas fa-{{ $user->is_active ? 'check-circle' : 'times-circle' }}"></i>
-                                                    {{ $user->is_active ? 'Active' : 'Inactive' }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="text-sm">
-                                                    @if($user->test_sessions_count > 0)
-                                                        <div><i class="fas fa-clipboard-check text-info"></i> {{ $user->test_sessions_count }} tests</div>
-                                                    @endif
-                                                    @if($user->pic_events_count > 0)
-                                                        <div><i class="fas fa-calendar text-warning"></i> {{ $user->pic_events_count }} events</div>
-                                                    @endif
-                                                    @if($user->test_sessions_count == 0 && $user->pic_events_count == 0)
-                                                        <span class="text-muted">No activity</span>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">{{ $user->created_at->format('d M Y') }}</small>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="{{ route('admin.users.show', $user) }}"
-                                                       class="btn btn-info" title="View Details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-
-                                                    @if(Auth::user()->role === 'admin' || Auth::id() === $user->id)
-                                                        <a href="{{ route('admin.users.edit', $user) }}"
-                                                           class="btn btn-warning" title="Edit User">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                    @endif
-
-                                                    @if(Auth::user()->role === 'admin' && Auth::id() !== $user->id)
-                                                        <button type="button"
-                                                                class="btn btn-{{ $user->is_active ? 'secondary' : 'success' }}"
-                                                                onclick="confirmToggleStatus('{{ $user->name }}', '{{ route('admin.users.toggle-status', $user) }}', {{ $user->is_active ? 'true' : 'false' }})"
-                                                                title="{{ $user->is_active ? 'Deactivate' : 'Activate' }} User">
-                                                            <i class="fas fa-power-off"></i>
-                                                        </button>
-
-                                                        @if($user->role !== 'admin' || Auth::user()->role === 'admin')
-                                                            <button type="button"
-                                                                    class="btn btn-danger"
-                                                                    onclick="confirmDelete('{{ $user->name }}', '{{ route('admin.users.destroy', $user) }}')"
-                                                                    title="Delete User">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        @endif
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        @else
-                            <div class="text-center py-4">
-                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                                <h5 class="text-muted">No Users Found</h5>
-                                <p class="text-muted">
-                                    @if(request()->hasAny(['search', 'role', 'status']))
-                                        No users match your current filters.
-                                        <br><a href="{{ route('admin.users.index') }}" class="btn btn-primary mt-2">
-                                            <i class="fas fa-times"></i> Clear Filters
-                                        </a>
+    <div class="table-card">
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th width="30%">Nama</th>
+                        <th width="25%">Email</th>
+                        <th width="15%">Peran</th>
+                        <th width="15%">Kontak</th>
+                        <th width="15%">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    @forelse($users as $user)
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0f172a;">
+                                    @if($user->is_active)
+                                        <span class="status-dot dot-active" title="Aktif"></span>
                                     @else
-                                        Start by creating your first user.
-                                        @if(Auth::user()->role === 'admin')
-                                            <br><a href="{{ route('admin.users.create') }}" class="btn btn-primary mt-2">
-                                                <i class="fas fa-plus"></i> Add First User
-                                            </a>
-                                        @endif
+                                        <span class="status-dot dot-inactive" title="Tidak Aktif"></span>
                                     @endif
-                                </p>
-                            </div>
-                        @endif
-                    </div>
-                    @if($users->hasPages())
-                        <div class="card-footer clearfix">
-                            {{ $users->appends(request()->query())->links() }}
-                        </div>
-                    @endif
-                </div>
-            </div>
+                                    {{ $user->name }}
+                                </div>
+                            </td>
+                            <td style="color: #64748b;">{{ $user->email }}</td>
+                            <td><span class="badge-role role-{{ strtolower($user->role) }}">{{ ucfirst($user->role) }}</span></td>
+                            <td style="font-family: monospace; font-weight: 600; color: #334155;">{{ $user->phone_number ?? '-' }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ route('admin.users.show', $user->id) }}" class="btn-icon btn-view"><i class="fas fa-eye text-xs"></i></a>
+                                    @if(Auth::user()->role === 'admin' || Auth::id() === $user->id)
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="btn-icon btn-edit"><i class="fas fa-pen text-xs"></i></a>
+                                    @endif
+                                    @if(Auth::user()->role === 'admin' && Auth::id() !== $user->id)
+                                        <button onclick="deleteUser('{{ $user->name }}', '{{ route('admin.users.destroy', $user->id) }}')" class="btn-icon btn-delete"><i class="fas fa-trash text-xs"></i></button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align:center; padding: 3rem; color: #94a3b8;">Tidak ada data.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        <!-- Role Distribution Chart -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-pie mr-1"></i>
-                            Role Distribution
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 col-sm-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-danger">
-                                        <i class="fas fa-user-shield"></i>
-                                    </span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Administrators</span>
-                                        <span class="info-box-number">{{ $statistics['admins'] }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-warning">
-                                        <i class="fas fa-user-cog"></i>
-                                    </span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Staff</span>
-                                        <span class="info-box-number">{{ $statistics['staff'] }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-info">
-                                        <i class="fas fa-user-tie"></i>
-                                    </span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Person in Charge</span>
-                                        <span class="info-box-number">{{ $statistics['pics'] }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-success">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Regular Users</span>
-                                        <span class="info-box-number">{{ $statistics['regular_users'] }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="mt-6 flex justify-end">
+        {{ $users->appends(request()->query())->links() }}
     </div>
 @endsection
 
 @push('scripts')
-    <script>
-        // Toggle status confirmation
-        function confirmToggleStatus(userName, toggleUrl, currentStatus) {
-            const action = currentStatus ? 'deactivate' : 'activate';
-            const actionText = currentStatus ? 'Deactivate' : 'Activate';
+<script>
+    // --- SEARCH REALTIME ---
+    let debounceTimer;
+    $('#realtimeSearch').on('input', function() {
+        const query = $(this).val();
 
-            confirmToggleStatus(
-                `${actionText} User?`,
-                `Are you sure you want to ${action} user "${userName}"?`,
-                toggleUrl,
-                currentStatus
-            );
-        }
+        $('.loading-spinner').show();
+        $('.search-icon').hide();
 
-        // Delete confirmation
-        function confirmDelete(userName, deleteUrl) {
-            confirmDelete(
-                'Delete User?',
-                `Are you sure you want to delete user "${userName}"? This action cannot be undone. Consider deactivating the user instead.`,
-                deleteUrl
-            );
-        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            $.ajax({
+                url: "{{ route('admin.users.index') }}",
+                type: "GET",
+                data: { search: query },
+                success: function(response) {
+                    renderTable(response);
+                    $('.loading-spinner').hide();
+                    $('.search-icon').show();
 
-        $(document).ready(function() {
-            // Auto-submit filter form on change
-            $('#role, #status').on('change', function() {
-                $(this).closest('form').submit();
+                    // Update Link PDF agar filter terbawa (Tanpa Popup Logic)
+                    let baseUrl = "{{ route('admin.users.export.pdf') }}";
+                    let newUrl = baseUrl + "?search=" + encodeURIComponent(query);
+                    $('#btnExportPdf').attr('href', newUrl);
+                },
+                error: function() {
+                    $('.loading-spinner').hide();
+                    $('.search-icon').show();
+                }
             });
+        }, 500);
+    });
 
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+    function renderTable(response) {
+        const tbody = $('#userTableBody');
+        const users = response.users.data;
+        const currentUserId = response.current_user_id;
+        const isAdmin = response.is_admin;
+
+        tbody.empty();
+
+        if (users.length === 0) {
+            tbody.html('<tr><td colspan="5" style="text-align:center; padding: 3rem; color: #94a3b8;">Tidak ada data user ditemukan.</td></tr>');
+            return;
+        }
+
+        let html = '';
+        users.forEach(user => {
+            const canEdit = isAdmin || currentUserId === user.id;
+            const canDelete = isAdmin && currentUserId !== user.id;
+
+            let editBtn = canEdit ? `<a href="${user.edit_url}" class="btn-icon btn-edit"><i class="fas fa-pen text-xs"></i></a>` : '';
+            let deleteBtn = canDelete ? `<button onclick="deleteUser('${user.name}', '${user.delete_url}')" class="btn-icon btn-delete"><i class="fas fa-trash text-xs"></i></button>` : '';
+            let phone = user.phone_number ? user.phone_number : '-';
+            let dotClass = user.is_active ? 'dot-active' : 'dot-inactive';
+
+            html += `<tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0f172a;">
+                        <span class="status-dot ${dotClass}"></span>
+                        ${user.name}
+                    </div>
+                </td>
+                <td style="color: #64748b;">${user.email}</td>
+                <td><span class="badge-role role-${user.role.toLowerCase()}">${user.role}</span></td>
+                <td style="font-family: monospace; font-weight: 600; color: #334155;">${phone}</td>
+                <td><div class="action-buttons">${editBtn}${deleteBtn}</div></td>
+            </tr>`;
         });
-    </script>
+        tbody.html(html);
+    }
+
+    function deleteUser(name, url) {
+        Swal.fire({
+            title: 'Hapus User?', html: `Yakin ingin menghapus <b>${name}</b>?`, icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#dc2626', cancelButtonColor: '#f1f5f9',
+            confirmButtonText: 'Ya', cancelButtonText: '<span style="color:black">Batal</span>',
+            customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl px-4 py-2', cancelButton: 'rounded-xl px-4 py-2' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form'); form.method = 'POST'; form.action = url;
+                form.innerHTML = '@csrf @method("DELETE")'; document.body.appendChild(form); form.submit();
+            }
+        });
+    }
+</script>
 @endpush

@@ -5,210 +5,223 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
-
     /**
-     * Display a listing of users
+     * Menampilkan daftar user, menangani pencarian (search), filter, dan response AJAX untuk tabel.
      */
     public function index(Request $request)
     {
-        $query = User::query();
+        // Query dasar dengan menghitung relasi untuk statistik sederhana jika diperlukan
+        $query = User::withCount(['testSessions', 'picEvents']);
 
-        if ($request->filled('role')) {
-            $query->where('role', $request->role);
-        }
-
-        if ($request->filled('status')) {
-            $status = $request->status === 'active';
-            $query->where('is_active', $status);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%");
+        // Logika Pencarian (Mencakup Nama, Email, Role, dan No HP)
+        if ($request->has('search') && !empty($request->search)) {
+            $term = $request->search;
+            $query->where(function($q) use ($term) {
+                $q->where('name', 'like', '%'.$term.'%')
+                  ->orWhere('email', 'like', '%'.$term.'%')
+                  ->orWhere('role', 'like', '%'.$term.'%')
+                  ->orWhere('phone_number', 'like', '%'.$term.'%');
             });
         }
 
-        $users = $query->withCount(['testSessions', 'picEvents', 'resendRequests'])
-                       ->orderBy('created_at', 'desc')
-                       ->paginate(15);
+        // Filter berdasarkan Role (Opsional)
+        if ($request->has('role') && !empty($request->role)) {
+            $query->where('role', $request->role);
+        }
 
-        $statistics = [
-            'total_users'    => User::count(),
-            'active_users'   => User::where('is_active', true)->count(),
-            'admins'         => User::where('role', 'admin')->count(),
-            'staff'          => User::where('role', 'staff')->count(),
-            'pics'           => User::where('role', 'pic')->count(),
-            'regular_users'  => User::where('role', 'user')->count(),
-        ];
+        // Ambil data terbaru dengan pagination
+        $users = $query->latest()->paginate(10);
 
-        return view('admin.users.index', compact('users', 'statistics'));
+        // Jika request berasal dari AJAX (Pencarian Realtime), kembalikan JSON
+        if ($request->ajax()) {
+            $users->getCollection()->transform(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone_number' => $user->phone_number ?? '-',
+                    'role' => ucfirst($user->role),
+                    'role_raw' => $user->role, // Digunakan untuk class warna badge di CSS
+                    'is_active' => $user->is_active,
+                    'avatar_letter' => substr($user->name, 0, 1),
+                    'edit_url' => route('admin.users.edit', $user->id),
+                    'delete_url' => route('admin.users.destroy', $user->id),
+                    'show_url' => route('admin.users.show', $user->id),
+                ];
+            });
+
+            return response()->json([
+                'users' => $users,
+                'current_user_id' => Auth::id(),
+                'is_admin' => Auth::user()->role === 'admin'
+            ]);
+        }
+
+        // Jika bukan AJAX, tampilkan view utama
+        return view('admin.users.index', compact('users'));
     }
 
+    /**
+     * Menampilkan form untuk membuat user baru.
+     */
     public function create()
     {
         return view('admin.users.create');
     }
 
+    /**
+     * Menyimpan data user baru ke database setelah validasi.
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'name'      => ['required', 'string', 'max:255'],
-            'email'     => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'password'  => ['required', 'confirmed', Rules\Password::defaults()],
-            'role'      => ['required', 'in:admin,staff,pic,user'],
-            'is_active' => ['boolean'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:admin,staff,pic,user'],
+            'phone_number' => ['nullable', 'string', 'max:20'],
         ]);
 
-        // Redundant safety (karena sudah di middleware)
-        if ($request->role === 'admin' && Auth::user()->role !== 'admin') {
-            return back()->withErrors(['role' => 'Only administrators can create admin users.'])->withInput();
-        }
-
-        $user = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'role'      => $request->role,
-            'is_active' => $request->boolean('is_active', true),
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'phone_number' => $request->phone_number,
+            'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', "User '{$user->name}' created successfully.");
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
+    /**
+     * Menampilkan detail profil user beserta statistik aktivitasnya.
+     */
     public function show(User $user)
     {
-        $user->load([
-            'testSessions' => fn ($q) => $q->latest()->take(5),
-            'picEvents'    => fn ($q) => $q->latest()->take(5),
-            'resendRequests' => fn ($q) => $q->latest()->take(5),
-        ]);
+        // Eager load relasi untuk ditampilkan di halaman detail
+        $user->load(['testSessions.event', 'picEvents', 'resendRequests.approvedBy']);
 
-        $userStats = [
+        // Menghitung statistik untuk dashboard mini di profil user
+        $stats = [
             'total_test_sessions' => $user->testSessions()->count(),
-            'completed_tests'     => $user->testSessions()->where('is_completed', true)->count(),
-            'events_as_pic'       => $user->picEvents()->count(),
-            'total_resend_requests' => $user->resendRequests()->count(),
-            'last_login'          => $user->last_login_at ?? 'Never',
-            'account_age'         => $user->created_at?->diffForHumans() ?? '-',
+            'completed_tests' => $user->testSessions()->where('is_completed', true)->count(),
+            'events_as_pic' => $user->picEvents()->count(),
+            'account_age' => $user->created_at->diffForHumans(null, true),
         ];
 
-        return view('admin.users.show', compact('user', 'userStats'));
+        return view('admin.users.show', compact('user', 'stats'));
     }
 
+    /**
+     * Menampilkan form untuk mengedit data user.
+     */
     public function edit(User $user)
     {
-        // Redundant safety
-        if ($user->role === 'admin' && Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
-            return redirect()->route('admin.users.index')->with('error', 'You cannot edit administrator accounts.');
-        }
-
         return view('admin.users.edit', compact('user'));
     }
 
+    /**
+     * Memperbarui data user yang sudah ada di database.
+     */
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'      => ['required', 'string', 'max:255'],
-            'email'     => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'password'  => ['nullable', 'confirmed', Rules\Password::defaults()],
-            'role'      => ['required', 'in:admin,staff,pic,user'],
-            'is_active' => ['boolean'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'role' => ['required', 'string', 'in:admin,staff,pic,user'],
+            'phone_number' => ['nullable', 'string', 'max:20'],
         ]);
 
-        if ($user->role === 'admin' && Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
-            return back()->withErrors(['role' => 'You cannot modify administrator accounts.'])->withInput();
-        }
-
-        if ($request->role === 'admin' && Auth::user()->role !== 'admin') {
-            return back()->withErrors(['role' => 'Only administrators can assign admin role.'])->withInput();
-        }
-
-        if (Auth::id() === $user->id && !$request->boolean('is_active', true)) {
-            return back()->withErrors(['is_active' => 'You cannot deactivate your own account.'])->withInput();
-        }
-
-        $userData = [
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'role'      => $request->role,
-            'is_active' => $request->boolean('is_active', true),
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
+            'phone_number' => $request->phone_number,
+            'is_active' => $request->has('is_active'),
         ];
 
+        // Update password hanya jika diisi
         if ($request->filled('password')) {
-            $userData['password'] = Hash::make($request->password);
+            $request->validate([
+                'password' => ['confirmed', Rules\Password::defaults()],
+            ]);
+            $data['password'] = Hash::make($request->password);
         }
 
-        $user->update($userData);
+        $user->update($data);
 
-        return redirect()->route('admin.users.show', $user)
-            ->with('success', "User '{$user->name}' updated successfully.");
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
+    /**
+     * Menghapus user dari database (dengan proteksi hapus diri sendiri).
+     */
     public function destroy(User $user)
     {
-        if (Auth::id() === $user->id) {
-            return redirect()->route('admin.users.index')->with('error', 'You cannot delete your own account.');
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'Cannot delete your own account.');
         }
-
-        if ($user->role === 'admin' && Auth::user()->role !== 'admin') {
-            return redirect()->route('admin.users.index')->with('error', 'Only administrators can delete admin accounts.');
-        }
-
-        $hasTestSessions = $user->testSessions()->exists();
-        $hasPicEvents    = $user->picEvents()->exists();
-
-        if ($hasTestSessions || $hasPicEvents) {
-            return redirect()->route('admin.users.index')
-                ->with('error', "Cannot delete user '{$user->name}' because they have associated test sessions or events. Consider deactivating instead.");
-        }
-
-        $userName = $user->name;
         $user->delete();
-
-        return redirect()->route('admin.users.index')
-            ->with('success', "User '{$userName}' deleted successfully.");
+        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 
+    /**
+     * Mengubah status aktif/non-aktif user secara cepat (Quick Action).
+     */
     public function toggleStatus(User $user)
     {
-        if (Auth::id() === $user->id && $user->is_active) {
-            return back()->with('error', 'You cannot deactivate your own account.');
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'Cannot deactivate your own account.');
         }
-
-        if ($user->role === 'admin' && Auth::user()->role !== 'admin' && Auth::id() !== $user->id) {
-            return back()->with('error', 'You cannot modify administrator accounts.');
-        }
-
-        $newStatus = !$user->is_active;
-        $user->update(['is_active' => $newStatus]);
-
-        return back()->with('success', "User '{$user->name}' has been " . ($newStatus ? 'activated' : 'deactivated') . '.');
+        $user->update(['is_active' => !$user->is_active]);
+        return back()->with('success', 'User status updated.');
     }
 
+    /**
+     * Mereset password user ke string acak secara manual (Quick Action).
+     */
     public function resetPassword(User $user)
     {
-        if (Auth::user()->role !== 'admin') {
-            return back()->with('error', 'Only administrators can reset user passwords.');
+        // Generate password acak 10 karakter
+        $tempPassword = Str::random(10);
+        $user->update(['password' => Hash::make($tempPassword)]);
+
+        // Mengembalikan password sementara ke flash session agar bisa dicopy admin
+        return back()->with('success', 'Password reset to: ' . $tempPassword . ' (Please copy this)');
+    }
+    public function exportPdf(Request $request)
+    {
+        $query = User::query();
+
+        if ($request->filled('search')) {
+            $term = trim($request->search);
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%")
+                  ->orWhere('role', 'like', "%{$term}%")
+                  ->orWhere('phone_number', 'like', "%{$term}%");
+            });
         }
 
-        $tempPassword = 'TalentMap' . rand(1000, 9999);
+        $users = $query->orderBy('name', 'asc')->get();
 
-        $user->update([
-            'password' => Hash::make($tempPassword),
-            'password_changed_at' => null,
-        ]);
+        $pdf = Pdf::loadView('admin.users.pdf.userReport', [
+            'reportTitle' => 'Laporan Data Pengguna',
+            'generatedBy' => Auth::user()->name,
+            'generatedAt' => now()->format('d/m/Y H:i') . ' WITA',
+            'rows'        => $users,
+        ])->setPaper('a4', 'potrait');
 
-        return back()
-            ->with('success', "Password reset for '{$user->name}'. Temporary password: {$tempPassword}")
-            ->with('temp_password', $tempPassword);
+        return $pdf->stream('Laporan_User.pdf');
     }
+
 }

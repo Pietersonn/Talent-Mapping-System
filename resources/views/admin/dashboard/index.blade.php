@@ -1,427 +1,428 @@
 @extends('admin.layouts.app')
 
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item active">Dashboard</li>
-@endsection
+@push('styles')
+<style>
+    :root {
+        --primary: #22c55e;
+        --secondary: #64748b;
+        --bg-card: #ffffff;
+        --bg-hover: #f8fafc;
+        --border: #e2e8f0;
+        --radius: 12px;
+    }
+
+    /* --- COMPACT GRID LAYOUT --- */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto auto auto;
+        gap: 1rem; /* Jarak antar kotak rapat */
+        padding-bottom: 2rem;
+    }
+
+    /* Responsive Grid */
+    @media (max-width: 1024px) {
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* --- BENTO CARD STYLE --- */
+    .bento-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem; /* Padding compact */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bento-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    /* --- STATISTIC CARDS (Top Row) --- */
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    /* Icon Colors */
+    .icon-users { background: #eff6ff; color: #3b82f6; }
+    .icon-events { background: #f0fdf4; color: #22c55e; }
+    .icon-tests { background: #fefce8; color: #eab308; }
+    .icon-db { background: #fef2f2; color: #ef4444; }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stat-link {
+        font-size: 0.75rem;
+        color: var(--secondary);
+        text-decoration: none;
+        margin-top: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .stat-link:hover { color: var(--primary); }
+
+    /* --- CHART SECTION (Span 3 Cols) --- */
+    .col-span-3 { grid-column: span 3; }
+    .col-span-2 { grid-column: span 2; }
+
+    @media (max-width: 1024px) {
+        .col-span-3, .col-span-2 { grid-column: span 2; }
+    }
+    @media (max-width: 640px) {
+        .col-span-3, .col-span-2 { grid-column: span 1; }
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .section-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* --- COMPACT TABLE --- */
+    .compact-table { width: 100%; border-collapse: collapse; }
+    .compact-table th {
+        text-align: left;
+        font-size: 0.7rem;
+        color: var(--secondary);
+        text-transform: uppercase;
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .compact-table td {
+        padding: 0.6rem 0.5rem;
+        font-size: 0.8rem;
+        color: #334155;
+        border-bottom: 1px dashed #f1f5f9;
+        vertical-align: middle;
+    }
+    .compact-table tr:last-child td { border-bottom: none; }
+
+    /* User Avatar in Table */
+    .user-cell { display: flex; align-items: center; gap: 0.5rem; }
+    .avatar-xs {
+        width: 24px; height: 24px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: bold; color: #64748b;
+    }
+
+    /* --- QUICK LIST (System Health) --- */
+    .quick-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .quick-item {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 0.8rem;
+    }
+    .quick-label { color: var(--secondary); display: flex; align-items: center; gap: 6px; }
+    .quick-val { font-weight: 700; color: #0f172a; }
+
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-green { background: #22c55e; }
+    .dot-blue { background: #3b82f6; }
+    .dot-red { background: #ef4444; }
+
+    /* Filter Buttons */
+    .chart-filter {
+        background: #f1f5f9; border: none; padding: 4px 10px;
+        border-radius: 6px; font-size: 0.7rem; font-weight: 600; color: #64748b;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .chart-filter.active { background: #22c55e; color: white; }
+
+</style>
+@endpush
 
 @section('content')
-<!-- Main row -->
-<div class="row">
+<div class="dashboard-grid">
 
-    <!-- User Statistics -->
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-info">
-            <div class="inner">
-                <h3>{{ number_format($totalUsers) }}</h3>
-                <p>Total Users</p>
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($totalUsers) }}</div>
+                <div class="stat-label">Total Users</div>
             </div>
-            <div class="icon">
-                <i class="ion ion-person-add"></i>
+            <div class="stat-icon icon-users"><i class="fas fa-users"></i></div>
+        </div>
+        <a href="{{ route('admin.users.index') }}" class="stat-link">Lihat semua <i class="fas fa-arrow-right text-[10px]"></i></a>
+    </div>
+
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($activeEvents) }}</div>
+                <div class="stat-label">Active Events</div>
             </div>
-            <a href="{{ route('admin.users.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <div class="stat-icon icon-events"><i class="fas fa-calendar-check"></i></div>
+        </div>
+        <a href="{{ route('admin.events.index') }}" class="stat-link">Kelola Event <i class="fas fa-arrow-right text-[10px]"></i></a>
+    </div>
+
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($completedTests) }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-icon icon-tests"><i class="fas fa-clipboard-check"></i></div>
+        </div>
+        <a href="{{ route('admin.results.index') }}" class="stat-link">Lihat Hasil <i class="fas fa-arrow-right text-[10px]"></i></a>
+    </div>
+
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($totalST30Questions + $totalSJTQuestions) }}</div>
+                <div class="stat-label">Questions</div>
+            </div>
+            <div class="stat-icon icon-db"><i class="fas fa-database"></i></div>
+        </div>
+        <a href="{{ route('admin.questions.index') }}" class="stat-link">Bank Soal <i class="fas fa-arrow-right text-[10px]"></i></a>
+    </div>
+
+
+    <div class="bento-card col-span-3">
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-chart-area text-green-500"></i> Aktivitas Tes</div>
+            <div style="display: flex; gap: 5px;">
+                <button class="chart-filter active" onclick="updateStats('today')">Today</button>
+                <button class="chart-filter" onclick="updateStats('week')">Week</button>
+                <button class="chart-filter" onclick="updateStats('month')">Month</button>
+            </div>
+        </div>
+        <div style="flex: 1; min-height: 200px; position: relative;">
+            <canvas id="testActivityChart"></canvas>
         </div>
     </div>
 
-    <!-- Event Statistics -->
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-success">
-            <div class="inner">
-                <h3>{{ number_format($activeEvents) }}</h3>
-                <p>Active Events</p>
-            </div>
-            <div class="icon">
-                <i class="ion ion-calendar"></i>
-            </div>
-            <a href="{{ route('admin.events.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    <div class="bento-card">
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-bolt text-yellow-500"></i> Quick Pulse</div>
         </div>
-    </div>
 
-    <!-- Test Statistics -->
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-warning">
-            <div class="inner">
-                <h3>{{ number_format($completedTests) }}</h3>
-                <p>Completed Tests</p>
+        <div class="quick-list">
+            <div class="quick-item">
+                <span class="quick-label"><span class="status-dot dot-blue"></span> Today</span>
+                <span class="quick-val">{{ $testsToday }}</span>
             </div>
-            <div class="icon">
-                <i class="ion ion-checkmark"></i>
+            <div class="quick-item">
+                <span class="quick-label"><span class="status-dot dot-green"></span> This Week</span>
+                <span class="quick-val">{{ $testsThisWeek }}</span>
             </div>
-            <a href="{{ route('admin.results.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-    </div>
+            <div class="quick-item">
+                <span class="quick-label"><span class="status-dot dot-red"></span> Pending</span>
+                <span class="quick-val text-danger">{{ $pendingResendRequests }}</span>
+            </div>
 
-    <!-- Question Bank Statistics -->
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-danger">
-            <div class="inner">
-                <h3>{{ number_format($totalST30Questions + $totalSJTQuestions) }}</h3>
-                <p>Total Questions</p>
-            </div>
-            <div class="icon">
-                <i class="ion ion-help"></i>
-            </div>
-            <a href="{{ route('admin.questions.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
-    </div>
+            <hr style="border-top: 1px dashed #e2e8f0; margin: 0.5rem 0;">
 
-</div>
-<!-- /.row -->
-
-<!-- Second row -->
-<div class="row">
-
-    <!-- Test Activity Chart -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-chart-bar mr-1"></i>
-                    Test Activity (Last 7 Days)
-                </h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-primary btn-sm" data-period="today" onclick="updateStats('today')">Today</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" data-period="week" onclick="updateStats('week')">This Week</button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" data-period="month" onclick="updateStats('month')">This Month</button>
-                </div>
+            <div class="quick-item">
+                <span class="quick-label">Completion</span>
+                <span class="quick-val">{{ $completionRate }}%</span>
             </div>
-            <div class="card-body">
-                <canvas id="testActivityChart" width="400" height="150"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-tachometer-alt mr-1"></i>
-                    Quick Stats
-                </h3>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Tests Today
-                        <span class="badge badge-primary badge-pill">{{ $testsToday }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Tests This Week
-                        <span class="badge badge-success badge-pill">{{ $testsThisWeek }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Tests This Month
-                        <span class="badge badge-info badge-pill">{{ $testsThisMonth }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Completion Rate
-                        <span class="badge badge-warning badge-pill">{{ $completionRate }}%</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Pending Resends
-                        <span class="badge badge-danger badge-pill">{{ $pendingResendRequests }}</span>
-                    </li>
-                </ul>
+            <div class="quick-item">
+                <span class="quick-label">Email Sent</span>
+                <span class="quick-val">{{ $totalResults > 0 ? round(($emailsSent / $totalResults) * 100) : 0 }}%</span>
             </div>
         </div>
     </div>
 
-</div>
-<!-- /.row -->
 
-<!-- Third row -->
-<div class="row">
-
-    <!-- Recent Test Sessions -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-history mr-1"></i>
-                    Recent Test Sessions
-                </h3>
-                <div class="card-tools">
-                    <a href="{{ route('admin.results.index') }}" class="btn btn-tool">
-                        <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Participant</th>
-                                <th>Event</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentTestSessions as $session)
-                            <tr>
-                                <td>
-                                    <strong>{{ $session->participant_name ?? $session->user->name }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ $session->user->email }}</small>
-                                </td>
-                                <td>
-                                    @if($session->event)
-                                        {{ Str::limit($session->event->name, 30) }}
-                                    @else
-                                        <em class="text-muted">No Event</em>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($session->is_completed)
-                                        <span class="badge badge-success">Completed</span>
-                                    @else
-                                        <span class="badge badge-warning">{{ ucfirst(str_replace('_', ' ', $session->current_step)) }}</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <small>{{ $session->created_at->diffForHumans() }}</small>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">
-                                    No recent test sessions
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="bento-card col-span-2">
+        <div class="section-header">
+            <div class="section-title">Sesi Terbaru</div>
+            <a href="{{ route('admin.results.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="compact-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentTestSessions->take(5) as $session)
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar-xs">{{ substr($session->participant_name ?? $session->user->name, 0, 1) }}</div>
+                                <div style="display:flex; flex-direction:column; line-height:1.1;">
+                                    <span style="font-weight:600; font-size:0.8rem;">{{ $session->participant_name ?? $session->user->name }}</span>
+                                    <span style="font-size:0.65rem; color:#94a3b8;">{{ Str::limit($session->event->name ?? '-', 20) }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            @if($session->is_completed)
+                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">DONE</span>
+                            @else
+                                <span style="font-size:0.65rem; font-weight:700; color:#854d0e; background:#fef9c3; padding:2px 6px; border-radius:4px;">PROG</span>
+                            @endif
+                        </td>
+                        <td style="text-align: right; color: #94a3b8; font-size: 0.7rem;">
+                            {{ $session->created_at->diffForHumans(null, true) }}
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="3" style="text-align:center; padding: 1rem;">No data</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Recent Resend Requests -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-redo mr-1"></i>
-                    Recent Resend Requests
-                </h3>
-                <div class="card-tools">
-                    <a href="{{ route('admin.resend.index') }}" class="btn btn-tool">
-                        <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentResendRequests as $request)
-                            <tr>
-                                <td>
-                                    <strong>{{ $request->user->name }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ $request->user->email }}</small>
-                                </td>
-                                <td>
-                                    @if($request->status === 'pending')
-                                        <span class="badge badge-warning">Pending</span>
-                                    @elseif($request->status === 'approved')
-                                        <span class="badge badge-success">Approved</span>
-                                    @else
-                                        <span class="badge badge-danger">Rejected</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <small>{{ $request->created_at->diffForHumans() }}</small>
-                                </td>
-                                <td>
-                                    @if($request->status === 'pending' && Auth::user()->role === 'admin')
-                                        <a href="{{ route('admin.resend.show', $request->id) }}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">
-                                    No recent resend requests
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="bento-card col-span-2">
+        <div class="section-header">
+            <div class="section-title">Permintaan Resend</div>
+            <a href="{{ route('admin.resend.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="compact-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentResendRequests->take(5) as $request)
+                    <tr>
+                        <td>
+                            <span style="font-weight:500;">{{ $request->user->email }}</span>
+                        </td>
+                        <td>
+                            @if($request->status === 'pending')
+                                <span style="font-size:0.65rem; font-weight:700; color:#9a3412; background:#ffedd5; padding:2px 6px; border-radius:4px;">PENDING</span>
+                            @elseif($request->status === 'approved')
+                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">OK</span>
+                            @else
+                                <span style="font-size:0.65rem; font-weight:700; color:#991b1b; background:#fee2e2; padding:2px 6px; border-radius:4px;">REJECT</span>
+                            @endif
+                        </td>
+                        <td style="text-align: right;">
+                            @if($request->status === 'pending')
+                                <a href="{{ route('admin.resend.show', $request->id) }}" style="font-size:0.7rem; font-weight:700; color:#3b82f6;">REVIEW</a>
+                            @else
+                                <span style="font-size:0.7rem; color:#cbd5e1;">-</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="3" style="text-align:center; padding: 1rem;">No requests</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
 </div>
-<!-- /.row -->
-
-<!-- Fourth row - Role-specific content -->
-@if(Auth::user()->role === 'admin')
-<div class="row">
-
-    <!-- User Role Distribution -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-users mr-1"></i>
-                    User Role Distribution
-                </h3>
-            </div>
-            <div class="card-body">
-                <canvas id="userRoleChart" width="400" height="200"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Health -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-heartbeat mr-1"></i>
-                    System Health
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="progress-group">
-                    Email Delivery Rate
-                    <span class="float-right"><b>{{ $totalResults > 0 ? round(($emailsSent / $totalResults) * 100, 1) : 0 }}%</b></span>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar bg-success" style="width: {{ $totalResults > 0 ? ($emailsSent / $totalResults) * 100 : 0 }}%"></div>
-                    </div>
-                </div>
-
-                <div class="progress-group">
-                    Test Completion Rate
-                    <span class="float-right"><b>{{ $completionRate }}%</b></span>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar bg-primary" style="width: {{ $completionRate }}%"></div>
-                    </div>
-                </div>
-
-                <div class="progress-group">
-                    Active Users
-                    <span class="float-right"><b>{{ $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0 }}%</b></span>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar bg-info" style="width: {{ $totalUsers > 0 ? ($activeUsers / $totalUsers) * 100 : 0 }}%"></div>
-                    </div>
-                </div>
-
-                <div class="progress-group">
-                    Question Bank Coverage
-                    <span class="float-right"><b>{{ $activeVersions > 0 ? 100 : 0 }}%</b></span>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar bg-warning" style="width: {{ $activeVersions > 0 ? 100 : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-@endif
-<!-- /.row -->
-
 @endsection
 
 @push('scripts')
-<!-- Chart.js -->
 <script src="{{ asset('plugins/chart.js/Chart.min.js') }}"></script>
-
 <script>
 $(document).ready(function() {
-    // Test Activity Chart
-    var ctx = document.getElementById('testActivityChart').getContext('2d');
-    var testActivityChart = new Chart(ctx, {
+    Chart.defaults.font.family = "'Figtree', sans-serif";
+    Chart.defaults.color = '#94a3b8';
+
+    // --- Test Activity Chart ---
+    const ctx = document.getElementById('testActivityChart').getContext('2d');
+
+    // Gradient Hijau Compact
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(34, 197, 94, 0.15)');
+    gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');
+
+    new Chart(ctx, {
         type: 'line',
         data: {
             labels: {!! json_encode(array_column($testsPerDay, 'date')) !!},
             datasets: [{
-                label: 'Tests Completed',
+                label: 'Tests',
                 data: {!! json_encode(array_column($testsPerDay, 'count')) !!},
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                tension: 0.1
+                borderColor: '#22c55e',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                pointRadius: 2, // Titik kecil
+                pointHoverRadius: 4,
+                fill: true,
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+                    display: false, // Hilangkan sumbu Y agar chart terlihat bersih/compact
+                    beginAtZero: true
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 9 }, maxTicksLimit: 7 }
                 }
-            }
+            },
+            layout: { padding: { top: 10, bottom: 0, left: -5, right: 0 } }
         }
     });
-
-    @if(Auth::user()->role === 'admin')
-    // User Role Chart
-    var ctx2 = document.getElementById('userRoleChart').getContext('2d');
-    var userRoleChart = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: ['Participants', 'PICs', 'Staff', 'Admins'],
-            datasets: [{
-                data: [{{ $totalParticipants }}, {{ $totalPICs }}, {{ $totalStaff }}, {{ $totalAdmins }}],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(255, 205, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-    @endif
 });
 
-// Update statistics function
 function updateStats(period) {
-    // Update button states
-    $('[data-period]').removeClass('btn-primary').addClass('btn-outline-primary');
-    $('[data-period="' + period + '"]').removeClass('btn-outline-primary').addClass('btn-primary');
+    $('.chart-filter').removeClass('active');
+    $(event.target).addClass('active');
 
-    // Fetch new data
+    // AJAX Call logic here
     $.get('{{ route("admin.dashboard.stats") }}', { period: period })
-        .done(function(data) {
-            // Update stats - you can enhance this to update specific elements
-            console.log('Stats updated:', data);
-        });
+        .done(function(data) { console.log('Stats updated'); });
 }
-
-// Auto-refresh stats every 30 seconds
-setInterval(function() {
-    var activePeriod = $('.btn-primary[data-period]').data('period') || 'today';
-    updateStats(activePeriod);
-}, 30000);
 </script>
 @endpush

@@ -1,7 +1,13 @@
-{{-- resources/views/admin/layouts/partials/footer.blade.php --}}
-<footer class="main-footer">
-    <div class="float-right d-none d-sm-block">
-        <b>Version</b> 1.0.0
+<footer class="mt-12 py-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400 gap-3">
+    <div class="font-medium">
+        &copy; {{ date('Y') }} <span class="text-talent-600 font-bold">TalentMapping</span> System.
     </div>
-    <strong>Copyright &copy; {{ date('Y') }} <a href="https://bcti.id" target="_blank">BCTI</a>.</strong> All rights reserved.
+    <div class="flex items-center gap-6">
+        <a href="#" class="hover:text-talent-600 transition-colors">Bantuan</a>
+        <a href="#" class="hover:text-talent-600 transition-colors">Kebijakan Privasi</a>
+        <div class="flex items-center gap-2 px-2 py-1 bg-gray-100 rounded-md">
+            <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+            <span>v1.0 Online</span>
+        </div>
+    </div>
 </footer>

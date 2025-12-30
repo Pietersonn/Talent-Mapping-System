@@ -1,303 +1,169 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Event: ' . $event->name)
-@section('page-title', 'Event: ' . $event->name)
+@section('title', 'Detail Event')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.events.index') }}">Event Management</a></li>
-    <li class="breadcrumb-item active">{{ $event->name }}</li>
-@endsection
+@push('styles')
+<style>
+    /* Header Card yang menonjol */
+    .detail-header { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: start; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .event-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+    .event-meta { display: flex; gap: 1rem; color: #64748b; font-size: 0.9rem; align-items: center; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 10px; border-radius: 8px; border: 1px solid #f1f5f9; }
 
-@section('content')
-    <div class="container-fluid">
-        {{-- Header ringkas: nama + company + status + code --}}
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-start w-100">
-                            <div>
-                                <h3 class="card-title mb-0">
-                                    <i class="fas fa-calendar-alt mr-1"></i>
-                                    {{ $event->name }}
-                                </h3>
-                                <div class="text-muted small mt-1">
-                                    <i class="fas fa-building mr-1"></i>
-                                    {{ $event->company ?? '—' }}
-                                </div>
-                            </div>
-                            <div class="card-tools">
-                                <span class="badge badge-{{ $event->status_badge }} mr-2">{{ $event->status_display }}</span>
-                                <span class="badge badge-secondary">{{ $event->event_code }}</span>
-                            </div>
-                        </div>
-                    </div>
+    /* Layout Grid Dashboard (Bento Box) */
+    .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-                    <div class="card-body">
-                        <div class="row">
-                            {{-- Kiri: info singkat --}}
-                            <div class="col-md-8">
-                                @if($event->description)
-                                    <p class="text-muted">{{ $event->description }}</p>
-                                @endif
+    .bento-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .card-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; padding-bottom: 0.75rem; border-bottom: 2px solid #f1f5f9; }
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <strong><i class="fas fa-calendar mr-1"></i> Date Range:</strong><br>
-                                        {{ $event->start_date->format('d M Y') }} - {{ $event->end_date->format('d M Y') }}
-                                        <small class="text-muted d-block">
-                                            ({{ $event->start_date->diffInDays($event->end_date) + 1 }} days)
-                                        </small>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong><i class="fas fa-user-tie mr-1"></i> Person in Charge:</strong><br>
-                                        @if($event->pic)
-                                            {{ $event->pic->name }}
-                                            <small class="text-muted d-block">{{ $event->pic->email }}</small>
-                                        @else
-                                            <span class="text-muted">No PIC assigned</span>
-                                        @endif
-                                    </div>
-                                </div>
+    /* Info List Style */
+    .info-list { display: flex; flex-direction: column; gap: 1rem; }
+    .info-item { display: flex; justify-content: space-between; font-size: 0.875rem; }
+    .info-label { color: #64748b; font-weight: 500; }
+    .info-value { font-weight: 600; color: #0f172a; text-align: right; }
 
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <strong><i class="fas fa-users mr-1"></i> Participants:</strong><br>
-                                        {{ $stats['total_participants'] }}
-                                        @if($event->max_participants)
-                                            / {{ $event->max_participants }}
-                                            <small class="text-muted d-block">Maximum allowed</small>
-                                        @else
-                                            <small class="text-muted d-block">Unlimited</small>
-                                        @endif
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong><i class="fas fa-calendar-plus mr-1"></i> Created:</strong><br>
-                                        {{ $event->created_at->format('d M Y, H:i') }}
-                                        <small class="text-muted d-block">{{ $event->created_at->diffForHumans() }}</small>
-                                    </div>
-                                </div>
-                            </div>
+    /* Buttons & Badges */
+    .btn-action { padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-edit { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+    .btn-edit:hover { background: #dbeafe; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-active { background: #dcfce7; color: #166534; }
+    .badge-inactive { background: #fee2e2; color: #991b1b; }
 
-                            {{-- Kanan: actions ringkas --}}
-                            <div class="col-md-4">
-                                <div class="card bg-light">
-                                    <div class="card-header">
-                                        <h5 class="card-title mb-0">Quick Actions</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        @if(Auth::user()->role === 'admin')
-                                            <a href="{{ route('admin.events.edit', $event) }}" class="btn btn-warning btn-block btn-sm mb-2">
-                                                <i class="fas fa-edit mr-1"></i>
-                                                Edit Event
-                                            </a>
+    /* Simple Table for Participants */
+    .simple-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .simple-table th { text-align: left; padding: 12px; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+    .simple-table td { padding: 12px; border-bottom: 1px dashed #f1f5f9; color: #334155; }
+    .simple-table tr:last-child td { border-bottom: none; }
+</style>
+@endpush
 
-                                            <button type="button"
-                                                    class="btn btn-{{ $event->is_active ? 'secondary' : 'success' }} btn-block btn-sm mb-2"
-                                                    onclick="confirmToggleStatus('{{ $event->name }}', '{{ route('admin.events.toggle-status', $event) }}', {{ $event->is_active ? 'true' : 'false' }})">
-                                                <i class="fas fa-power-off mr-1"></i>
-                                                {{ $event->is_active ? 'Deactivate' : 'Activate' }} Event
-                                            </button>
-
-                                            @if($stats['total_participants'] == 0)
-                                                <button type="button"
-                                                        class="btn btn-danger btn-block btn-sm mb-2"
-                                                        onclick="confirmDelete('{{ $event->name }}', '{{ route('admin.events.destroy', $event) }}')">
-                                                    <i class="fas fa-trash mr-1"></i>
-                                                    Delete Event
-                                                </button>
-                                            @else
-                                                <button type="button" class="btn btn-outline-danger btn-block btn-sm mb-2" disabled title="Cannot delete event with participants">
-                                                    <i class="fas fa-trash mr-1"></i>
-                                                    Delete Event
-                                                </button>
-                                            @endif
-                                        @endif
-
-                                        <a href="{{ route('admin.events.index') }}" class="btn btn-secondary btn-block btn-sm">
-                                            <i class="fas fa-arrow-left mr-1"></i>
-                                            Back to Events
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> {{-- row --}}
-                    </div>
-                </div>
-            </div>
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 class="page-title" style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-calendar-week" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; font-size: 1.1rem;"></i>
+                Detail Event
+            </h1>
         </div>
-
-        {{-- =========================
-             Participants (tanpa cards warna)
-        ========================== --}}
-        @if($stats['total_participants'] > 0)
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-users mr-1"></i>
-                        Event Participants ({{ $stats['total_participants'] }})
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th style="width:22%;">Participant</th>
-                                    <th style="width:24%;">Email</th>
-                                    <th style="width:18%;">Registered</th>
-                                    <th style="width:12%;">Test</th>
-                                    <th style="width:12%;">Result</th>
-                                    <th style="width:12%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($event->participants as $participant)
-                                    <tr>
-                                        <td><strong>{{ $participant->name }}</strong></td>
-                                        <td>{{ $participant->email }}</td>
-                                        <td>
-                                            <small>{{ $participant->pivot->created_at->format('d M Y, H:i') }}</small>
-                                        </td>
-                                        <td>
-                                            @if($participant->pivot->test_completed)
-                                                <span class="badge badge-success">
-                                                    <i class="fas fa-check mr-1"></i>Completed
-                                                </span>
-                                            @else
-                                                <span class="badge badge-warning">
-                                                    <i class="fas fa-clock mr-1"></i>Pending
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($participant->pivot->results_sent)
-                                                <span class="badge badge-info">
-                                                    <i class="fas fa-paper-plane mr-1"></i>Sent
-                                                </span>
-                                            @else
-                                                <span class="badge badge-secondary">
-                                                    <i class="fas fa-envelope mr-1"></i>Not Sent
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                @if(Auth::user()->role === 'admin')
-                                                    <button type="button" class="btn btn-info btn-sm" title="View Details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-
-                                                    @if($participant->pivot->test_completed && !$participant->pivot->results_sent)
-                                                        <button type="button" class="btn btn-success btn-sm" title="Send Results">
-                                                            <i class="fas fa-paper-plane"></i>
-                                                        </button>
-                                                    @endif
-
-                                                    <button type="button" class="btn btn-danger btn-sm" title="Remove from Event">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @else
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Participants Yet</h5>
-                    <p class="text-muted">
-                        This event doesn't have any participants registered yet.
-                        @if(!$event->is_active)
-                            <br><span class="text-warning">Event is inactive — users cannot register.</span>
-                        @endif
-                    </p>
-                    @if(Auth::user()->role === 'admin' && !$event->is_active)
-                        <button type="button"
-                                class="btn btn-success mt-2"
-                                onclick="confirmToggleStatus('{{ $event->name }}', '{{ route('admin.events.toggle-status', $event) }}', false)">
-                            <i class="fas fa-power-off mr-1"></i>
-                            Activate Event
-                        </button>
-                    @endif
-                </div>
-            </div>
-        @endif
+        <a href="{{ route('admin.events.index') }}" class="btn-action" style="background: white; color: #64748b; border: 1px solid #e2e8f0;"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>
 @endsection
 
-@push('scripts')
-    <script>
-        function confirmToggleStatus(eventName, toggleUrl, currentStatus) {
-            const action = currentStatus ? 'deactivate' : 'activate';
-            const actionText = currentStatus ? 'Deactivate' : 'Activate';
-            let warningText = `Are you sure you want to ${action} event "${eventName}"?`;
+@section('content')
+<div class="fade-in-up">
+    <div class="detail-header">
+        <div>
+            <h2 class="event-title">{{ $event->name }}</h2>
+            <div class="event-meta">
+                <div class="meta-item"><i class="fas fa-barcode text-gray-400"></i> <span style="font-family: monospace;">{{ $event->event_code }}</span></div>
+                <div class="meta-item"><i class="fas fa-building text-gray-400"></i> {{ $event->company ?? 'Instansi Tidak Diisi' }}</div>
+                <span class="status-badge {{ $event->is_active ? 'badge-active' : 'badge-inactive' }}">
+                    <i class="fas fa-circle" style="font-size: 6px; margin-right: 4px; vertical-align: middle;"></i>
+                    {{ $event->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                </span>
+            </div>
+        </div>
 
-            @if($stats['total_participants'] > 0)
-                if (!currentStatus) {
-                    warningText += '\n\nThis event has {{ $stats["total_participants"] }} participants.';
-                }
+        @if(Auth::user()->role === 'admin')
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ route('admin.events.edit', $event->id) }}" class="btn-action btn-edit">
+                <i class="fas fa-pen-to-square"></i> Edit Event
+            </a>
+
+            <form action="{{ route('admin.events.toggle-status', $event->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="btn-action" style="background: #fefce8; color: #a16207; border: 1px solid #fef08a;">
+                    <i class="fas fa-power-off"></i> {{ $event->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                </button>
+            </form>
+        </div>
+        @endif
+    </div>
+
+    <div class="dashboard-grid">
+
+        <div class="bento-card">
+            <div class="card-title"><i class="fas fa-circle-info text-green-500"></i> Detail Informasi</div>
+
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label"><i class="far fa-calendar text-gray-400 mr-2"></i>Tanggal Mulai</span>
+                    <span class="info-value">{{ $event->start_date->format('d F Y') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="far fa-calendar-check text-gray-400 mr-2"></i>Tanggal Selesai</span>
+                    <span class="info-value">{{ $event->end_date->format('d F Y') }}</span>
+                </div>
+                <div class="info-item" style="border-top: 1px dashed #f1f5f9; padding-top: 1rem;">
+                    <span class="info-label"><i class="far fa-user-circle text-gray-400 mr-2"></i>PIC Event</span>
+                    <span class="info-value">{{ $event->pic->name ?? 'Belum ditentukan' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-users text-gray-400 mr-2"></i>Kuota Peserta</span>
+                    <span class="info-value">
+                        {{ $stats['total_participants'] }} / {{ $event->max_participants ?? '∞' }}
+                    </span>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid #f1f5f9;">
+                <div class="text-xs font-bold text-gray-500 uppercase mb-2">Deskripsi Event</div>
+                <p class="text-sm text-gray-600 leading-relaxed" style="white-space: pre-line;">
+                    {{ $event->description ?? 'Tidak ada deskripsi yang ditambahkan untuk event ini.' }}
+                </p>
+            </div>
+        </div>
+
+        <div class="bento-card" style="min-height: 400px;">
+            <div class="card-title" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-users-rectangle text-green-500"></i> Daftar Peserta Terbaru
+                </div>
+                <span style="background: #f1f5f9; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">Total: {{ $stats['total_participants'] }}</span>
+            </div>
+
+            @if($event->participants->count() > 0)
+                <div style="overflow-x: auto;">
+                    <table class="simple-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Peserta</th>
+                                <th>Email</th>
+                                <th style="text-align: right;">Status Tes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{-- Menampilkan 10 peserta terbaru saja agar tidak terlalu panjang --}}
+                            @foreach($event->participants->take(10) as $p)
+                                <tr>
+                                    <td style="font-weight: 600; color: #0f172a;">{{ $p->name }}</td>
+                                    <td style="color: #64748b;">{{ $p->email }}</td>
+                                    <td style="text-align: right;">
+                                        @if($p->pivot->test_completed)
+                                            <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">SELESAI</span>
+                                        @else
+                                            <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">PENDING</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @if($event->participants->count() > 10)
+                    <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #64748b;">
+                        Dan {{ $event->participants->count() - 10 }} peserta lainnya...
+                    </div>
+                @endif
+            @else
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1rem;">
+                    <i class="fas fa-user-slash fa-3x" style="color: #e2e8f0;"></i>
+                    <p>Belum ada peserta yang mendaftar di event ini.</p>
+                </div>
             @endif
-
-            customConfirm({
-                title: `${actionText} Event?`,
-                text: warningText,
-                icon: 'question',
-                confirmButtonText: `Yes, ${action.toLowerCase()}!`,
-                confirmButtonColor: currentStatus ? '#d33' : '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = toggleUrl;
-
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                    form.appendChild(csrfInput);
-
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-
-        function confirmDelete(eventName, deleteUrl) {
-            customConfirm({
-                title: 'Delete Event?',
-                text: `Are you sure you want to delete event "${eventName}"? This action cannot be undone and will remove all associated data.`,
-                icon: 'warning',
-                confirmButtonText: 'Yes, delete it!',
-                confirmButtonColor: '#d33'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = deleteUrl;
-
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                    form.appendChild(csrfInput);
-
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'DELETE';
-                    form.appendChild(methodInput);
-
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-    </script>
-@endpush
+        </div>
+    </div>
+</div>
+@endsection
