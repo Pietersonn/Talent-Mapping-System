@@ -12,8 +12,6 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\ResultController as AdminResultController;
 use App\Http\Controllers\Admin\ReportController;
-
-
 use App\Http\Controllers\Admin\ResendRequestController;
 use App\Http\Controllers\Admin\MonitoringController;
 use App\Http\Controllers\Admin\SettingController;
@@ -58,9 +56,12 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::get('/', [ST30QuestionController::class, 'index'])->name('index');
                 Route::get('/create', [ST30QuestionController::class, 'create'])->name('create')->middleware('role:admin');
                 Route::post('/', [ST30QuestionController::class, 'store'])->name('store')->middleware('role:admin');
+
+                // Routes khusus ST-30 (Export/Import/Reorder)
                 Route::get('/export',  [ST30QuestionController::class, 'export'])->name('export');
                 Route::post('/import', [ST30QuestionController::class, 'import'])->name('import')->middleware('role:admin');
                 Route::post('/reorder', [ST30QuestionController::class, 'reorder'])->name('reorder')->middleware('role:admin');
+
                 Route::get('/{st30Question}', [ST30QuestionController::class, 'show'])->name('show');
                 Route::get('/{st30Question}/edit', [ST30QuestionController::class, 'edit'])->name('edit')->middleware('role:admin');
                 Route::put('/{st30Question}', [ST30QuestionController::class, 'update'])->name('update')->middleware('role:admin');
@@ -72,6 +73,11 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::get('/', [SJTQuestionController::class, 'index'])->name('index');
                 Route::get('/create', [SJTQuestionController::class, 'create'])->name('create')->middleware('role:admin');
                 Route::post('/', [SJTQuestionController::class, 'store'])->name('store')->middleware('role:admin');
+
+                // [FIX] Menambahkan Route Export untuk SJT
+                Route::get('/export', [SJTQuestionController::class, 'export'])->name('export');
+                Route::post('/import', [SJTQuestionController::class, 'import'])->name('import')->middleware('role:admin'); // Opsional jika ada fitur import SJT
+
                 Route::get('/{sjtQuestion}', [SJTQuestionController::class, 'show'])->name('show');
                 Route::get('/{sjtQuestion}/edit', [SJTQuestionController::class, 'edit'])->name('edit')->middleware('role:admin');
                 Route::put('/{sjtQuestion}', [SJTQuestionController::class, 'update'])->name('update')->middleware('role:admin');
@@ -118,7 +124,7 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::get('/', [AdminEventController::class, 'index'])->name('index');
             Route::get('/create', [AdminEventController::class, 'create'])->name('create')->middleware('role:admin');
             Route::post('/', [AdminEventController::class, 'store'])->name('store')->middleware('role:admin');
-            Route::get('/export/pdf', [AdminEventController::class, 'exportPdf'])->name('export.pdf'); // <— NEW
+            Route::get('/export/pdf', [AdminEventController::class, 'exportPdf'])->name('export.pdf');
             Route::get('/{event}', [AdminEventController::class, 'show'])->name('show');
             Route::get('/{event}/edit', [AdminEventController::class, 'edit'])->name('edit')->middleware('role:admin');
             Route::put('/{event}', [AdminEventController::class, 'update'])->name('update')->middleware('role:admin');

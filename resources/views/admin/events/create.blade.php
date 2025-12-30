@@ -41,7 +41,6 @@
                 <i class="fas fa-plus-circle" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
                 Buat Event Baru
             </h1>
-            <div style="font-size: 0.9rem; color: #64748b; margin-left: 44px;">Isi formulir di bawah untuk membuat jadwal event.</div>
         </div>
         <a href="{{ route('admin.events.index') }}" class="btn-cancel"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>

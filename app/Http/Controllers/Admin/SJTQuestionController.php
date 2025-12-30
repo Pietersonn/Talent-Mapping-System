@@ -74,7 +74,7 @@ class SJTQuestionController extends Controller
 
         if (!$selectedVersion) {
             return redirect()->route('admin.questions.index')
-                ->with('error', 'No SJT version available. Please create a version first.');
+                ->with('error', 'Tidak ada versi SJT yang tersedia. Silakan buat versi terlebih dahulu.');
         }
 
         // Get next question number
@@ -82,8 +82,9 @@ class SJTQuestionController extends Controller
             ->max('number') + 1;
 
         if ($nextNumber > 50) {
-            return redirect()->route('admin.sjt.index', ['version' => $selectedVersion->id])
-                ->with('error', 'This version already has 50 questions (maximum).');
+            // FIX: Route updated to admin.questions.sjt.index
+            return redirect()->route('admin.questions.sjt.index', ['version' => $selectedVersion->id])
+                ->with('error', 'Versi ini sudah mencapai batas maksimum 50 pertanyaan.');
         }
 
         $competencies = CompetencyDescription::orderBy('competency_name')->get();
@@ -119,7 +120,7 @@ class SJTQuestionController extends Controller
 
         if ($exists) {
             return back()->withErrors([
-                'number' => 'Question number already exists in this version.'
+                'number' => 'Nomor pertanyaan sudah ada di versi ini.'
             ])->withInput();
         }
 
@@ -146,8 +147,9 @@ class SJTQuestionController extends Controller
             }
         });
 
-        return redirect()->route('admin.sjt.index', ['version' => $request->version_id])
-            ->with('success', 'SJT question with options created successfully.');
+        // FIX: Route updated to admin.questions.sjt.index
+        return redirect()->route('admin.questions.sjt.index', ['version' => $request->version_id])
+            ->with('success', 'Pertanyaan SJT beserta opsi berhasil dibuat.');
     }
 
     /**
@@ -194,7 +196,7 @@ class SJTQuestionController extends Controller
 
         if ($exists) {
             return back()->withErrors([
-                'number' => 'Question number already exists in this version.'
+                'number' => 'Nomor pertanyaan sudah ada di versi ini.'
             ])->withInput();
         }
 
@@ -221,8 +223,9 @@ class SJTQuestionController extends Controller
             }
         });
 
-        return redirect()->route('admin.sjt.index', ['version' => $sjtQuestion->version_id])
-            ->with('success', 'SJT question updated successfully.');
+        // FIX: Route updated to admin.questions.sjt.index
+        return redirect()->route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id])
+            ->with('success', 'Pertanyaan SJT berhasil diperbarui.');
     }
 
     /**
@@ -232,8 +235,9 @@ class SJTQuestionController extends Controller
     {
         // Check if question is used in responses
         if ($sjtQuestion->hasResponses()) {
-            return redirect()->route('admin.sjt.index', ['version' => $sjtQuestion->version_id])
-                ->with('error', 'Cannot delete question that has been used in tests.');
+            // FIX: Route updated to admin.questions.sjt.index
+            return redirect()->route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id])
+                ->with('error', 'Tidak dapat menghapus pertanyaan yang sudah digunakan dalam tes.');
         }
 
         $versionId = $sjtQuestion->version_id;
@@ -245,8 +249,9 @@ class SJTQuestionController extends Controller
             $sjtQuestion->delete();
         });
 
-        return redirect()->route('admin.sjt.index', ['version' => $versionId])
-            ->with('success', 'SJT question deleted successfully.');
+        // FIX: Route updated to admin.questions.sjt.index
+        return redirect()->route('admin.questions.sjt.index', ['version' => $versionId])
+            ->with('success', 'Pertanyaan SJT berhasil dihapus.');
     }
 
     /**
@@ -261,8 +266,9 @@ class SJTQuestionController extends Controller
 
         // TODO: Implement CSV/Excel import functionality
 
-        return redirect()->route('admin.sjt.index', ['version' => $request->version_id])
-            ->with('info', 'Import functionality will be implemented soon.');
+        // FIX: Route updated to admin.questions.sjt.index
+        return redirect()->route('admin.questions.sjt.index', ['version' => $request->version_id])
+            ->with('info', 'Fitur impor akan segera tersedia.');
     }
 
     /**
@@ -273,14 +279,16 @@ class SJTQuestionController extends Controller
         $versionId = $request->get('version');
 
         if (!$versionId) {
-            return redirect()->route('admin.sjt.index')
-                ->with('error', 'Please select a version to export.');
+            // FIX: Route updated to admin.questions.sjt.index
+            return redirect()->route('admin.questions.sjt.index')
+                ->with('error', 'Silakan pilih versi untuk diekspor.');
         }
 
         // TODO: Implement export functionality
 
-        return redirect()->route('admin.sjt.index', ['version' => $versionId])
-            ->with('info', 'Export functionality will be implemented soon.');
+        // FIX: Route updated to admin.questions.sjt.index
+        return redirect()->route('admin.questions.sjt.index', ['version' => $versionId])
+            ->with('info', 'Fitur ekspor akan segera tersedia.');
     }
 
     /**

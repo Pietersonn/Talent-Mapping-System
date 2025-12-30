@@ -1,393 +1,321 @@
 @extends('admin.layouts.app')
 
-@section('title', 'SJT Question Details')
-@section('page-title', 'SJT Question #' . $sjtQuestion->number)
+@section('title', 'Detail Soal SJT')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.index') }}">Question Bank</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.sjt.index') }}">SJT Questions</a></li>
-    <li class="breadcrumb-item active">Question #{{ $sjtQuestion->number }}</li>
-@endsection
+@push('styles')
+<style>
+    /* --- VARIABLES --- */
+    :root {
+        --text-main: #0f172a;
+        --text-sub: #64748b;
+        --bg-surface: #ffffff;
+        --bg-subtle: #f8fafc;
+        --border-color: #e2e8f0;
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --tm-green: #22c55e;
+        --tm-green-soft: #dcfce7;
+        --tm-green-dark: #15803d;
+    }
 
-@section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Main Content -->
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title d-flex align-items-center">
-                            <span class="badge badge-info badge-lg mr-3 px-3 py-2">Q{{ $sjtQuestion->number }}</span>
-                            <span>SJT Question Details</span>
-                        </h3>
-                        <div class="card-tools">
-                            <span class="badge badge-{{ $sjtQuestion->questionVersion->is_active ? 'success' : 'secondary' }} badge-lg">
-                                {{ $sjtQuestion->questionVersion->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <!-- Situation Description -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-scenario mr-2"></i> Situation
-                            </h5>
-                            <div class="situation-display p-3 bg-light rounded">
-                                <p class="mb-0 lead">{{ $sjtQuestion->question_text }}</p>
-                            </div>
-                            <button class="btn btn-link btn-sm mt-2" onclick="copyToClipboard('{{ addslashes($sjtQuestion->question_text) }}')">
-                                <i class="fas fa-copy mr-1"></i> Copy Situation
-                            </button>
-                        </div>
+    /* --- BENTO GRID --- */
+    .bento-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
 
-                        <!-- Answer Options -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-list-ol mr-2"></i> Answer Options
-                            </h5>
-                            @if($sjtQuestion->options->count() > 0)
-                                <div class="options-list">
-                                    @foreach($sjtQuestion->options->sortBy('option_letter') as $option)
-                                        <div class="card option-card mb-2">
-                                            <div class="card-body py-2">
-                                                <div class="row align-items-center">
-                                                    <div class="col-md-1">
-                                                        <span class="badge badge-primary badge-lg">{{ $option->option_letter }}</span>
-                                                    </div>
-                                                    <div class="col-md-8">
-                                                        <p class="mb-0">{{ $option->option_text }}</p>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <span class="badge badge-{{ $option->score >= 3 ? 'success' : ($option->score >= 2 ? 'warning' : 'danger') }} float-right">
-                                                            Score: {{ $option->score }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="col-md-1 text-right">
-                                                        <button class="btn btn-link btn-sm" onclick="toggleOptionDetails('{{ $option->id }}')">
-                                                            <i class="fas fa-info-circle"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div id="option-details-{{ $option->id }}" class="mt-2" style="display: none;">
-                                                    <small class="text-muted">
-                                                        <strong>Competency Target:</strong> {{ $option->competency_target }}<br>
-                                                        <strong>Score Rationale:</strong>
-                                                        @if($option->score >= 3)
-                                                            Most effective response - demonstrates strong competency
-                                                        @elseif($option->score >= 2)
-                                                            Moderately effective response - some competency shown
-                                                        @else
-                                                            Less effective response - minimal competency demonstrated
-                                                        @endif
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button class="btn btn-outline-primary btn-sm mt-2" onclick="copyAllOptions()">
-                                    <i class="fas fa-copy mr-1"></i> Copy All Options
-                                </button>
-                            @else
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    No options defined for this question. Please add options to make this question complete.
-                                </div>
-                            @endif
-                        </div>
+    .bento-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        height: 100%;
+        display: flex; flex-direction: column;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
 
-                        <!-- Competency Information -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-award mr-2"></i> Competency Information
-                            </h5>
-                            @if($sjtQuestion->competencyDescription)
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <span class="badge badge-secondary badge-lg px-3 py-2">
-                                                    {{ $sjtQuestion->competency }}
-                                                </span>
-                                            </div>
-                                            <div class="col-md-9">
-                                                <h6 class="mb-2">{{ $sjtQuestion->competencyDescription->competency_name }}</h6>
-                                                <p class="text-muted mb-2">
-                                                    <strong>Strength:</strong> {{ $sjtQuestion->competencyDescription->strength_description }}
-                                                </p>
-                                                <p class="text-muted mb-0">
-                                                    <strong>Development Activity:</strong> {{ $sjtQuestion->competencyDescription->improvement_activity }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    Competency description not found for code: {{ $sjtQuestion->competency }}
-                                </div>
-                            @endif
-                        </div>
+    .bento-title {
+        font-size: 0.85rem; font-weight: 700; color: var(--text-sub);
+        text-transform: uppercase; letter-spacing: 0.05em;
+        margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;
+    }
 
-                        <!-- Scoring Analysis -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-chart-line mr-2"></i> Scoring Analysis
-                            </h5>
-                            @if($sjtQuestion->options->count() > 0)
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h6 class="card-title mb-0">Score Distribution</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                @php
-                                                    $scoreDistribution = $sjtQuestion->options->groupBy('score')->map->count();
-                                                @endphp
-                                                @for($score = 0; $score <= 4; $score++)
-                                                    <div class="progress mb-1" style="height: 20px;">
-                                                        <div class="progress-bar bg-{{ $score >= 3 ? 'success' : ($score >= 2 ? 'warning' : 'danger') }}"
-                                                             style="width: {{ ($scoreDistribution[$score] ?? 0) * 20 }}%">
-                                                            Score {{ $score }}: {{ $scoreDistribution[$score] ?? 0 }} options
-                                                        </div>
-                                                    </div>
-                                                @endfor
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h6 class="card-title mb-0">Question Statistics</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <ul class="list-unstyled mb-0">
-                                                    <li><strong>Total Options:</strong> {{ $sjtQuestion->options->count() }}/5</li>
-                                                    <li><strong>Max Score:</strong> {{ $sjtQuestion->options->max('score') ?? 0 }}</li>
-                                                    <li><strong>Min Score:</strong> {{ $sjtQuestion->options->min('score') ?? 0 }}</li>
-                                                    <li><strong>Page Number:</strong> {{ $sjtQuestion->page_number }}</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+    /* --- STATEMENT HERO --- */
+    .statement-hero {
+        font-size: 1rem; line-height: 1.6; color: #334155; font-weight: 500;
+        padding: 1.25rem; background: var(--bg-subtle);
+        border-radius: var(--radius-md); border-left: 4px solid var(--tm-green);
+        position: relative;
+    }
+    .btn-copy-abs {
+        position: absolute; top: 10px; right: 10px; color: #94a3b8; cursor: pointer; transition: 0.2s;
+    }
+    .btn-copy-abs:hover { color: var(--tm-green); }
+
+    /* --- COMPETENCY SECTION --- */
+    .typo-visual {
+        display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+        padding-bottom: 1rem; border-bottom: 1px dashed var(--border-color);
+    }
+    .typo-code {
+        width: 48px; height: 48px; background: var(--tm-green); color: white;
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+    }
+    .typo-name { font-weight: 700; font-size: 1rem; color: var(--tm-green-dark); margin: 0; }
+    .typo-tag { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
+
+    /* --- OPTION LIST (Revised Layout) --- */
+    .option-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .opt-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px; padding: 1rem;
+        background: #fff;
+        display: flex; align-items: flex-start; gap: 1rem; /* Flex Row */
+        transition: 0.2s;
+    }
+    .opt-card:hover { border-color: #bae6fd; transform: translateY(-2px); }
+
+    /* Huruf (A, B, C...) */
+    .opt-badge {
+        width: 32px; height: 32px; flex-shrink: 0;
+        background: #e0f2fe; color: #0284c7;
+        font-weight: 800; font-size: 0.9rem;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; margin-top: 2px;
+    }
+
+    /* Teks Jawaban */
+    .opt-text {
+        font-size: 0.9rem; color: var(--text-main); font-weight: 500;
+        flex: 1; /* Mengisi ruang tengah */
+        line-height: 1.5;
+    }
+
+    /* Poin di Kanan */
+    .score-circle {
+        width: 32px; height: 32px; flex-shrink: 0;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.9rem;
+        margin-left: auto; /* Dorong ke kanan */
+    }
+    .s-high { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; } /* 3-4 */
+    .s-mid { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; } /* 2 */
+    .s-low { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; } /* 0-1 */
+
+    /* --- SIDEBAR META --- */
+    .meta-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 0; border-bottom: 1px solid var(--bg-subtle); font-size: 0.85rem;
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .mr-label { color: var(--text-sub); font-weight: 600; }
+    .mr-val { color: var(--text-main); font-weight: 600; }
+
+    .status-active { color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+    .status-inactive { color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+
+    /* --- BUTTONS --- */
+    .btn-cancel {
+        background: white; color: #64748b; border: 1px solid #e2e8f0;
+        padding: 10px 24px; border-radius: 12px; font-weight: 600;
+        text-decoration: none; transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+
+    .btn-nav-icon {
+        width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; background: var(--bg-subtle); color: var(--text-sub);
+        transition: 0.2s; border: 1px solid #e2e8f0; text-decoration: none;
+    }
+    .btn-nav-icon:hover:not(.disabled) { border-color: var(--tm-green); color: var(--tm-green); background: #f0fdf4; }
+    .btn-nav-icon.disabled { opacity: 0.5; cursor: default; }
+
+    .action-btn-group { display: flex; gap: 8px; margin-top: auto; }
+    .btn-act { flex: 1; padding: 8px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-align: center; border: none; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+    .act-edit { background: #eff6ff; color: #2563eb; }
+    .act-edit:hover { background: #dbeafe; }
+    .act-del { background: #fef2f2; color: #ef4444; }
+    .act-del:hover { background: #fee2e2; }
+
+    @media (max-width: 768px) { .bento-grid { grid-template-columns: 1fr; } }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-file-alt" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
+                Detail Soal SJT
+            </h1>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; gap: 4px;">
+                @if (isset($prevQuestion))
+                    <a href="{{ route('admin.questions.sjt.show', $prevQuestion) }}" class="btn-nav-icon" title="Sebelumnya"><i class="fas fa-chevron-left text-xs"></i></a>
+                @else
+                    <span class="btn-nav-icon disabled"><i class="fas fa-chevron-left text-xs"></i></span>
+                @endif
+
+                @if (isset($nextQuestion))
+                    <a href="{{ route('admin.questions.sjt.show', $nextQuestion) }}" class="btn-nav-icon" title="Selanjutnya"><i class="fas fa-chevron-right text-xs"></i></a>
+                @else
+                    <span class="btn-nav-icon disabled"><i class="fas fa-chevron-right text-xs"></i></span>
+                @endif
             </div>
 
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                <!-- Quick Actions -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-tools mr-1"></i> Quick Actions
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            @if(Auth::user()->role === 'admin')
-                                <a href="{{ route('admin.questions.sjt.edit', $sjtQuestion) }}" class="btn btn-warning btn-block">
-                                    <i class="fas fa-edit mr-2"></i> Edit Question
-                                </a>
-                                <button class="btn btn-danger btn-block"
-                                        onclick="confirmDelete('{{ $sjtQuestion->number }}', '{{ route('admin.questions.sjt.destroy', $sjtQuestion) }}')">
-                                    <i class="fas fa-trash mr-2"></i> Delete Question
-                                </button>
-                                <hr>
-                            @endif
-                            <a href="{{ route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id]) }}" class="btn btn-secondary btn-block">
-                                <i class="fas fa-list mr-2"></i> Back to List
-                            </a>
-                            <button class="btn btn-info btn-block" onclick="copyAllOptions()">
-                                <i class="fas fa-copy mr-2"></i> Copy Question & Options
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistics -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-bar mr-1"></i> Statistics
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="description-block border-right">
-                            <span class="description-percentage text-info">Q{{ $sjtQuestion->number }}</span>
-                            <h5 class="description-header">Question Number</h5>
-                            <span class="description-text">of 50 total</span>
-                        </div>
-
-                        <div class="description-block border-right mt-3">
-                            <span class="description-percentage text-{{ $sjtQuestion->options->count() == 5 ? 'success' : 'warning' }}">
-                                {{ $sjtQuestion->options->count() }}/5
-                            </span>
-                            <h5 class="description-header">Options</h5>
-                            <span class="description-text">
-                                {{ $sjtQuestion->options->count() == 5 ? 'Complete' : 'Incomplete' }}
-                            </span>
-                        </div>
-
-                        <div class="description-block mt-3">
-                            <span class="description-percentage text-secondary">{{ $sjtQuestion->competency }}</span>
-                            <h5 class="description-header">Competency</h5>
-                            <span class="description-text">{{ $sjtQuestion->competencyDescription->competency_name ?? 'Unknown' }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Version Information -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-info-circle mr-1"></i> Information
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item px-0">
-                                <strong>Version:</strong><br>
-                                <small class="text-muted">{{ $sjtQuestion->questionVersion->name }}</small>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <strong>Page:</strong><br>
-                                <small class="text-muted">Page {{ $sjtQuestion->page_number }} of 5</small>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <strong>Created:</strong><br>
-                                <small class="text-muted">{{ $sjtQuestion->created_at->format('d M Y, H:i') }}</small>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <strong>Last Updated:</strong><br>
-                                <small class="text-muted">{{ $sjtQuestion->updated_at->format('d M Y, H:i') }}</small>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <a href="{{ route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id]) }}" class="btn-cancel">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
         </div>
     </div>
 @endsection
 
+@section('content')
+<div class="bento-grid">
+
+    <div class="bento-card">
+        <div class="bento-title"><i class="fas fa-file-alt text-green-500"></i> Skenario Situasi</div>
+
+        <div class="statement-hero">
+            <i class="far fa-copy btn-copy-abs" onclick="copyToClipboard('{{ addslashes($sjtQuestion->question_text) }}')" title="Salin"></i>
+            "{{ $sjtQuestion->question_text }}"
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <div class="bento-title"><i class="fas fa-award text-blue-500"></i> Kompetensi & Opsi</div>
+
+            @if ($sjtQuestion->competencyDescription)
+                <div class="typo-visual">
+                    <div class="typo-code">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <h4 class="typo-name">{{ $sjtQuestion->competencyDescription->competency_name }}</h4>
+                        <span class="typo-tag">Kode: {{ $sjtQuestion->competency }}</span>
+                    </div>
+                </div>
+            @endif
+
+            <div class="option-list">
+                @foreach($sjtQuestion->options->sortBy('option_letter') as $option)
+                    <div class="opt-card">
+                        <div class="opt-badge">{{ $option->option_letter }}</div>
+
+                        <div class="opt-text">{{ $option->option_text }}</div>
+
+                        @if($option->score >= 3)
+                            <div class="score-circle s-high">{{ $option->score }}</div>
+                        @elseif($option->score == 2)
+                            <div class="score-circle s-mid">{{ $option->score }}</div>
+                        @else
+                            <div class="score-circle s-low">{{ $option->score }}</div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <div class="bento-card">
+        <div class="bento-title"><i class="fas fa-info-circle text-gray-500"></i> Meta Data</div>
+
+        <div style="margin-bottom: 2rem;">
+            <div class="meta-row">
+                <span class="mr-label">ID Database</span>
+                <span class="mr-val font-mono text-xs bg-gray-100 px-2 rounded">{{ $sjtQuestion->id }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Nomor Urut</span>
+                <span class="mr-val text-primary font-bold">#{{ $sjtQuestion->number }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Status Versi</span>
+                <span class="mr-val">
+                    @if($sjtQuestion->questionVersion->is_active)
+                        <span class="status-active">AKTIF</span>
+                    @else
+                        <span class="status-inactive">NON-AKTIF</span>
+                    @endif
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Penggunaan</span>
+                <span class="mr-val text-success">{{ $sjtQuestion->usage_count }}x</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Halaman</span>
+                <span class="mr-val">Hal. {{ $sjtQuestion->page_number }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Dibuat</span>
+                <span class="mr-val text-xs">{{ $sjtQuestion->created_at->format('d M Y') }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Diupdate</span>
+                <span class="mr-val text-xs">{{ $sjtQuestion->updated_at->format('d M Y') }}</span>
+            </div>
+        </div>
+
+        @if (Auth::user()->role === 'admin')
+            <div class="action-btn-group">
+                <a href="{{ route('admin.questions.sjt.edit', $sjtQuestion) }}" class="btn-act act-edit">
+                    <i class="fas fa-pen"></i> Edit
+                </a>
+                <button onclick="confirmDelete('{{ $sjtQuestion->number }}', '{{ route('admin.questions.sjt.destroy', $sjtQuestion) }}')"
+                        class="btn-act act-del">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
+            </div>
+            <div class="text-center mt-3">
+                <small class="text-muted" style="font-size: 0.7rem;">Shortcut: <strong>Ctrl+E</strong></small>
+            </div>
+        @endif
+    </div>
+
+</div>
+@endsection
+
 @push('scripts')
-    <script>
-        // Delete confirmation with SweetAlert2
-        function confirmDelete(questionNumber, deleteUrl) {
-            confirmDelete(
-                'Delete SJT Question?',
-                `Are you sure you want to delete Question #${questionNumber}? This action cannot be undone and may affect assessment results.`,
-                deleteUrl
-            );
-        }
-
-        // Navigation helpers
-        function goToEdit() {
-            window.location.href = '{{ route('admin.questions.sjt.edit', $sjtQuestion) }}';
-        }
-
-        function goToIndex() {
-            window.location.href = '{{ route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id]) }}';
-        }
-
-        // Copy question to clipboard
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                showSuccessToast('Question text copied to clipboard!');
-            }).catch(function() {
-                showErrorToast('Failed to copy text. Please copy manually.');
-            });
-        }
-
-        // Show option details
-        function toggleOptionDetails(optionId) {
-            $('#option-details-' + optionId).toggle();
-        }
-
-        // Copy all options to clipboard
-        function copyAllOptions() {
-            let optionsText = '{{ addslashes($sjtQuestion->question_text) }}\n\n';
-            @foreach($sjtQuestion->options as $option)
-                optionsText += '{{ $option->option_letter }}. {{ addslashes($option->option_text) }} (Score: {{ $option->score }})\n';
-            @endforeach
-
-            navigator.clipboard.writeText(optionsText).then(function() {
-                showSuccessToast('Question with all options copied to clipboard!');
-            }).catch(function() {
-                showErrorToast('Failed to copy text. Please copy manually.');
-            });
-        }
-
-        $(document).ready(function() {
-            // Enhanced option display
-            $('.option-card').hover(
-                function() { $(this).addClass('shadow-sm'); },
-                function() { $(this).removeClass('shadow-sm'); }
-            );
-
-            // Keyboard shortcuts
-            $(document).keydown(function(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    switch(e.which) {
-                        case 69: // Ctrl+E for Edit
-                            e.preventDefault();
-                            @if(Auth::user()->role === 'admin')
-                                goToEdit();
-                            @endif
-                            break;
-                        case 67: // Ctrl+C for Copy
-                            e.preventDefault();
-                            copyAllOptions();
-                            break;
-                    }
-                }
-            });
-
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.btn-copy-abs');
+            btn.classList.remove('far', 'fa-copy');
+            btn.classList.add('fas', 'fa-check', 'text-success');
+            setTimeout(() => {
+                btn.classList.remove('fas', 'fa-check', 'text-success');
+                btn.classList.add('far', 'fa-copy');
+            }, 1500);
         });
-    </script>
-@endpush
+    }
 
-@push('styles')
-    <style>
-        .situation-display {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            border-left: 4px solid #17a2b8;
-        }
+    function confirmDelete(num, url) {
+        Swal.fire({
+            title: 'Hapus Soal?',
+            html: `Hapus permanen soal SJT <b>#${num}</b>?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', cancelButtonColor: '#f1f5f9',
+            confirmButtonText: 'Ya, Hapus', cancelButtonText: '<span style="color:#0f172a">Batal</span>',
+            customClass: { popup: 'rounded-xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST'; form.action = url;
+                form.innerHTML = '@csrf @method("DELETE")';
+                document.body.appendChild(form); form.submit();
+            }
+        });
+    }
 
-        .option-card {
-            transition: all 0.3s ease;
-            border: 1px solid #dee2e6;
+    $(document).keydown(function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.which === 69) { // Ctrl+E
+            e.preventDefault();
+            @if(Auth::user()->role === 'admin') window.location.href = '{{ route('admin.questions.sjt.edit', $sjtQuestion) }}'; @endif
         }
-
-        .option-card:hover {
-            border-color: #007bff;
-        }
-
-        .badge-lg {
-            font-size: 0.9rem;
-            padding: 0.5rem 0.75rem;
-        }
-
-        .progress {
-            background-color: #f8f9fa;
-        }
-
-        .description-block {
-            text-align: center;
-        }
-
-        .list-group-item {
-            border: none;
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-        }
-    </style>
+    });
+</script>
 @endpush

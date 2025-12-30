@@ -35,9 +35,8 @@
         <div>
             <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-edit" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
-                Edit Event: {{ $event->event_code }}
+                Edit Event
             </h1>
-            <div style="font-size: 0.9rem; color: #64748b; margin-left: 44px;">Perbarui informasi untuk event <b>{{ $event->name }}</b>.</div>
         </div>
         <a href="{{ route('admin.events.index') }}" class="btn-cancel"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>

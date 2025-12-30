@@ -17,12 +17,10 @@ class ST30QuestionController extends Controller
     {
         $activeVersion = QuestionVersion::getActive('st30');
 
-        // pilih versi dari request atau default active
         $selectedVersion = $request->filled('version')
             ? QuestionVersion::find($request->version)
             : $activeVersion;
 
-        // semua versi ST-30 untuk dropdown
         $versions = QuestionVersion::where('type', 'st30')
             ->orderBy('version', 'desc')
             ->get();
@@ -35,7 +33,6 @@ class ST30QuestionController extends Controller
                 ->get();
         }
 
-        // statistik distribusi tipologi
         $typologyStats = $questions->groupBy('typology_code')
             ->map(fn($items) => $items->count())
             ->toArray();
@@ -63,14 +60,29 @@ class ST30QuestionController extends Controller
 
         if (!$selectedVersion) {
             return redirect()->route('admin.questions.index')
-                ->with('error', 'No ST-30 version available. Please create a version first.');
+                ->with('error', 'Tidak ada versi ST-30 yang tersedia. Silakan buat versi terlebih dahulu.');
         }
 
-        // Next number
-        $nextNumber = (int) ST30Question::where('version_id', $selectedVersion->id)->max('number') + 1;
-        if ($nextNumber > 30) {
+        // [PERBAIKAN] Cek jumlah total soal (count), bukan nomor terakhir
+        $totalQuestions = ST30Question::where('version_id', $selectedVersion->id)->count();
+
+        if ($totalQuestions >= 30) {
             return redirect()->route('admin.questions.st30.index', ['version' => $selectedVersion->id])
-                ->with('error', 'This version already has 30 questions (maximum).');
+                ->with('error', 'Versi ini sudah memiliki 30 pertanyaan (maksimum).');
+        }
+
+        // [FITUR BARU] Cari nomor kosong terkecil (1-30)
+        // Berguna jika user menghapus soal di tengah-tengah (misal hapus no 15)
+        $existingNumbers = ST30Question::where('version_id', $selectedVersion->id)
+            ->pluck('number')
+            ->toArray();
+
+        $nextNumber = 1;
+        for ($i = 1; $i <= 30; $i++) {
+            if (!in_array($i, $existingNumbers)) {
+                $nextNumber = $i;
+                break;
+            }
         }
 
         $typologies = TypologyDescription::orderBy('typology_name')->get();
@@ -102,7 +114,7 @@ class ST30QuestionController extends Controller
 
         if ($exists) {
             return back()->withErrors([
-                'number' => 'Question number already exists in this version.'
+                'number' => 'Nomor pertanyaan sudah ada pada versi ini.'
             ])->withInput();
         }
 
@@ -114,8 +126,8 @@ class ST30QuestionController extends Controller
         ]);
 
         return redirect()->route('admin.questions.st30.index', ['version' => $request->version_id])
-            ->with('success', 'ST-30 question created successfully.');
-        }
+            ->with('success', 'Pertanyaan ST-30 berhasil dibuat.');
+    }
 
     /**
      * Display the specified ST-30 question
@@ -156,7 +168,7 @@ class ST30QuestionController extends Controller
 
         if ($exists) {
             return back()->withErrors([
-                'number' => 'Question number already exists in this version.'
+                'number' => 'Nomor pertanyaan sudah ada pada versi ini.'
             ])->withInput();
         }
 
@@ -167,7 +179,7 @@ class ST30QuestionController extends Controller
         ]);
 
         return redirect()->route('admin.questions.st30.index', ['version' => $st30Question->version_id])
-            ->with('success', 'ST-30 question updated successfully.');
+            ->with('success', 'Pertanyaan ST-30 berhasil diperbarui.');
     }
 
     /**
@@ -177,14 +189,14 @@ class ST30QuestionController extends Controller
     {
         if (method_exists($st30Question, 'hasResponses') && $st30Question->hasResponses()) {
             return redirect()->route('admin.questions.st30.index', ['version' => $st30Question->version_id])
-                ->with('error', 'Cannot delete question that has been used in tests.');
+                ->with('error', 'Tidak dapat menghapus pertanyaan yang sudah digunakan dalam tes.');
         }
 
         $versionId = $st30Question->version_id;
         $st30Question->delete();
 
         return redirect()->route('admin.questions.st30.index', ['version' => $versionId])
-            ->with('success', 'ST-30 question deleted successfully.');
+            ->with('success', 'Pertanyaan ST-30 berhasil dihapus.');
     }
 
     /**
@@ -197,10 +209,8 @@ class ST30QuestionController extends Controller
             'import_file' => 'required|file|mimes:csv,xlsx'
         ]);
 
-        // TODO: Implement CSV/Excel import functionality
-
         return redirect()->route('admin.questions.st30.index', ['version' => $request->version_id])
-            ->with('info', 'Import functionality will be implemented soon.');
+            ->with('info', 'Fitur impor akan segera tersedia.');
     }
 
     /**
@@ -211,13 +221,11 @@ class ST30QuestionController extends Controller
         $versionId = $request->get('version');
         if (!$versionId) {
             return redirect()->route('admin.questions.st30.index')
-                ->with('error', 'Please select a version to export.');
+                ->with('error', 'Silakan pilih versi untuk diekspor.');
         }
 
-        // TODO: Implement export functionality
-
         return redirect()->route('admin.questions.st30.index', ['version' => $versionId])
-            ->with('info', 'Export functionality will be implemented soon.');
+            ->with('info', 'Fitur ekspor akan segera tersedia.');
     }
 
     /**

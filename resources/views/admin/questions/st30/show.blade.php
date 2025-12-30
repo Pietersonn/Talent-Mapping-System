@@ -1,372 +1,311 @@
 @extends('admin.layouts.app')
 
-@section('title', 'ST-30 Question Details')
-@section('page-title', 'ST-30 Question #' . $st30Question->number)
+@section('title', 'Detail Soal ST-30')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.index') }}">Question Bank</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.st30.index') }}">ST-30 Questions</a></li>
-    <li class="breadcrumb-item active">Question #{{ $st30Question->number }}</li>
-@endsection
+@push('styles')
+<style>
+    /* --- VARIABLES --- */
+    :root {
+        --text-main: #0f172a;
+        --text-sub: #64748b;
+        --bg-surface: #ffffff;
+        --bg-subtle: #f8fafc;
+        --border-color: #e2e8f0;
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --tm-green: #22c55e; /* Talent Mapping Green */
+        --tm-green-soft: #dcfce7;
+        --tm-green-dark: #15803d;
+    }
 
-@section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Main Content -->
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title d-flex align-items-center">
-                            <span class="badge badge-primary badge-lg mr-3 px-3 py-2">Q{{ $st30Question->number }}</span>
-                            <span>ST-30 Question Details</span>
-                        </h3>
-                        <div class="card-tools">
-                            <span
-                                class="badge badge-{{ $st30Question->questionVersion->is_active ? 'success' : 'secondary' }} badge-lg">
-                                {{ $st30Question->questionVersion->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <!-- Question Statement -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-quote-left mr-2"></i> Statement
-                            </h5>
-                            <div class="statement-display p-3 bg-light rounded">
-                                <p class="mb-0 lead">{{ $st30Question->statement }}</p>
-                            </div>
-                            <button class="btn btn-link btn-sm mt-2"
-                                onclick="copyToClipboard('{{ addslashes($st30Question->statement) }}')">
-                                <i class="fas fa-copy mr-1"></i> Copy to Clipboard
-                            </button>
-                        </div>
+    /* --- BENTO GRID LAYOUT --- */
+    .bento-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
 
-                        <!-- Typology Information -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-tag mr-2"></i> Typology Information
-                            </h5>
-                            @if ($st30Question->typologyDescription)
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <span class="badge badge-secondary badge-lg px-3 py-2">
-                                                    {{ $st30Question->typology_code }}
-                                                </span>
-                                            </div>
-                                            <div class="col-md-9">
-                                                <h6 class="mb-2">{{ $st30Question->typologyDescription->typology_name }}
-                                                </h6>
-                                                <p class="text-muted mb-2">
-                                                    <strong>Strength:</strong>
-                                                    {{ $st30Question->typologyDescription->strength_description }}
-                                                </p>
-                                                <p class="text-muted mb-0">
-                                                    <strong>Weakness:</strong>
-                                                    {{ $st30Question->typologyDescription->weakness_description }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    Typology description not found for code: {{ $st30Question->typology_code }}
-                                </div>
-                            @endif
-                        </div>
+    .bento-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        height: 100%;
+        display: flex; flex-direction: column;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
 
-                        <!-- Version Information -->
-                        <div class="mb-4">
-                            <h5 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-code-branch mr-2"></i> Version Information
-                            </h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="info-box">
-                                        <span class="info-box-icon bg-info">
-                                            <i class="fas fa-tag"></i>
-                                        </span>
-                                        <div class="info-box-content">
-                                            <span class="info-box-text">Version</span>
-                                            <span class="info-box-number">{{ $st30Question->questionVersion->name }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="info-box">
-                                        <span
-                                            class="info-box-icon bg-{{ $st30Question->questionVersion->is_active ? 'success' : 'secondary' }}">
-                                            <i
-                                                class="fas fa-{{ $st30Question->questionVersion->is_active ? 'check' : 'times' }}"></i>
-                                        </span>
-                                        <div class="info-box-content">
-                                            <span class="info-box-text">Status</span>
-                                            <span
-                                                class="info-box-number">{{ $st30Question->questionVersion->is_active ? 'Active' : 'Inactive' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    .bento-title {
+        font-size: 0.85rem; font-weight: 700; color: var(--text-sub);
+        text-transform: uppercase; letter-spacing: 0.05em;
+        margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px dashed var(--border-color);
+        padding-bottom: 0.5rem;
+    }
 
-                        <!-- Navigation -->
-                        <div class="border-top pt-3 mt-4">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    @if (isset($prevQuestion))
-                                        <a href="{{ route('admin.questions.st30.show', $prevQuestion) }}"
-                                            class="btn btn-outline-secondary">
-                                            <i class="fas fa-chevron-left mr-1"></i> Previous
-                                        </a>
-                                    @endif
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <button class="btn btn-link keyboard-shortcuts" title="View keyboard shortcuts">
-                                        <i class="fas fa-keyboard mr-1"></i> Shortcuts
-                                    </button>
-                                </div>
-                                <div class="col-md-4 text-right">
-                                    @if (isset($nextQuestion))
-                                        <a href="{{ route('admin.questions.st30.show', $nextQuestion) }}"
-                                            class="btn btn-outline-secondary">
-                                            Next <i class="fas fa-chevron-right ml-1"></i>
-                                        </a>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    /* Statement Box (Revised: Smaller Font, TM Green) */
+    .statement-hero {
+        font-size: 1rem; /* Ukuran font pas (16px) */
+        line-height: 1.6;
+        color: #334155;
+        font-weight: 500;
+        padding: 1.25rem;
+        background: var(--bg-subtle);
+        border-radius: var(--radius-md);
+        border-left: 4px solid var(--tm-green);
+        position: relative;
+    }
+    .btn-copy-abs {
+        position: absolute; top: 10px; right: 10px; color: #94a3b8; cursor: pointer; transition: 0.2s;
+    }
+    .btn-copy-abs:hover { color: var(--tm-green); }
+
+    /* Typology Section (Revised: Green Theme) */
+    .typo-visual {
+        display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+        padding-bottom: 1rem; border-bottom: 1px dashed var(--border-color);
+    }
+    .typo-code {
+        width: 48px; height: 48px; /* Lebih kecil */
+        background: var(--tm-green); color: white;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; font-weight: 800; /* Font kode lebih kecil */
+        box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.2);
+    }
+    .typo-name {
+        font-weight: 700; font-size: 1rem; /* Judul lebih kecil */
+        color: var(--tm-green-dark); /* Hijau Tua */
+        margin: 0;
+    }
+    .typo-tag { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
+
+    .traits-split {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .trait-item {
+        padding: 12px; border-radius: var(--radius-md); border: 1px solid transparent;
+    }
+    .t-green { background: #f0fdf4; border-color: #d1fae5; }
+    .t-green h6 { color: #15803d; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+    .t-green p { color: #14532d; font-size: 0.85rem; margin: 0; line-height: 1.4; } /* Font isi lebih kecil */
+
+    .t-orange { background: #fffbeb; border-color: #fef3c7; }
+    .t-orange h6 { color: #b45309; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+    .t-orange p { color: #78350f; font-size: 0.85rem; margin: 0; line-height: 1.4; }
+
+    /* Meta Sidebar */
+    .meta-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 0; border-bottom: 1px solid var(--bg-subtle); font-size: 0.85rem;
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .mr-label { color: var(--text-sub); font-weight: 600; }
+    .mr-val { color: var(--text-main); font-weight: 600; }
+
+    .status-active { color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+    .status-inactive { color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+
+    /* Buttons (Same as Create/Edit) */
+    .btn-cancel {
+        background: white; color: #64748b; border: 1px solid #e2e8f0;
+        padding: 10px 24px; border-radius: 12px; font-weight: 600;
+        text-decoration: none; transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+
+    .btn-nav-icon {
+        width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; background: var(--bg-subtle); color: var(--text-sub);
+        transition: 0.2s; border: 1px solid #e2e8f0; text-decoration: none;
+    }
+    .btn-nav-icon:hover:not(.disabled) { border-color: var(--tm-green); color: var(--tm-green); background: #f0fdf4; }
+    .btn-nav-icon.disabled { opacity: 0.5; cursor: default; }
+
+    .action-btn-group { display: flex; gap: 8px; margin-top: auto; }
+    .btn-act { flex: 1; padding: 8px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-align: center; border: none; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+    .act-edit { background: #eff6ff; color: #2563eb; }
+    .act-edit:hover { background: #dbeafe; }
+    .act-del { background: #fef2f2; color: #ef4444; }
+    .act-del:hover { background: #fee2e2; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .bento-grid { grid-template-columns: 1fr; }
+        .traits-split { grid-template-columns: 1fr; }
+    }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-file-alt" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
+                Detail Pertanyaan ST-30
+            </h1>
+            <div style="font-size: 0.9rem; color: #64748b; margin-left: 44px;">
+                Lihat rincian pernyataan, tipologi, dan statistik penggunaan.
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; gap: 4px;">
+                @if (isset($prevQuestion))
+                    <a href="{{ route('admin.questions.st30.show', $prevQuestion) }}" class="btn-nav-icon" title="Sebelumnya"><i class="fas fa-chevron-left text-xs"></i></a>
+                @else
+                    <span class="btn-nav-icon disabled"><i class="fas fa-chevron-left text-xs"></i></span>
+                @endif
+
+                @if (isset($nextQuestion))
+                    <a href="{{ route('admin.questions.st30.show', $nextQuestion) }}" class="btn-nav-icon" title="Selanjutnya"><i class="fas fa-chevron-right text-xs"></i></a>
+                @else
+                    <span class="btn-nav-icon disabled"><i class="fas fa-chevron-right text-xs"></i></span>
+                @endif
             </div>
 
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                <!-- Quick Actions -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-tools mr-1"></i> Quick Actions
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            @if (Auth::user()->role === 'admin')
-                                <a href="{{ route('admin.questions.st30.edit', $st30Question) }}" class="btn btn-warning btn-block">
-                                    <i class="fas fa-edit mr-2"></i> Edit Question
-                                </a>
-                                <button class="btn btn-danger btn-block"
-                                    onclick="confirmDelete('{{ $st30Question->number }}', '{{ route('admin.questions.st30.destroy', $st30Question) }}')">
-                                    <i class="fas fa-trash mr-2"></i> Delete Question
-                                </button>
-                                <hr>
-                            @endif
-                            <a href="{{ route('admin.questions.st30.index', ['version' => $st30Question->version_id]) }}"
-                                class="btn btn-secondary btn-block">
-                                <i class="fas fa-list mr-2"></i> Back to List
-                            </a>
-                            <button class="btn btn-info btn-block"
-                                onclick="copyToClipboard('{{ addslashes($st30Question->statement) }}')">
-                                <i class="fas fa-copy mr-2"></i> Copy Statement
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistics -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-bar mr-1"></i> Statistics
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="description-block border-right">
-                            <span class="description-percentage text-primary">Q{{ $st30Question->number }}</span>
-                            <h5 class="description-header">Question Number</h5>
-                            <span class="description-text">of 30 total</span>
-                        </div>
-
-                        <div class="description-block border-right mt-3">
-                            <span class="description-percentage text-success">
-                                <i
-                                    class="fas fa-{{ $st30Question->questionVersion->is_active ? 'check-circle' : 'times-circle' }}"></i>
-                            </span>
-                            <h5 class="description-header">Status</h5>
-                            <span class="description-text">
-                                {{ $st30Question->questionVersion->is_active ? 'Version Active' : 'Version Inactive' }}
-                            </span>
-                        </div>
-
-                        <div class="description-block mt-3">
-                            <span class="description-percentage text-info">{{ $st30Question->typology_code }}</span>
-                            <h5 class="description-header">Typology</h5>
-                            <span
-                                class="description-text">{{ $st30Question->typologyDescription->typology_name ?? 'Unknown' }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-history mr-1"></i> Information
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item px-0">
-                                <strong>Created:</strong><br>
-                                <small class="text-muted">{{ $st30Question->created_at->format('d M Y, H:i') }}</small>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <strong>Last Updated:</strong><br>
-                                <small class="text-muted">{{ $st30Question->updated_at->format('d M Y, H:i') }}</small>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <strong>Version:</strong><br>
-                                <small class="text-muted">{{ $st30Question->questionVersion->name }}</small>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <a href="{{ route('admin.questions.st30.index', ['version' => $st30Question->version_id]) }}" class="btn-cancel">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
         </div>
     </div>
 @endsection
 
+@section('content')
+<div class="bento-grid">
+
+    <div class="bento-card">
+        <div class="bento-title"><i class="fas fa-file-alt text-green-500"></i> Pernyataan Soal</div>
+
+        <div class="statement-hero">
+            <i class="far fa-copy btn-copy-abs" onclick="copyToClipboard('{{ addslashes($st30Question->statement) }}')" title="Salin"></i>
+            "{{ $st30Question->statement }}"
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <div class="bento-title"><i class="fas fa-fingerprint text-blue-500"></i> Analisis Tipologi</div>
+
+            @if ($st30Question->typologyDescription)
+                <div class="typo-visual">
+                    <div class="typo-code">{{ $st30Question->typology_code }}</div>
+                    <div>
+                        <h4 class="typo-name">{{ $st30Question->typologyDescription->typology_name }}</h4>
+                        <span class="typo-tag">Personality Trait</span>
+                    </div>
+                </div>
+
+                <div class="traits-split">
+                    <div class="trait-item t-green">
+                        <h6><i class="fas fa-bolt"></i> Kekuatan</h6>
+                        <p>{{ $st30Question->typologyDescription->strength_description }}</p>
+                    </div>
+                    <div class="trait-item t-orange">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Kelemahan</h6>
+                        <p>{{ $st30Question->typologyDescription->weakness_description }}</p>
+                    </div>
+                </div>
+            @else
+                <div class="alert alert-light text-center border text-sm text-muted">
+                    Data tipologi belum tersedia.
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <div class="bento-card">
+        <div class="bento-title"><i class="fas fa-info-circle text-gray-500"></i> Meta Data</div>
+
+        <div style="margin-bottom: 2rem;">
+            <div class="meta-row">
+                <span class="mr-label">ID Database</span>
+                <span class="mr-val font-mono text-xs bg-gray-100 px-2 rounded">{{ $st30Question->id }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Nomor Urut</span>
+                <span class="mr-val text-primary font-bold">#{{ $st30Question->number }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Status Versi</span>
+                <span class="mr-val">
+                    @if($st30Question->questionVersion->is_active)
+                        <span class="status-active">AKTIF</span>
+                    @else
+                        <span class="status-inactive">NON-AKTIF</span>
+                    @endif
+                </span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Penggunaan</span>
+                <span class="mr-val text-success">{{ $st30Question->usage_count }}x</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Dibuat</span>
+                <span class="mr-val text-xs">{{ $st30Question->created_at->format('d M Y') }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Diupdate</span>
+                <span class="mr-val text-xs">{{ $st30Question->updated_at->format('d M Y') }}</span>
+            </div>
+        </div>
+
+        @if (Auth::user()->role === 'admin')
+            <div class="action-btn-group">
+                <a href="{{ route('admin.questions.st30.edit', $st30Question) }}" class="btn-act act-edit">
+                    <i class="fas fa-pen"></i> Edit
+                </a>
+                <button onclick="confirmDelete('{{ $st30Question->number }}', '{{ route('admin.questions.st30.destroy', $st30Question) }}')"
+                        class="btn-act act-del">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
+            </div>
+            <div class="text-center mt-3">
+                <small class="text-muted" style="font-size: 0.7rem;">Shortcut: <strong>Ctrl+E</strong></small>
+            </div>
+        @endif
+    </div>
+
+</div>
+@endsection
+
 @push('scripts')
-    <script>
-        // Delete confirmation with SweetAlert2
-        function confirmDelete(questionNumber, deleteUrl) {
-            confirmDelete(
-                'Delete ST-30 Question?',
-                `Are you sure you want to delete Question #${questionNumber}? This action cannot be undone and may affect assessment results.`,
-                deleteUrl
-            );
-        }
-
-        // Navigation helpers
-        function goToEdit() {
-            window.location.href = '{{ route('admin.questions.st30.edit', $st30Question) }}';
-        }
-
-        function goToIndex() {
-            window.location.href = '{{ route('admin.questions.st30.index', ['version' => $st30Question->version_id]) }}';
-        }
-
-        function goToNextQuestion() {
-            @if (isset($nextQuestion))
-                window.location.href = '{{ route('admin.questions.st30.show', $nextQuestion) }}';
-            @else
-                showInfoToast('This is the last question in this version.');
-            @endif
-        }
-
-        function goToPrevQuestion() {
-            @if (isset($prevQuestion))
-                window.location.href = '{{ route('admin.questions.st30.show', $prevQuestion) }}';
-            @else
-                showInfoToast('This is the first question in this version.');
-            @endif
-        }
-
-        // Copy question to clipboard
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                showSuccessToast('Question statement copied to clipboard!');
-            }).catch(function() {
-                showErrorToast('Failed to copy text. Please copy manually.');
-            });
-        }
-
-        // Quick actions
-        $(document).ready(function() {
-            // Keyboard shortcuts
-            $(document).keydown(function(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    switch (e.which) {
-                        case 69: // Ctrl+E for Edit
-                            e.preventDefault();
-                            @if (Auth::user()->role === 'admin')
-                                goToEdit();
-                            @endif
-                            break;
-                        case 67: // Ctrl+C for Copy
-                            e.preventDefault();
-                            copyToClipboard('{{ addslashes($st30Question->statement) }}');
-                            break;
-                    }
-                }
-                // Arrow key navigation
-                switch (e.which) {
-                    case 37: // Left arrow
-                        e.preventDefault();
-                        goToPrevQuestion();
-                        break;
-                    case 39: // Right arrow
-                        e.preventDefault();
-                        goToNextQuestion();
-                        break;
-                }
-            });
-
-            // Show keyboard shortcuts info
-            $('.keyboard-shortcuts').on('click', function() {
-                Swal.fire({
-                    title: 'Keyboard Shortcuts',
-                    html: `
-                        <div class="text-left">
-                            <p><kbd>Ctrl+E</kbd> - Edit Question</p>
-                            <p><kbd>Ctrl+C</kbd> - Copy Statement</p>
-                            <p><kbd>←</kbd> - Previous Question</p>
-                            <p><kbd>→</kbd> - Next Question</p>
-                        </div>
-                    `,
-                    icon: 'info',
-                    confirmButtonText: 'Got it!'
-                });
-            });
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.btn-copy-abs');
+            btn.classList.remove('far', 'fa-copy');
+            btn.classList.add('fas', 'fa-check', 'text-success');
+            setTimeout(() => {
+                btn.classList.remove('fas', 'fa-check', 'text-success');
+                btn.classList.add('far', 'fa-copy');
+            }, 1500);
         });
-    </script>
-@endpush
+    }
 
-@push('styles')
-    <style>
-        .statement-display {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            border-left: 4px solid #007bff;
-        }
+    function confirmDelete(num, url) {
+        Swal.fire({
+            title: 'Hapus Soal?',
+            html: `Hapus permanen soal <b>#${num}</b>?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', cancelButtonColor: '#f1f5f9',
+            confirmButtonText: 'Ya, Hapus', cancelButtonText: '<span style="color:#0f172a">Batal</span>',
+            customClass: { popup: 'rounded-xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST'; form.action = url;
+                form.innerHTML = '@csrf @method("DELETE")';
+                document.body.appendChild(form); form.submit();
+            }
+        });
+    }
 
-        .badge-lg {
-            font-size: 0.9rem;
-            padding: 0.5rem 0.75rem;
+    $(document).keydown(function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.which === 69) { // Ctrl+E
+            e.preventDefault();
+            @if(Auth::user()->role === 'admin') window.location.href = '{{ route('admin.questions.st30.edit', $st30Question) }}'; @endif
         }
-
-        .info-box {
-            min-height: 90px;
-        }
-
-        .description-block {
-            text-align: center;
-        }
-
-        .keyboard-shortcuts {
-            font-size: 0.875rem;
-            padding: 0.25rem 0.5rem;
-        }
-
-        kbd {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            padding: 0.125rem 0.25rem;
-            font-size: 0.75rem;
-        }
-    </style>
+    });
+</script>
 @endpush

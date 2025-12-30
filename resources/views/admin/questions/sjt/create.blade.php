@@ -1,235 +1,146 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create SJT Question')
-@section('page-title', 'Create New SJT Question')
+@section('title', 'Buat Soal SJT')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.index') }}">Question Bank</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.sjt.index') }}">SJT Questions</a></li>
-    <li class="breadcrumb-item active">Create Question</li>
+@push('styles')
+<style>
+    /* Style Konsisten dengan Edit */
+    .form-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .form-section-title { font-size: 0.85rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px dashed #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem; }
+    .form-label.required::after { content: "*"; color: #ef4444; margin-left: 4px; }
+    .form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; color: #0f172a; background-color: #f8fafc; transition: all 0.2s; }
+    .form-control:focus { background-color: white; border-color: #22c55e; outline: none; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1); }
+    .form-text { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+    .option-row { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; background: #fff; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 1rem; transition: 0.2s; }
+    .option-row:hover { border-color: #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .option-badge { width: 36px; height: 36px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+    .form-actions { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-save { background: #22c55e; color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .btn-save:hover { background: #16a34a; transform: translateY(-1px); }
+    .btn-cancel { background: white; color: #64748b; border: 1px solid #e2e8f0; padding: 10px 24px; border-radius: 12px; font-weight: 600; text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-plus-circle" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
+                Buat Soal SJT Baru
+            </h1>
+        </div>
+        <a href="{{ route('admin.questions.sjt.index', ['version' => $selectedVersion->id]) }}" class="btn-cancel">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
 @endsection
 
 @section('content')
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-plus mr-1"></i>
-                    Create SJT Question
-                </h3>
+<div class="form-card">
+    <form action="{{ route('admin.questions.sjt.store') }}" method="POST">
+        @csrf
+        <input type="hidden" name="version_id" value="{{ $selectedVersion->id }}">
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+            <div>
+                <div class="form-section-title">
+                    <i class="fas fa-file-alt text-green-500"></i> Konten Pertanyaan
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Deskripsi Situasi</label>
+                    <textarea name="question_text" id="question_text" class="form-control @error('question_text') border-red-500 @enderror" rows="5" placeholder="Contoh: Anda sedang memimpin rapat dan terjadi konflik antar anggota..." required>{{ old('question_text') }}</textarea>
+                    @error('question_text') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    <div class="form-text text-right"><span id="char_count">0</span>/1000 karakter</div>
+                </div>
+
+                <div class="form-section-title" style="margin-top: 2rem;">
+                    <i class="fas fa-list-ol text-green-500"></i> Opsi Jawaban & Poin
+                </div>
+
+                @php $letters = ['A', 'B', 'C', 'D', 'E']; @endphp
+                @for($i = 0; $i < 5; $i++)
+                    <div class="option-row">
+                        <div class="option-badge">{{ $letters[$i] }}</div>
+                        <div style="flex: 1;">
+                            <input type="text" name="options[{{ $i }}][option_text]"
+                                   class="form-control @error('options.'.$i.'.option_text') border-red-500 @enderror"
+                                   placeholder="Tindakan opsi {{ $letters[$i] }}..." value="{{ old('options.'.$i.'.option_text') }}" required>
+                        </div>
+                        <div style="width: 120px;">
+                            <select name="options[{{ $i }}][score]" class="form-control text-center @error('options.'.$i.'.score') border-red-500 @enderror" required style="cursor: pointer;">
+                                <option value="" selected disabled>Skor</option>
+                                <option value="0">0 Poin</option>
+                                <option value="1">1 Poin</option>
+                                <option value="2">2 Poin</option>
+                                <option value="3">3 Poin</option>
+                                <option value="4">4 Poin</option>
+                            </select>
+                        </div>
+                    </div>
+                @endfor
             </div>
-            <form action="{{ route('admin.questions.sjt.store') }}" method="POST" id="sjtForm">
-                @csrf
-                <div class="card-body">
-                    <input type="hidden" name="version_id" value="{{ $selectedVersion->id }}">
 
-                    <!-- Version Info -->
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Creating question for version: <strong>{{ $selectedVersion->display_name }}</strong>
-                    </div>
-
-                    <!-- Question Number -->
-                    <div class="form-group">
-                        <label for="number">Question Number <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control @error('number') is-invalid @enderror"
-                               id="number" name="number" value="{{ old('number', $nextNumber) }}"
-                               min="1" max="50" required>
-                        @error('number')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
-                        <small class="form-text text-muted">Question number in sequence (1-50)</small>
-                    </div>
-
-                    <!-- Question Text -->
-                    <div class="form-group">
-                        <label for="question_text">Situation Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('question_text') is-invalid @enderror"
-                                  id="question_text" name="question_text" rows="5" required
-                                  maxlength="1000" placeholder="Describe the situational scenario...">{{ old('question_text') }}</textarea>
-                        @error('question_text')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
-                        <small class="form-text text-muted">
-                            <span id="question_char_count">0</span>/1000 characters
-                        </small>
-                    </div>
-
-                    <!-- Competency -->
-                    <div class="form-group">
-                        <label for="competency_code">Target Competency <span class="text-danger">*</span></label>
-                        <select class="form-control @error('competency_code') is-invalid @enderror"
-                                id="competency_code" name="competency_code" required>
-                            <option value="">Select Competency...</option>
-                            @foreach($competencies as $competency)
-                                <option value="{{ $competency->competency_code }}"
-                                        {{ old('competency_code') == $competency->competency_code ? 'selected' : '' }}>
-                                    {{ $competency->competency_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('competency_code')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Answer Options -->
-                    <div class="form-group">
-                        <label>Answer Options <span class="text-danger">*</span></label>
-                        <small class="form-text text-muted mb-3">
-                            Provide 5 different response options (A-E) with scores 0-4 based on competency relevance.
-                        </small>
-
-                        @php $optionLetters = ['A', 'B', 'C', 'D', 'E']; @endphp
-                        @for($i = 0; $i < 5; $i++)
-                            <div class="card mb-3">
-                                <div class="card-header py-2">
-                                    <h6 class="card-title mb-0">
-                                        <span class="badge badge-primary mr-2">{{ $optionLetters[$i] }}</span>
-                                        Option {{ $optionLetters[$i] }}
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <div class="form-group mb-2">
-                                                <label for="option_{{ $i }}_text">Response Text</label>
-                                                <textarea class="form-control @error('options.'.$i.'.option_text') is-invalid @enderror"
-                                                          id="option_{{ $i }}_text"
-                                                          name="options[{{ $i }}][option_text]"
-                                                          rows="3" required maxlength="500"
-                                                          placeholder="What would you do in this situation?">{{ old('options.'.$i.'.option_text') }}</textarea>
-                                                @error('options.'.$i.'.option_text')
-                                                    <span class="invalid-feedback">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group mb-2">
-                                                <label for="option_{{ $i }}_score">Score</label>
-                                                <select class="form-control @error('options.'.$i.'.score') is-invalid @enderror"
-                                                        id="option_{{ $i }}_score"
-                                                        name="options[{{ $i }}][score]" required>
-                                                    <option value="">Score...</option>
-                                                    <option value="0" {{ old('options.'.$i.'.score') == '0' ? 'selected' : '' }}>0 - Poor Response</option>
-                                                    <option value="1" {{ old('options.'.$i.'.score') == '1' ? 'selected' : '' }}>1 - Below Average</option>
-                                                    <option value="2" {{ old('options.'.$i.'.score') == '2' ? 'selected' : '' }}>2 - Average</option>
-                                                    <option value="3" {{ old('options.'.$i.'.score') == '3' ? 'selected' : '' }}>3 - Good Response</option>
-                                                    <option value="4" {{ old('options.'.$i.'.score') == '4' ? 'selected' : '' }}>4 - Excellent Response</option>
-                                                </select>
-                                                @error('options.'.$i.'.score')
-                                                    <span class="invalid-feedback">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endfor
-                    </div>
+            <div>
+                <div class="form-section-title">
+                    <i class="fas fa-cog text-green-500"></i> Pengaturan
                 </div>
 
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        <i class="fas fa-save mr-1"></i> Create Question
-                    </button>
-                    <a href="{{ route('admin.questions.sjt.index', ['version' => $selectedVersion->id]) }}" class="btn btn-secondary">
-                        <i class="fas fa-times mr-1"></i> Cancel
-                    </a>
+                <div class="form-group">
+                    <label class="form-label">Versi Soal</label>
+                    <input type="text" class="form-control" value="{{ $selectedVersion->display_name }}" readonly disabled style="color: #64748b;">
                 </div>
-            </form>
+
+                <div class="form-group">
+                    <label class="form-label required">Nomor Urut</label>
+                    <input type="number" name="number" class="form-control @error('number') border-red-500 @enderror"
+                           value="{{ old('number', $nextNumber) }}" min="1" max="50" required>
+                    @error('number') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Kompetensi Target</label>
+                    <select name="competency_code" class="form-control @error('competency_code') border-red-500 @enderror" required>
+                        <option value="">-- Pilih Kompetensi --</option>
+                        @foreach($competencies as $competency)
+                            <option value="{{ $competency->competency_code }}" {{ old('competency_code') == $competency->competency_code ? 'selected' : '' }}>
+                                {{ $competency->competency_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('competency_code') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="p-3 bg-blue-50 rounded-xl mt-4 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-2 text-blue-700 font-bold text-xs uppercase tracking-wide">
+                        <i class="fas fa-info-circle"></i> Info
+                    </div>
+                    <p class="text-xs text-blue-600 leading-relaxed">
+                        Pastikan seluruh 5 opsi terisi lengkap beserta skor penilaiannya.
+                    </p>
+                </div>
+            </div>
+
         </div>
-    </div>
 
-    <!-- Help Panel -->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-question-circle mr-1"></i>
-                    SJT Question Guidelines
-                </h3>
-            </div>
-            <div class="card-body">
-                <h6>What is SJT?</h6>
-                <p class="text-sm">
-                    Situational Judgment Test measures how candidates respond to workplace scenarios to assess specific competencies.
-                </p>
-
-                <h6>Question Structure:</h6>
-                <ul class="text-sm">
-                    <li><strong>Situation:</strong> Brief workplace scenario</li>
-                    <li><strong>Options:</strong> 5 possible responses (A-E)</li>
-                    <li><strong>Scoring:</strong> 0-4 based on competency alignment</li>
-                </ul>
-
-                <h6>Scoring Guide:</h6>
-                <ul class="text-sm">
-                    <li><span class="badge badge-danger">0</span> Counterproductive response</li>
-                    <li><span class="badge badge-warning">1</span> Poor response</li>
-                    <li><span class="badge badge-info">2</span> Acceptable response</li>
-                    <li><span class="badge badge-primary">3</span> Good response</li>
-                    <li><span class="badge badge-success">4</span> Excellent response</li>
-                </ul>
-
-                <h6>Target Competencies:</h6>
-                <div class="text-sm">
-                    @foreach($competencies as $competency)
-                        <span class="badge badge-outline-primary mr-1 mb-1">{{ $competency->competency_code }}</span>
-                    @endforeach
-                </div>
-            </div>
+        <div class="form-actions">
+            <a href="{{ route('admin.questions.sjt.index', ['version' => $selectedVersion->id]) }}" class="btn-cancel">Batal</a>
+            <button type="submit" class="btn-save">
+                <i class="fas fa-check-circle"></i> Simpan Soal
+            </button>
         </div>
-    </div>
+    </form>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Character counting
     $('#question_text').on('input', function() {
-        var count = $(this).val().length;
-        $('#question_char_count').text(count);
-
-        if (count > 900) {
-            $('#question_char_count').addClass('text-warning');
-        } else {
-            $('#question_char_count').removeClass('text-warning');
-        }
+        $('#char_count').text($(this).val().length);
     });
-
-    // Form validation
-    $('#sjtForm').on('submit', function(e) {
-        var isValid = true;
-
-        // Check if all options have text and score
-        for(var i = 0; i < 5; i++) {
-            var optionText = $(`#option_${i}_text`).val().trim();
-            var optionScore = $(`#option_${i}_score`).val();
-
-            if (!optionText || !optionScore) {
-                isValid = false;
-                if (!optionText) $(`#option_${i}_text`).addClass('is-invalid');
-                if (!optionScore) $(`#option_${i}_score`).addClass('is-invalid');
-            }
-        }
-
-        if (!isValid) {
-            e.preventDefault();
-            alert('Please fill in all option texts and scores.');
-            return false;
-        }
-
-        // Disable submit button to prevent double submission
-        $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Creating...');
-    });
-
-    // Remove validation classes on input
-    $('textarea, select').on('input change', function() {
-        $(this).removeClass('is-invalid');
-    });
-});
 </script>
 @endpush

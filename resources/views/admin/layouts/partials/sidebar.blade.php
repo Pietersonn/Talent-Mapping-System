@@ -18,6 +18,7 @@
 
     <nav class="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-1 scroll-smooth">
 
+        {{-- DASHBOARD --}}
         <a href="{{ route('admin.dashboard') }}"
            class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
@@ -30,42 +31,49 @@
             <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Bank Soal & Data</p>
         </div>
 
+        {{-- MENU QUESTION BANK (Updated Logic) --}}
+
+        {{-- 1. All Versions (General) --}}
         <a href="{{ route('admin.questions.index') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.index') || request()->routeIs('admin.questions.show') || request()->routeIs('admin.questions.create') || request()->routeIs('admin.questions.edit') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-layer-group {{ request()->routeIs('admin.questions.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                <i class="fas fa-layer-group {{ request()->routeIs('admin.questions.index') || request()->routeIs('admin.questions.show') || request()->routeIs('admin.questions.create') || request()->routeIs('admin.questions.edit') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
             Question Versions
         </a>
 
+        {{-- 2. ST-30 Questions --}}
         <a href="{{ route('admin.questions.st30.index') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.st30.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.st30.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-list-ol {{ request()->routeIs('admin.st30.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                <i class="fas fa-list-ol {{ request()->routeIs('admin.questions.st30.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
             ST-30 Questions
         </a>
 
+        {{-- 3. SJT Questions --}}
         <a href="{{ route('admin.questions.sjt.index') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.sjt.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.sjt.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-tasks {{ request()->routeIs('admin.sjt.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                <i class="fas fa-tasks {{ request()->routeIs('admin.questions.sjt.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
             SJT Questions
         </a>
 
+        {{-- 4. Competencies --}}
         <a href="{{ route('admin.questions.competencies.index') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.competencies.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.competencies.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-award {{ request()->routeIs('admin.competencies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                <i class="fas fa-award {{ request()->routeIs('admin.questions.competencies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
             Competencies
         </a>
 
+        {{-- 5. Typologies --}}
         <a href="{{ route('admin.questions.typologies.index') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.typologies.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.questions.typologies.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-fingerprint {{ request()->routeIs('admin.typologies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                <i class="fas fa-fingerprint {{ request()->routeIs('admin.questions.typologies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
             Typologies
         </a>
@@ -74,8 +82,8 @@
             <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Operasional</p>
         </div>
 
-        {{-- Menggunakan $user yang dikirim dari AppServiceProvider --}}
-        @if ($user->role === 'admin')
+        {{-- OPERASIONAL --}}
+        @if (isset($user) && $user->role === 'admin')
         <a href="{{ route('admin.users.index') }}"
            class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
@@ -93,7 +101,7 @@
                 </div>
                 Events
             </div>
-            @if ($user->role === 'staff')
+            @if (isset($user) && $user->role === 'staff')
                 <span class="w-2 h-2 rounded-full bg-blue-400"></span>
             @endif
         </a>
@@ -102,6 +110,7 @@
             <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Laporan & Hasil</p>
         </div>
 
+        {{-- LAPORAN --}}
         <a href="{{ route('admin.results.index') }}"
            class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.results.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
@@ -132,15 +141,15 @@
         <div class="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/80 hover:bg-green-50 transition-colors border border-gray-100 group">
             <a href="{{ route('admin.profile.edit') }}" class="relative shrink-0">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-green-200">
-                    {{ substr($user->name, 0, 1) }}
+                    {{ isset($user) ? substr($user->name, 0, 1) : 'U' }}
                 </div>
                 <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-white rounded-full flex items-center justify-center">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 </div>
             </a>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-gray-800 truncate">{{ $user->name }}</p>
-                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide truncate">{{ ucfirst($user->role) }}</p>
+                <p class="text-sm font-bold text-gray-800 truncate">{{ isset($user) ? $user->name : 'Guest' }}</p>
+                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide truncate">{{ isset($user) ? ucfirst($user->role) : 'Guest' }}</p>
             </div>
             <button onclick="confirmLogout()" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Logout">
                 <i class="fas fa-power-off"></i>

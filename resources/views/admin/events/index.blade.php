@@ -22,7 +22,7 @@
     .search-input { width: 100%; padding: 10px 12px 10px 40px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.875rem; background: white; transition: all 0.2s; }
     .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); }
     .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-    .loading-spinner { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #22c55e; display: none; }
+    .loading-spinner { position: absolute; right: 12px; top: 33%; transform: translateY(-50%); color: #22c55e; display: none; }
 
     /* --- TABLE STYLES --- */
     .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
@@ -60,7 +60,6 @@
                 <i class="fas fa-calendar-alt" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; font-size: 1.1rem;"></i>
                 Manajemen Event
             </h1>
-            <div style="font-size: 0.9rem; color: #64748b; margin-left: 54px;">Kelola jadwal, peserta, dan status acara.</div>
         </div>
 
         <div style="display: flex; gap: 12px; align-items: center;">
@@ -90,10 +89,10 @@
                 <thead>
                     <tr>
                         <th width="30%">Nama Event</th>
-                        <th width="20%">Instansi</th>
+                        <th width="35%">Instansi</th>
                         <th width="15%">PIC</th>
                         <th width="15%">Peserta</th>
-                        <th width="20%" style="text-align: right;">Aksi</th>
+                        <th width="20%">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="eventTableBody">
