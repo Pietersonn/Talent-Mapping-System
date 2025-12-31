@@ -81,9 +81,7 @@
                 <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
             </div>
 
-            <a href="{{ route('admin.questions.typologies.export') }}" target="_blank" class="btn-icon-square" title="Export PDF">
-                <i class="fas fa-print"></i>
-            </a>
+           <button onclick="exportTypologies()" class="btn-icon-square" title="Export PDF"> <i class="fas fa-print"></i></button>
 
             @if(Auth::user()->role === 'admin')
                 <a href="{{ route('admin.questions.typologies.create') }}" class="btn-tm">
@@ -197,11 +195,9 @@
 <script>
     let debounceTimer;
 
-    // --- PENCARIAN DENGAN JEDA (DEBOUNCE) & LOADING SPINNER ---
     $('#typologySearch').on('input', function() {
         const value = $(this).val().toLowerCase();
 
-        // Tampilkan spinner, sembunyikan icon search
         $('.loading-spinner').show();
         $('.search-icon').hide();
 
@@ -210,11 +206,9 @@
             $('#typologyTableBody tr').filter(function() {
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
-
-            // Sembunyikan spinner kembali
             $('.loading-spinner').hide();
             $('.search-icon').show();
-        }, 500); // Jeda 500ms
+        }, 500);
     });
 
     function toggleText(btn) {
@@ -225,6 +219,18 @@
         } else {
             fullText.show(); shortText.hide(); $(btn).text('Tutup');
         }
+    }
+
+    function exportTypologies() {
+        let baseUrl = "{{ route('admin.questions.typologies.export') }}";
+        let search = $('#typologySearch').val(); // Ambil nilai dari input search
+
+        let params = new URLSearchParams();
+        if(search) {
+            params.append('search', search);
+        }
+
+        window.open(baseUrl + "?" + params.toString(), '_blank');
     }
 
     function confirmDelete(name, url) {

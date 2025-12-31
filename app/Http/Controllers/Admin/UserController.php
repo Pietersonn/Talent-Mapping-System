@@ -24,11 +24,11 @@ class UserController extends Controller
         // Logika Pencarian (Mencakup Nama, Email, Role, dan No HP)
         if ($request->has('search') && !empty($request->search)) {
             $term = $request->search;
-            $query->where(function($q) use ($term) {
-                $q->where('name', 'like', '%'.$term.'%')
-                  ->orWhere('email', 'like', '%'.$term.'%')
-                  ->orWhere('role', 'like', '%'.$term.'%')
-                  ->orWhere('phone_number', 'like', '%'.$term.'%');
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%' . $term . '%')
+                    ->orWhere('email', 'like', '%' . $term . '%')
+                    ->orWhere('role', 'like', '%' . $term . '%')
+                    ->orWhere('phone_number', 'like', '%' . $term . '%');
             });
         }
 
@@ -136,7 +136,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'role' => ['required', 'string', 'in:admin,staff,pic,user'],
             'phone_number' => ['nullable', 'string', 'max:20'],
         ]);
@@ -202,14 +202,17 @@ class UserController extends Controller
     {
         $query = User::query();
 
+        // 1. Filter Search (Nama & Email)
         if ($request->filled('search')) {
-            $term = trim($request->search);
-            $query->where(function ($q) use ($term) {
-                $q->where('name', 'like', "%{$term}%")
-                  ->orWhere('email', 'like', "%{$term}%")
-                  ->orWhere('role', 'like', "%{$term}%")
-                  ->orWhere('phone_number', 'like', "%{$term}%");
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
         }
 
         $users = $query->orderBy('name', 'asc')->get();
@@ -217,11 +220,10 @@ class UserController extends Controller
         $pdf = Pdf::loadView('admin.users.pdf.userReport', [
             'reportTitle' => 'Laporan Data Pengguna',
             'generatedBy' => Auth::user()->name,
-            'generatedAt' => now()->format('d/m/Y H:i') . ' WITA',
+            'generatedAt' => now()->format('d M Y H:i'),
             'rows'        => $users,
-        ])->setPaper('a4', 'potrait');
+        ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Laporan_User.pdf');
+        return $pdf->stream('Laporan_Pengguna.pdf');
     }
-
 }

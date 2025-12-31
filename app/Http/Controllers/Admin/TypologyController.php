@@ -17,11 +17,11 @@ class TypologyController extends Controller
         // Fix: Mencari di kolom yang benar (strength & weakness)
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('typology_name', 'like', "%{$search}%")
-                  ->orWhere('typology_code', 'like', "%{$search}%")
-                  ->orWhere('strength_description', 'like', "%{$search}%")
-                  ->orWhere('weakness_description', 'like', "%{$search}%");
+                    ->orWhere('typology_code', 'like', "%{$search}%")
+                    ->orWhere('strength_description', 'like', "%{$search}%")
+                    ->orWhere('weakness_description', 'like', "%{$search}%");
             });
         }
 
@@ -74,7 +74,7 @@ class TypologyController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'typology_code' => 'required|string|max:10|unique:typology_descriptions,typology_code,'.$id,
+            'typology_code' => 'required|string|max:10|unique:typology_descriptions,typology_code,' . $id,
             'typology_name' => 'required|string|max:255',
             'strength_description' => 'nullable|string',
             'weakness_description' => 'nullable|string',
@@ -96,10 +96,22 @@ class TypologyController extends Controller
             ->with('success', 'Tipologi berhasil dihapus.');
     }
 
-    public function export()
+    public function export(Request $request)
     {
-        // Ambil semua data, urutkan berdasarkan kode (A, B, C...)
-        $typologies = TypologyDescription::orderBy('typology_code', 'asc')->get();
+        $query = TypologyDescription::query();
+
+        // TAMBAHKAN LOGIC SEARCH INI
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('typology_name', 'like', "%{$search}%")
+                    ->orWhere('typology_code', 'like', "%{$search}%")
+                    ->orWhere('strength_description', 'like', "%{$search}%")
+                    ->orWhere('weakness_description', 'like', "%{$search}%");
+            });
+        }
+
+        $typologies = $query->orderBy('typology_code', 'asc')->get();
 
         $data = [
             'reportTitle' => 'Laporan Data Tipologi (Typologies)',
@@ -108,12 +120,9 @@ class TypologyController extends Controller
             'rows'        => $typologies
         ];
 
-        // Load view PDF
         $pdf = Pdf::loadView('admin.questions.typologies.pdf.typologyReport', $data);
-
-        // Gunakan Landscape agar kolom deskripsi yang panjang muat
         $pdf->setPaper('a4', 'landscape');
 
-        return $pdf->stream('Laporan-Tipologi-ST30.pdf');
+        return $pdf->stream('Laporan-Tipologi.pdf');
     }
 }

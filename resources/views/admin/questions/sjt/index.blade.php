@@ -306,13 +306,26 @@
             }
         }
 
-        // Export questions
+        // --- PERBAIKAN FUNGSI EXPORT ---
         function exportQuestions() {
             var versionId = '{{ $selectedVersion ? $selectedVersion->id : '' }}';
+            // Ambil nilai text yang sedang diketik user
+            var searchValue = document.getElementById('searchQuestions').value;
+
             if (versionId) {
-                // Perhatikan route-nya: admin.questions.sjt.export
-                var url = '{{ route('admin.questions.sjt.export') }}?version=' + versionId;
-                window.open(url, '_blank');
+                var url = '{{ route('admin.questions.sjt.export') }}';
+
+                // Gunakan URLSearchParams agar query string rapi
+                var params = new URLSearchParams();
+                params.append('version', versionId);
+
+                // Jika ada search, tambahkan ke URL
+                if (searchValue) {
+                    params.append('search', searchValue);
+                }
+
+                // Buka window baru dengan parameter lengkap
+                window.open(url + '?' + params.toString(), '_blank');
             } else {
                 Swal.fire('Error', 'Please select a version to export.', 'error');
             }
@@ -335,7 +348,7 @@
         }
 
         $(document).ready(function() {
-            // Client-side Search Functionality
+            // Client-side Search Functionality (Untuk tampilan visual tabel)
             $('#searchQuestions').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#questionsTable tbody tr').filter(function() {
@@ -365,7 +378,6 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Create form dynamically
                         var form = $('<form>', {
                             'method': 'POST',
                             'action': deleteUrl

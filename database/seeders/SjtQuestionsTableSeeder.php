@@ -22,7 +22,7 @@ class SjtQuestionsTableSeeder extends Seeder
         DB::table('sjt_questions')->insert(array (
             0 =>
             array (
-                'id' => 'SJ101',
+                'id' => 'SJ001',
                 'version_id' => 'SJV01',
                 'number' => 1,
                 'question_text' => 'Bagaimana cara kamu mengatur waktu untuk tugas yang butuh fokus tinggi?',
@@ -33,7 +33,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             1 =>
             array (
-                'id' => 'SJ102',
+                'id' => 'SJ002',
                 'version_id' => 'SJV01',
                 'number' => 2,
                 'question_text' => 'Kalau ada situasi bikin emosi di tempat kerja, gimana caramu?',
@@ -44,7 +44,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             2 =>
             array (
-                'id' => 'SJ103',
+                'id' => 'SJ003',
                 'version_id' => 'SJV01',
                 'number' => 3,
                 'question_text' => 'Saat menghadapi masalah yang belum pernah kamu temui sebelumnya, apa yang kamu lakukan?',
@@ -55,7 +55,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             3 =>
             array (
-                'id' => 'SJ104',
+                'id' => 'SJ004',
                 'version_id' => 'SJV01',
                 'number' => 4,
                 'question_text' => 'Bagaimana kamu mengevaluasi keputusan yang sudah dibuat?',
@@ -66,7 +66,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             4 =>
             array (
-                'id' => 'SJ105',
+                'id' => 'SJ005',
                 'version_id' => 'SJV01',
                 'number' => 5,
                 'question_text' => 'Saat kamu ingin menyampaikan ide baru kepada tim, bagaimana cara terbaik untuk melakukannya?',
@@ -77,7 +77,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             5 =>
             array (
-                'id' => 'SJ106',
+                'id' => 'SJ006',
                 'version_id' => 'SJV01',
                 'number' => 6,
                 'question_text' => 'Saat ada diskusi kelompok, bagaimana kamu memastikan semua orang ikut berpartisipasi?',
@@ -88,7 +88,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             6 =>
             array (
-                'id' => 'SJ107',
+                'id' => 'SJ007',
                 'version_id' => 'SJV01',
                 'number' => 7,
                 'question_text' => 'Jika kamu bekerja dengan rekan yang memiliki cara kerja berbeda, bagaimana kamu menyesuaikan diri?',
@@ -99,7 +99,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             7 =>
             array (
-                'id' => 'SJ108',
+                'id' => 'SJ008',
                 'version_id' => 'SJV01',
                 'number' => 8,
                 'question_text' => 'Ketika tugas dibagi dalam tim, apa yang biasanya kamu lakukan untuk memastikan semuanya berjalan lancar?',
@@ -110,7 +110,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             8 =>
             array (
-                'id' => 'SJ109',
+                'id' => 'SJ009',
                 'version_id' => 'SJV01',
                 'number' => 9,
                 'question_text' => 'Bagaimana kamu menjaga motivasi dalam bekerja, terutama saat menghadapi tugas yang monoton?',
@@ -121,7 +121,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             9 =>
             array (
-                'id' => 'SJ110',
+                'id' => 'SJ010',
                 'version_id' => 'SJV01',
                 'number' => 10,
                 'question_text' => 'Saat kamu menghadapi kesulitan dalam pekerjaan, apa yang membantu kamu untuk tetap semangat?',
@@ -132,7 +132,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             10 =>
             array (
-                'id' => 'SJ111',
+                'id' => 'SJ011',
                 'version_id' => 'SJV01',
                 'number' => 11,
                 'question_text' => 'Bagaimana kamu menjaga semangat dan motivasi dalam tim ketika menghadapi tantangan besar?',
@@ -143,7 +143,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             11 =>
             array (
-                'id' => 'SJ112',
+                'id' => 'SJ012',
                 'version_id' => 'SJV01',
                 'number' => 12,
                 'question_text' => 'Ketika tim membutuhkan seseorang untuk bertanggung jawab mengambil keputusan penting, apa yang kamu lakukan?',
@@ -154,7 +154,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             12 =>
             array (
-                'id' => 'SJ113',
+                'id' => 'SJ013',
                 'version_id' => 'SJV01',
                 'number' => 13,
                 'question_text' => 'Bagaimana kamu menginspirasi rekan kerja melalui tindakan dan kata-kata?',
@@ -165,7 +165,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             13 =>
             array (
-                'id' => 'SJ114',
+                'id' => 'SJ014',
                 'version_id' => 'SJV01',
                 'number' => 14,
                 'question_text' => 'Bagaimana kamu menunjukkan rasa percaya diri saat mempresentasikan ide di depan orang banyak?',
@@ -176,7 +176,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             14 =>
             array (
-                'id' => 'SJ115',
+                'id' => 'SJ015',
                 'version_id' => 'SJV01',
                 'number' => 15,
                 'question_text' => 'Bagaimana kamu memperlakukan kegagalan atau kesalahan yang kamu buat?',
@@ -187,7 +187,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             15 =>
             array (
-                'id' => 'SJ116',
+                'id' => 'SJ016',
                 'version_id' => 'SJV01',
                 'number' => 16,
                 'question_text' => 'Ketika menghadapi situasi baru yang memerlukan keputusan cepat, bagaimana kamu mengatasi rasa ragu?',
@@ -198,7 +198,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             16 =>
             array (
-                'id' => 'SJ117',
+                'id' => 'SJ017',
                 'version_id' => 'SJV01',
                 'number' => 17,
                 'question_text' => 'Ketika menghadapi masalah besar, apa langkah pertama yang kamu ambil?',
@@ -209,7 +209,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             17 =>
             array (
-                'id' => 'SJ118',
+                'id' => 'SJ018',
                 'version_id' => 'SJV01',
                 'number' => 18,
                 'question_text' => 'Jika solusi yang kamu pilih ternyata memiliki efek samping yang tidak diinginkan, apa yang kamu lakukan?',
@@ -220,7 +220,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             18 =>
             array (
-                'id' => 'SJ119',
+                'id' => 'SJ019',
                 'version_id' => 'SJV01',
                 'number' => 19,
                 'question_text' => 'Jika kamu menemukan masalah yang belum pernah kamu hadapi sebelumnya, bagaimana pendekatan kamu?',
@@ -231,7 +231,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             19 =>
             array (
-                'id' => 'SJ120',
+                'id' => 'SJ020',
                 'version_id' => 'SJV01',
                 'number' => 20,
                 'question_text' => 'Jika kamu tahu ada rekan kerja yang tidak jujur dalam melaporkan hasil kerja, apa yang akan kamu lakukan?',
@@ -242,7 +242,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             20 =>
             array (
-                'id' => 'SJ121',
+                'id' => 'SJ021',
                 'version_id' => 'SJV01',
                 'number' => 21,
                 'question_text' => 'Jika kamu terjebak dalam situasi di mana kamu harus memilih antara keuntungan pribadi dan kejujuran, apa yang kamu pilih?',
@@ -253,7 +253,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             21 =>
             array (
-                'id' => 'SJ122',
+                'id' => 'SJ022',
                 'version_id' => 'SJV01',
                 'number' => 22,
                 'question_text' => 'Jika kamu diberi kesempatan untuk mengambil kredit atas pekerjaan orang lain, apa yang akan kamu lakukan?',
@@ -264,7 +264,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             22 =>
             array (
-                'id' => 'SJ123',
+                'id' => 'SJ023',
                 'version_id' => 'SJV01',
                 'number' => 23,
                 'question_text' => 'Seberapa sering kamu menggunakan perangkat lunak atau aplikasi baru untuk mendukung pekerjaan?',
@@ -275,7 +275,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             23 =>
             array (
-                'id' => 'SJ124',
+                'id' => 'SJ024',
                 'version_id' => 'SJV01',
                 'number' => 24,
                 'question_text' => 'Seberapa yakin kamu dengan kemampuan teknismu menggunakan perangkat digital untuk menyelesaikan tugas?',
@@ -286,7 +286,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             24 =>
             array (
-                'id' => 'SJ125',
+                'id' => 'SJ025',
                 'version_id' => 'SJV01',
                 'number' => 25,
                 'question_text' => 'Jika kamu diminta untuk memberikan pelatihan tentang keterampilan teknis kepada rekan kerja, bagaimana kamu merasa?',
@@ -297,7 +297,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             25 =>
             array (
-                'id' => 'SJ126',
+                'id' => 'SJ026',
                 'version_id' => 'SJV01',
                 'number' => 26,
                 'question_text' => 'Kalau tugas lagi banyak dan deadline mepet, gimana cara kamu mengatasi stress?',
@@ -308,7 +308,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             26 =>
             array (
-                'id' => 'SJ127',
+                'id' => 'SJ027',
                 'version_id' => 'SJV01',
                 'number' => 27,
                 'question_text' => 'Bagaimana cara kamu menkontrol diri dari pekerjaan yang bikin kesal?',
@@ -319,7 +319,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             27 =>
             array (
-                'id' => 'SJ128',
+                'id' => 'SJ028',
                 'version_id' => 'SJV01',
                 'number' => 28,
                 'question_text' => 'Gimana caramu memastikan tugas selesai tepat waktu tanpa bikin diri kelelahan?',
@@ -330,7 +330,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             28 =>
             array (
-                'id' => 'SJ129',
+                'id' => 'SJ029',
                 'version_id' => 'SJV01',
                 'number' => 29,
                 'question_text' => 'Kalau kamu dapat informasi dari beberapa sumber yang berbeda, gimana caramu memilah mana yang bener?',
@@ -341,7 +341,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             29 =>
             array (
-                'id' => 'SJ130',
+                'id' => 'SJ030',
                 'version_id' => 'SJV01',
                 'number' => 30,
                 'question_text' => 'Kalau ada masalah baru, apa langkah pertama yang kamu lakuin?',
@@ -352,7 +352,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             30 =>
             array (
-                'id' => 'SJ131',
+                'id' => 'SJ031',
                 'version_id' => 'SJV01',
                 'number' => 31,
                 'question_text' => 'Kalau dapat tugas yang susah, gimana caramu nentuin prioritas penyelesaiannya?',
@@ -363,7 +363,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             31 =>
             array (
-                'id' => 'SJ132',
+                'id' => 'SJ032',
                 'version_id' => 'SJV01',
                 'number' => 32,
                 'question_text' => 'Gimana cara kamu supaya ide kamu dipahami sama tim dengan jelas?',
@@ -374,7 +374,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             32 =>
             array (
-                'id' => 'SJ133',
+                'id' => 'SJ033',
                 'version_id' => 'SJV01',
                 'number' => 33,
                 'question_text' => 'Kalau ada pendapat yang beda dalam tim, gimana biasanya kamu nyikapi?',
@@ -385,7 +385,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             33 =>
             array (
-                'id' => 'SJ134',
+                'id' => 'SJ034',
                 'version_id' => 'SJV01',
                 'number' => 34,
                 'question_text' => 'Kalau temen kerja lagi down, apa yang kamu lakuin buat bantuin dia?',
@@ -396,7 +396,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             34 =>
             array (
-                'id' => 'SJ135',
+                'id' => 'SJ035',
                 'version_id' => 'SJV01',
                 'number' => 35,
                 'question_text' => 'Kalau ada yang nggak aktif di tim, gimana cara kamu buat ngedorong mereka ikut kontribusi?',
@@ -407,7 +407,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             35 =>
             array (
-                'id' => 'SJ136',
+                'id' => 'SJ036',
                 'version_id' => 'SJV01',
                 'number' => 36,
                 'question_text' => 'Kalau tim punya pendapat yang beda-beda, gimana kamu bantuin biar bisa cepet sepakat?',
@@ -418,7 +418,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             36 =>
             array (
-                'id' => 'SJ137',
+                'id' => 'SJ037',
                 'version_id' => 'SJV01',
                 'number' => 37,
                 'question_text' => 'Gimana cara kamu biar bisa kerjasama dengan orang yang karakternya beda banget?',
@@ -429,7 +429,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             37 =>
             array (
-                'id' => 'SJ138',
+                'id' => 'SJ038',
                 'version_id' => 'SJV01',
                 'number' => 38,
                 'question_text' => 'Gimana caramu nunjukin kalau kamu punya semangat belajar dan berkembang?',
@@ -440,7 +440,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             38 =>
             array (
-                'id' => 'SJ139',
+                'id' => 'SJ039',
                 'version_id' => 'SJV01',
                 'number' => 39,
                 'question_text' => 'Kalau ada hambatan di kerjaan, apa yang biasanya kamu lakuin?',
@@ -451,7 +451,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             39 =>
             array (
-                'id' => 'SJ140',
+                'id' => 'SJ040',
                 'version_id' => 'SJV01',
                 'number' => 40,
                 'question_text' => 'Kalau dikasih tugas baru, gimana sikap kamu buat pastiin berhasil?',
@@ -462,7 +462,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             40 =>
             array (
-                'id' => 'SJ141',
+                'id' => 'SJ041',
                 'version_id' => 'SJV01',
                 'number' => 41,
                 'question_text' => 'Kalau nggak ada yang ambil inisiatif di tim, gimana caramu buat gerakin mereka?',
@@ -473,7 +473,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             41 =>
             array (
-                'id' => 'SJ142',
+                'id' => 'SJ042',
                 'version_id' => 'SJV01',
                 'number' => 42,
                 'question_text' => 'Kalau ada anggota tim yang kurang semangat, apa yang kamu lakuin buat motifasi mereka?',
@@ -484,7 +484,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             42 =>
             array (
-                'id' => 'SJ143',
+                'id' => 'SJ043',
                 'version_id' => 'SJV01',
                 'number' => 43,
                 'question_text' => 'Gimana perasaan kamu kalau dikasih tugas baru yang belum pernah kamu kerjain?',
@@ -495,7 +495,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             43 =>
             array (
-                'id' => 'SJ144',
+                'id' => 'SJ044',
                 'version_id' => 'SJV01',
                 'number' => 44,
                 'question_text' => 'Kalau dapat kritik dari atasan, gimana cara kamu merespon dan belajar dari itu?',
@@ -506,7 +506,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             44 =>
             array (
-                'id' => 'SJ145',
+                'id' => 'SJ045',
                 'version_id' => 'SJV01',
                 'number' => 45,
                 'question_text' => 'Kalau kamu nemuin masalah baru di kerjaan, biasanya langkah pertama yang kamu ambil apa?',
@@ -517,7 +517,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             45 =>
             array (
-                'id' => 'SJ146',
+                'id' => 'SJ046',
                 'version_id' => 'SJV01',
                 'number' => 46,
                 'question_text' => 'Kalau solusi pertama gagal, gimana cara kamu mencari alternatif lain?',
@@ -528,7 +528,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             46 =>
             array (
-                'id' => 'SJ147',
+                'id' => 'SJ047',
                 'version_id' => 'SJV01',
                 'number' => 47,
                 'question_text' => 'Kalau ada rekan yang melakukan pelanggaran aturan, gimana kamu nyikapi?',
@@ -539,7 +539,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             47 =>
             array (
-                'id' => 'SJ148',
+                'id' => 'SJ048',
                 'version_id' => 'SJV01',
                 'number' => 48,
                 'question_text' => 'Saat dikasih tugas yang susah, gimana kamu memastikan tetap jujur sama kemampuan diri?',
@@ -550,7 +550,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             48 =>
             array (
-                'id' => 'SJ149',
+                'id' => 'SJ049',
                 'version_id' => 'SJV01',
                 'number' => 49,
                 'question_text' => 'Kalau ada teknologi atau alat baru yang perlu dipelajari buat kerja, gimana cara kamu belajarnya?',
@@ -561,7 +561,7 @@ class SjtQuestionsTableSeeder extends Seeder
             ),
             49 =>
             array (
-                'id' => 'SJ150',
+                'id' => 'SJ050',
                 'version_id' => 'SJV01',
                 'number' => 50,
                 'question_text' => 'Kalau dikasih tugas teknis yang kamu belum kuasai, gimana caramu hadapi?',

@@ -150,7 +150,8 @@
     // --- PENCARIAN REALTIME (AJAX) ---
     $('#realtimeSearch').on('input', function() {
         const query = $(this).val();
-        $('.loading-spinner').show(); $('.search-icon').hide();
+        $('.loading-spinner').show();
+        $('.search-icon').hide();
 
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
@@ -160,20 +161,32 @@
                 data: { search: query },
                 success: function(response) {
                     renderTable(response);
-                    $('.loading-spinner').hide(); $('.search-icon').show();
+                    $('.loading-spinner').hide();
+                    $('.search-icon').show();
 
-                    // UPDATE LINK PDF SECARA DINAMIS
-                    // Agar saat user klik print, PDF yang terdownload sesuai dengan pencarian
-                    let baseUrl = "{{ route('admin.events.export.pdf') }}";
-                    let newUrl = baseUrl + "?search=" + encodeURIComponent(query);
-                    $('#btnExportPdf').attr('href', newUrl);
+                    updateExportUrl(query);
                 },
                 error: function() {
-                    $('.loading-spinner').hide(); $('.search-icon').show();
+                    $('.loading-spinner').hide();
+                    $('.search-icon').show();
                 }
             });
         }, 500);
     });
+
+    // Fungsi khusus untuk update URL tombol PDF
+    function updateExportUrl(searchQuery) {
+        let baseUrl = "{{ route('admin.events.export.pdf') }}";
+        let params = new URLSearchParams(window.location.search);
+
+        if (searchQuery) {
+            params.set('search', searchQuery);
+        } else {
+            params.delete('search');
+        }
+
+        $('#btnExportPdf').attr('href', baseUrl + "?" + params.toString());
+    }
 
     function renderTable(response) {
         const tbody = $('#eventTableBody');
@@ -201,6 +214,8 @@
             }
 
             let maxPart = event.max_participants ? event.max_participants : '∞';
+            let picName = event.pic_name ? event.pic_name : 'Belum ada PIC';
+            let company = event.company ? event.company : '-';
 
             html += `<tr>
                 <td>
@@ -212,8 +227,8 @@
                         <div class="event-code">${event.event_code}</div>
                     </div>
                 </td>
-                <td style="color: #64748b; font-weight: 500;">${event.company}</td>
-                <td style="color: #64748b;">${event.pic_name}</td>
+                <td style="color: #64748b; font-weight: 500;">${company}</td>
+                <td style="color: #64748b;">${picName}</td>
                 <td>
                     <span style="font-weight: 700; color: #22c55e;">${event.participants_count}</span>
                     <span style="color: #cbd5e1;">/</span>

@@ -255,15 +255,26 @@
         // Export questions
         function exportQuestions() {
             var versionId = '{{ $selectedVersion ? $selectedVersion->id : '' }}';
+            // Ambil nilai dari input search box
+            var searchValue = document.getElementById('searchQuestions').value;
+
             if (versionId) {
-                // Perhatikan route-nya: admin.questions.st30.export
-                var url = '{{ route('admin.questions.st30.export') }}?version=' + versionId;
-                window.open(url, '_blank');
+                var url = '{{ route('admin.questions.st30.export') }}';
+
+                // Gunakan URLSearchParams untuk membuat query string rapi
+                var params = new URLSearchParams();
+                params.append('version', versionId);
+
+                if(searchValue) {
+                    params.append('search', searchValue);
+                }
+
+                // Buka URL: /admin/questions/st30/export?version=XX&search=YYY
+                window.open(url + '?' + params.toString(), '_blank');
             } else {
                 Swal.fire('Error', 'Please select a version to export.', 'error');
             }
         }
-
         // Toggle Expand Text Logic
         function toggleStatement(btn, id) {
             const shortText = $(btn).siblings('.short-text');

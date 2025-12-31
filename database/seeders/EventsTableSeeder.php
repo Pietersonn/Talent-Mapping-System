@@ -22,7 +22,7 @@ class EventsTableSeeder extends Seeder
         DB::table('events')->insert(array (
             0 =>
             array (
-                'id' => 'EVT25',
+                'id' => 'EVT1',
                 'name' => 'BCTI Talent Assessment Program 2025',
                 'company' => 'Business & Communication Training Institute',
                 'description' => 'Business & Communication Training Institute Assessment 2025',
@@ -35,7 +35,7 @@ class EventsTableSeeder extends Seeder
                 'created_at' => '2025-08-25 02:43:39',
                 'updated_at' => '2025-09-06 02:43:04',
             ),
-            
+
         ));
 
 

@@ -490,12 +490,4 @@ class TestController extends BaseController
         return TestSession::where('session_token', $sessionToken)->first();
     }
 
-    private function generateTestSessionId(): string
-    {
-        do {
-            $id = 'TS' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
-        } while (TestSession::where('id', $id)->exists());
-
-        return $id;
-    }
 }

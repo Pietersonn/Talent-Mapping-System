@@ -2,11 +2,10 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\DB;
+
 trait HasCustomId
 {
-    /**
-     * Boot the trait
-     */
     protected static function bootHasCustomId()
     {
         static::creating(function ($model) {
@@ -17,15 +16,24 @@ trait HasCustomId
     }
 
     /**
-     * Generate custom ID - should be implemented in each model
+     * Generate sequential custom ID safely
      */
-    abstract public function generateCustomId(): string;
-
-    /**
-     * Get the route key for the model.
-     */
-    public function getRouteKeyName()
+    public function generateCustomId(): string
     {
-        return $this->getKeyName();
+        return DB::transaction(function () {
+            $prefix = $this->customIdPrefix;
+            $length = $this->customIdLength ?? 3; // default 001
+
+            $last = static::lockForUpdate()
+                ->where($this->getKeyName(), 'like', $prefix.'%')
+                ->orderBy($this->getKeyName(), 'desc')
+                ->first();
+
+            $nextNumber = $last
+                ? ((int) substr($last->{$this->getKeyName()}, strlen($prefix))) + 1
+                : 1;
+
+            return $prefix . str_pad($nextNumber, $length, '0', STR_PAD_LEFT);
+        });
     }
 }

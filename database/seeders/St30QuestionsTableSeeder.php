@@ -21,7 +21,7 @@ class St30QuestionsTableSeeder extends Seeder
         DB::table('st30_questions')->insert(array (
             0 =>
             array (
-                'id' => 'ST01',
+                'id' => 'ST001',
                 'version_id' => 'STV01',
                 'number' => 1,
                 'statement' => 'Pengelola urusan bisnis, organisasi, atau lembaga yang rapih dan baik',
@@ -32,7 +32,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             1 =>
             array (
-                'id' => 'ST02',
+                'id' => 'ST002',
                 'version_id' => 'STV01',
                 'number' => 2,
                 'statement' => 'Menjadi perwakilan dari suatu organisasi/institusi, baik resmi maupun tidak resmi',
@@ -43,7 +43,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             2 =>
             array (
-                'id' => 'ST03',
+                'id' => 'ST003',
                 'version_id' => 'STV01',
                 'number' => 3,
                 'statement' => 'Penggemar hal-hal detil, dan selalu melakukan analisa terhadap berbagai peristiwa',
@@ -54,7 +54,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             3 =>
             array (
-                'id' => 'ST04',
+                'id' => 'ST004',
                 'version_id' => 'STV01',
                 'number' => 4,
                 'statement' => 'Mampu dengan mudah mengorganisir berbagai hal, atau berbagai sumber daya yang dimilikinya',
@@ -65,7 +65,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             4 =>
             array (
-                'id' => 'ST05',
+                'id' => 'ST005',
                 'version_id' => 'STV01',
                 'number' => 5,
                 'statement' => 'Menyukai aktivitas memberikan perhatian atau perawatan dan dukungan kepada orang lain',
@@ -76,7 +76,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             5 =>
             array (
-                'id' => 'ST06',
+                'id' => 'ST006',
                 'version_id' => 'STV01',
                 'number' => 6,
                 'statement' => 'Gemar memberikan perintah, kadang memaksa. Berani menghadapi masalah secara langsung',
@@ -87,7 +87,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             6 =>
             array (
-                'id' => 'ST07',
+                'id' => 'ST007',
                 'version_id' => 'STV01',
                 'number' => 7,
                 'statement' => 'Menyampaikan informasi, ide, perasaan dengan cara yang sederhana dan mudah dimengerti',
@@ -98,7 +98,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             7 =>
             array (
-                'id' => 'ST08',
+                'id' => 'ST008',
                 'version_id' => 'STV01',
                 'number' => 8,
                 'statement' => 'Senang atau mampu menciptakan sesuatu yang baru, seperti penulis, ilmuwan, dll.',
@@ -109,7 +109,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             8 =>
             array (
-                'id' => 'ST09',
+                'id' => 'ST009',
                 'version_id' => 'STV01',
                 'number' => 9,
                 'statement' => 'Bisa membayangkan bagaimana sesuatu akan dibuat, dan bisa menggambar rancangan hal tersebut',
@@ -120,7 +120,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             9 =>
             array (
-                'id' => 'ST10',
+                'id' => 'ST010',
                 'version_id' => 'STV01',
                 'number' => 10,
                 'statement' => 'Memberikan atau mengirimkan sesuatu kepada orang-orang tertentu, dan dalam jumlah tertentu',
@@ -131,7 +131,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             10 =>
             array (
-                'id' => 'ST11',
+                'id' => 'ST011',
                 'version_id' => 'STV01',
                 'number' => 11,
                 'statement' => 'Mendidik, atau berperan dalam merencanakan dan mengarahkan pendidikan',
@@ -142,7 +142,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             11 =>
             array (
-                'id' => 'ST12',
+                'id' => 'ST012',
                 'version_id' => 'STV01',
                 'number' => 12,
                 'statement' => 'Mampu melakukan studi dan analisis yang mendalam, dan membuat kesimpulan mengenai sesuatu',
@@ -153,7 +153,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             12 =>
             array (
-                'id' => 'ST13',
+                'id' => 'ST013',
                 'version_id' => 'STV01',
                 'number' => 13,
                 'statement' => 'Mampu menyelidiki sesuatu secara sistematis, sebagai upaya menemukan motif, untuk mengungkap kebenaran',
@@ -164,7 +164,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             13 =>
             array (
-                'id' => 'ST14',
+                'id' => 'ST014',
                 'version_id' => 'STV01',
                 'number' => 14,
                 'statement' => 'Mampu menginterpretasikan sesuatu, termasuk menerjemahkannya ke dalam bahasa lain',
@@ -175,7 +175,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             14 =>
             array (
-                'id' => 'ST15',
+                'id' => 'ST015',
                 'version_id' => 'STV01',
                 'number' => 15,
                 'statement' => 'Mampu membuat jurnal, buku harian atau catatan kejadian sehari-hari, atau menulis laporan dan berita untuk disiarkan',
@@ -186,7 +186,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             15 =>
             array (
-                'id' => 'ST16',
+                'id' => 'ST016',
                 'version_id' => 'STV01',
                 'number' => 16,
                 'statement' => 'Mampu merumuskan strategi promosi, untuk mendorong orang agar mereka membeli lebih banyak produk/jasanya',
@@ -197,7 +197,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             16 =>
             array (
-                'id' => 'ST17',
+                'id' => 'ST017',
                 'version_id' => 'STV01',
                 'number' => 17,
                 'statement' => 'Mampu menjadi penengah, mengatasi dan menyelesaikan konflik antar dua pihak yang bertikai',
@@ -208,7 +208,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             17 =>
             array (
-                'id' => 'ST18',
+                'id' => 'ST018',
                 'version_id' => 'STV01',
                 'number' => 18,
                 'statement' => 'Membuat orang lain menjadi bersemangat, tertarik, dan berkomitmen untuk melakukan sesuatu dengan sebaik mungkin',
@@ -219,7 +219,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             18 =>
             array (
-                'id' => 'ST19',
+                'id' => 'ST019',
                 'version_id' => 'STV01',
                 'number' => 19,
                 'statement' => 'Mengoperasikan dan menjaga mesin-mesin, instrument, atau peralatan lain',
@@ -230,7 +230,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             19 =>
             array (
-                'id' => 'ST20',
+                'id' => 'ST020',
                 'version_id' => 'STV01',
                 'number' => 20,
                 'statement' => 'Menghasilkan suatu produk, terutama produk yang dihasilkan oleh proses industri atau manufaktur',
@@ -241,7 +241,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             20 =>
             array (
-                'id' => 'ST21',
+                'id' => 'ST021',
                 'version_id' => 'STV01',
                 'number' => 21,
                 'statement' => 'Memastikan kualitas yang memadai dan baik, terutama dalam produk yang dibuat',
@@ -252,7 +252,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             21 =>
             array (
-                'id' => 'ST22',
+                'id' => 'ST022',
                 'version_id' => 'STV01',
                 'number' => 22,
                 'statement' => 'Mengembalikan sesuatu menjadi seperti kondisi/keadaan semula, atau normal, atau menjadi lebih baik',
@@ -263,7 +263,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             22 =>
             array (
-                'id' => 'ST23',
+                'id' => 'ST023',
                 'version_id' => 'STV01',
                 'number' => 23,
                 'statement' => 'Melindungi keselamatan atau keamanan sesuatu atau seseorang dari bahaya kerusakan, kehilangan dan pencurian',
@@ -274,7 +274,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             23 =>
             array (
-                'id' => 'ST24',
+                'id' => 'ST024',
                 'version_id' => 'STV01',
                 'number' => 24,
                 'statement' => 'Hebat dalam meyakinkan dan mempengaruhi orang lain untuk membeli barang/jasa yang ditawarkannya',
@@ -285,7 +285,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             24 =>
             array (
-                'id' => 'ST25',
+                'id' => 'ST025',
                 'version_id' => 'STV01',
                 'number' => 25,
                 'statement' => 'Senang melayani dan mendahulukan orang lain',
@@ -296,7 +296,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             25 =>
             array (
-                'id' => 'ST26',
+                'id' => 'ST026',
                 'version_id' => 'STV01',
                 'number' => 26,
                 'statement' => 'Mampu dan pandai memilih seseorang untuk ditempatkan pada suatu posisi atau tugas tertentu',
@@ -307,7 +307,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             26 =>
             array (
-                'id' => 'ST27',
+                'id' => 'ST027',
                 'version_id' => 'STV01',
                 'number' => 27,
                 'statement' => 'Mampu melakukan perencanaan jangka panjang',
@@ -318,7 +318,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             27 =>
             array (
-                'id' => 'ST28',
+                'id' => 'ST028',
                 'version_id' => 'STV01',
                 'number' => 28,
                 'statement' => 'Gemar mengkombinasikan berbagai pandangan, ide, obyek, dll. menjadi sesuatu hal yang baru',
@@ -329,7 +329,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             28 =>
             array (
-                'id' => 'ST29',
+                'id' => 'ST029',
                 'version_id' => 'STV01',
                 'number' => 29,
                 'statement' => 'Mampu dan pandai melakukan tugas pengelolaan keuangan, pembukuan dan akuntansi',
@@ -340,7 +340,7 @@ class St30QuestionsTableSeeder extends Seeder
             ),
             29 =>
             array (
-                'id' => 'ST30',
+                'id' => 'ST030',
                 'version_id' => 'STV01',
                 'number' => 30,
                 'statement' => 'Gemar berpikir jauh ke depan melampaui cakrawala',

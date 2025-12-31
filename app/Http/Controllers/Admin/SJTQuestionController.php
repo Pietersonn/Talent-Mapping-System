@@ -262,6 +262,7 @@ class SJTQuestionController extends Controller
     public function export(Request $request)
     {
         $versionId = $request->get('version');
+        $search = $request->get('search');
 
         if (!$versionId) {
             $activeVersion = QuestionVersion::getActive('sjt');
@@ -274,28 +275,35 @@ class SJTQuestionController extends Controller
 
         $version = QuestionVersion::find($versionId);
 
-        // Ambil data soal beserta opsi jawaban dan kompetensi
-        $questions = SJTQuestion::where('version_id', $versionId)
-            ->with(['options', 'competencyDescription'])
-            ->orderBy('number')
-            ->get();
+        $query = SJTQuestion::where('version_id', $versionId)
+            ->with(['options', 'competencyDescription']);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('question_text', 'like', '%' . $search . '%')
+                    ->orWhere('number', 'like', '%' . $search . '%') // <--- TAMBAHAN PENTING INI
+                    ->orWhere('competency', 'like', '%' . $search . '%')
+                    ->orWhereHas('competencyDescription', function ($subQ) use ($search) {
+                        $subQ->where('competency_name', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        $questions = $query->orderBy('number')->get();
 
         $data = [
             'reportTitle' => 'Laporan Bank Soal SJT',
-            'versionName' => $version->version . ' - ' . $version->name,
+            'versionName' => $version->version . ' - ' . $version->name . ($search ? ' (Filter: ' . $search . ')' : ''),
             'generatedBy' => Auth::user()->name,
             'generatedAt' => now()->format('d/m/Y H:i'),
             'rows'        => $questions
         ];
 
         $pdf = Pdf::loadView('admin.questions.sjt.pdf.sjtReport', $data);
-
-        // SJT mungkin butuh landscape karena teksnya panjang
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->stream('Laporan-Soal-SJT-v' . $version->version . '.pdf');
     }
-
     /**
      * Reorder questions
      */

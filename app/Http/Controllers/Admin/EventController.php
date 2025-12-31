@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -95,27 +96,43 @@ class EventController extends Controller
             'pic_id' => ['nullable', 'exists:users,id'],
             'max_participants' => ['nullable', 'integer', 'min:1'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'is_active' => ['nullable', 'boolean'], // Checkbox returns 1 or null
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
-        // Generate ID Custom (Misal: EVT0012)
-        $eventId = 'EVT' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        DB::transaction(function () use ($request) {
 
-        Event::create([
-            'id' => $eventId,
-            'name' => $request->name,
-            'event_code' => strtoupper($request->event_code),
-            'company' => $request->company,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'pic_id' => $request->pic_id,
-            'max_participants' => $request->max_participants,
-            'description' => $request->description,
-            'is_active' => $request->has('is_active'), // Checkbox handling
-        ]);
+            // Ambil angka terakhir dari ID EVT
+            $last = DB::table('events')
+                ->lockForUpdate()
+                ->select(DB::raw("CAST(SUBSTRING(id, 4) AS UNSIGNED) as num"))
+                ->orderByDesc('num')
+                ->first();
 
-        return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat.');
+            // Tentukan nomor berikutnya
+            $nextNumber = $last ? $last->num + 1 : 1;
+
+            // Buat ID baru
+            $eventId = 'EVT' . $nextNumber;
+
+            Event::create([
+                'id' => $eventId,
+                'name' => $request->name,
+                'event_code' => strtoupper($request->event_code),
+                'company' => $request->company,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'pic_id' => $request->pic_id,
+                'max_participants' => $request->max_participants,
+                'description' => $request->description,
+                'is_active' => $request->has('is_active'),
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.events.index')
+            ->with('success', 'Event berhasil dibuat.');
     }
+
 
     /**
      * Menampilkan detail event.
@@ -205,13 +222,14 @@ class EventController extends Controller
     {
         $query = Event::with(['pic'])->withCount('participants');
 
-        // Terapkan filter pencarian yang sama agar hasil PDF sesuai dengan yang tampil di tabel
+        // Terapkan filter pencarian yang SAMA PERSIS dengan method index
         if ($request->filled('search')) {
             $term = trim($request->search);
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', "%{$term}%")
                     ->orWhere('event_code', 'like', "%{$term}%")
                     ->orWhere('company', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%") // [PERBAIKAN] Tambahkan ini
                     ->orWhereHas('pic', function ($p) use ($term) {
                         $p->where('name', 'like', "%{$term}%");
                     });
@@ -220,7 +238,6 @@ class EventController extends Controller
 
         $events = $query->orderBy('start_date', 'asc')->get();
 
-        // INI BAGIAN PENTINGNYA: Load view pdf yang Anda buat
         $pdf = Pdf::loadView('admin.events.pdf.eventReport', [
             'reportTitle' => 'Laporan Data Event',
             'generatedBy' => Auth::user()->name,

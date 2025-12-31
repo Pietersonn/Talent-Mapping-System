@@ -221,8 +221,8 @@ class ST30QuestionController extends Controller
     public function export(Request $request)
     {
         $versionId = $request->get('version');
+        $search = $request->get('search');
 
-        // Jika tidak ada versi yang dipilih, cari yang aktif
         if (!$versionId) {
             $activeVersion = QuestionVersion::getActive('st30');
             if ($activeVersion) {
@@ -234,23 +234,31 @@ class ST30QuestionController extends Controller
 
         $version = QuestionVersion::find($versionId);
 
-        // Ambil data soal
-        $questions = ST30Question::where('version_id', $versionId)
-            ->with(['typologyDescription'])
-            ->orderBy('number')
-            ->get();
+        $query = ST30Question::where('version_id', $versionId)
+            ->with(['typologyDescription']);
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('statement', 'like', '%' . $search . '%')
+                  ->orWhere('number', 'like', '%' . $search . '%') // <--- TAMBAHAN PENTING INI
+                  ->orWhere('typology_code', 'like', '%' . $search . '%')
+                  ->orWhereHas('typologyDescription', function($subQ) use ($search) {
+                      $subQ->where('typology_name', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+
+        $questions = $query->orderBy('number')->get();
 
         $data = [
             'reportTitle' => 'Laporan Bank Soal ST-30',
-            'versionName' => $version->version . ' - ' . $version->name,
+            'versionName' => $version->version . ' - ' . $version->name . ($search ? ' (Filter: '.$search.')' : ''),
             'generatedBy' => Auth::user()->name,
             'generatedAt' => now()->format('d/m/Y H:i'),
             'rows'        => $questions
         ];
 
         $pdf = Pdf::loadView('admin.questions.st30.pdf.st30Report', $data);
-
-        // Setup ukuran kertas (A4 Portrait)
         $pdf->setPaper('a4', 'portrait');
 
         return $pdf->stream('Laporan-Soal-ST30-v' . $version->version . '.pdf');

@@ -106,9 +106,22 @@ class CompetencyController extends Controller
     /**
      * Export Competencies to PDF
      */
-    public function export()
+    public function export(Request $request)
     {
-        $rows = CompetencyDescription::orderBy('competency_code', 'asc')->get();
+        $query = CompetencyDescription::query();
+
+        // TAMBAHKAN LOGIC SEARCH INI
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('competency_name', 'like', "%{$search}%")
+                    ->orWhere('competency_code', 'like', "%{$search}%")
+                    ->orWhere('strength_description', 'like', "%{$search}%")
+                    ->orWhere('weakness_description', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $query->orderBy('competency_code', 'asc')->get();
 
         $data = [
             'reportTitle' => 'Laporan Bank Data Kompetensi SJT',
@@ -118,8 +131,6 @@ class CompetencyController extends Controller
         ];
 
         $pdf = Pdf::loadView('admin.questions.competencies.pdf.competencyReport', $data);
-
-        // Menggunakan Landscape agar kolom deskripsi yang luas bisa terbaca dengan baik
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->stream('Laporan-Kompetensi-SJT.pdf');

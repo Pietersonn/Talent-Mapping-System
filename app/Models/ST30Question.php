@@ -15,13 +15,12 @@ class ST30Question extends Model
 
     protected $table = 'st30_questions';
 
-    // PK string seperti "ST01"
-    protected $primaryKey  = 'id';
-    public    $incrementing = false;
-    protected $keyType      = 'string';
+    // Primary key string: ST001, ST002, ...
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
-        // kalau generate id otomatis via trait, 'id' tak perlu diisi manual
         'version_id',
         'number',
         'statement',
@@ -30,21 +29,36 @@ class ST30Question extends Model
 
     protected $casts = [
         'number' => 'integer',
+        'is_active' => 'boolean',
     ];
 
-    // prefix id kustom
-    protected $customIdPrefix = 'ST';
+    /**
+     * Prefix untuk custom ID
+     */
+    protected string $customIdPrefix = 'ST';
 
+    /**
+     * Generate custom ID: ST001, ST002, ST003, ...
+     */
     public function generateCustomId(): string
     {
-        $last = static::where('id', 'like', $this->customIdPrefix.'%')
-            ->orderBy('id', 'desc')->first();
+        $lastId = static::where('id', 'like', $this->customIdPrefix . '%')
+            ->orderBy('id', 'desc')
+            ->value('id');
 
-        if (!$last) return $this->customIdPrefix.'001';
+        if (!$lastId) {
+            return $this->customIdPrefix . '001';
+        }
 
-        $num = (int) substr($last->id, strlen($this->customIdPrefix));
-        return $this->customIdPrefix . str_pad($num + 1, 3, '0', STR_PAD_LEFT);
+        $lastNumber = (int) substr($lastId, strlen($this->customIdPrefix));
+        $nextNumber = $lastNumber + 1;
+
+        return $this->customIdPrefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
+
+    /* ======================================================
+     | RELATIONSHIPS
+     ====================================================== */
 
     public function questionVersion(): BelongsTo
     {
@@ -53,7 +67,11 @@ class ST30Question extends Model
 
     public function typologyDescription(): BelongsTo
     {
-        return $this->belongsTo(TypologyDescription::class, 'typology_code', 'typology_code');
+        return $this->belongsTo(
+            TypologyDescription::class,
+            'typology_code',
+            'typology_code'
+        );
     }
 
     public function selectedInResponses(): HasMany
@@ -71,11 +89,15 @@ class ST30Question extends Model
     public function allResponses()
     {
         return ST30Response::where('question_version_id', $this->version_id)
-            ->where(function($q){
+            ->where(function ($q) {
                 $q->whereJsonContains('selected_items', $this->number)
                   ->orWhereJsonContains('excluded_items', $this->number);
             });
     }
+
+    /* ======================================================
+     | ACCESSORS
+     ====================================================== */
 
     public function getTypologyNameAttribute(): string
     {
@@ -108,63 +130,104 @@ class ST30Question extends Model
 
     public function getSelectionRatioAttribute(): float
     {
-        $s = $this->selected_count;
-        $e = $this->excluded_count;
-        $t = $s + $e;
-        return $t > 0 ? $s / $t : 0;
+        $selected = $this->selected_count;
+        $excluded = $this->excluded_count;
+        $total = $selected + $excluded;
+
+        return $total > 0 ? $selected / $total : 0;
     }
+
+    public function getPopularityScoreAttribute(): float
+    {
+        $totalResponses = ST30Response::where('question_version_id', $this->version_id)->count();
+
+        return $totalResponses === 0
+            ? 0
+            : ($this->selected_count / $totalResponses);
+    }
+
+    /* ======================================================
+     | HELPERS
+     ====================================================== */
 
     public function hasResponses(): bool
     {
         return $this->allResponses()->exists();
     }
 
-    // scopes util
-    public function scopeByVersion($q, string $versionId)  { return $q->where('version_id', $versionId); }
-    public function scopeByTypology($q, string $code)      { return $q->where('typology_code', $code); }
-    public function scopeByNumberRange($q, int $a, int $b) { return $q->whereBetween('number', [$a,$b]); }
-
-    public static function getActiveQuestions()
+    public function isPopular(float $threshold = 0.5): bool
     {
-        $active = QuestionVersion::getActive('st30');
-        if (!$active) return collect();
-        return static::where('version_id', $active->id)->orderBy('number')->get();
+        return $this->popularity_score >= $threshold;
     }
 
-    public function validateUniqueNumber(): bool
+    public function isUnpopular(float $threshold = 0.2): bool
     {
-        return ! static::where('version_id', $this->version_id)
-            ->where('number', $this->number)
-            ->where('id', '!=', $this->id)
-            ->exists();
+        return $this->popularity_score <= $threshold;
     }
-
-    public function getPopularityScoreAttribute(): float
-    {
-        $total = ST30Response::where('question_version_id', $this->version_id)->count();
-        return $total === 0 ? 0 : ($this->selected_count / $total);
-    }
-
-    public function isPopular(float $threshold = 0.5): bool    { return $this->popularity_score >= $threshold; }
-    public function isUnpopular(float $threshold = 0.2): bool  { return $this->popularity_score <= $threshold; }
 
     public function getSimilarQuestions(int $limit = 5)
     {
         $ratio = $this->selection_ratio;
+
         return static::where('version_id', $this->version_id)
-            ->where('id', '!=', $this->id)->get()
-            ->filter(fn($q) => abs($q->selection_ratio - $ratio) <= 0.1)
+            ->where('id', '!=', $this->id)
+            ->get()
+            ->filter(fn ($q) => abs($q->selection_ratio - $ratio) <= 0.1)
             ->take($limit);
     }
 
     public function getUsageStatistics(): array
     {
         return [
-            'total_usage'     => $this->usage_count,
-            'selected_count'  => $this->selected_count,
-            'excluded_count'  => $this->excluded_count,
-            'selection_ratio' => $this->selection_ratio,
-            'popularity_score'=> $this->popularity_score,
+            'total_usage'      => $this->usage_count,
+            'selected_count'   => $this->selected_count,
+            'excluded_count'   => $this->excluded_count,
+            'selection_ratio'  => $this->selection_ratio,
+            'popularity_score' => $this->popularity_score,
         ];
+    }
+
+    /* ======================================================
+     | SCOPES
+     ====================================================== */
+
+    public function scopeByVersion($q, string $versionId)
+    {
+        return $q->where('version_id', $versionId);
+    }
+
+    public function scopeByTypology($q, string $code)
+    {
+        return $q->where('typology_code', $code);
+    }
+
+    public function scopeByNumberRange($q, int $start, int $end)
+    {
+        return $q->whereBetween('number', [$start, $end]);
+    }
+
+    /* ======================================================
+     | STATIC
+     ====================================================== */
+
+    public static function getActiveQuestions()
+    {
+        $active = QuestionVersion::getActive('st30');
+
+        if (!$active) {
+            return collect();
+        }
+
+        return static::where('version_id', $active->id)
+            ->orderBy('number')
+            ->get();
+    }
+
+    public function validateUniqueNumber(): bool
+    {
+        return !static::where('version_id', $this->version_id)
+            ->where('number', $this->number)
+            ->where('id', '!=', $this->id)
+            ->exists();
     }
 }

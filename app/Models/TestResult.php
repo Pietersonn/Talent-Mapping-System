@@ -14,12 +14,16 @@ class TestResult extends Model
 
     protected $table = 'test_results';
 
+    /** Primary key config */
     protected $keyType = 'string';
     public $incrementing = false;
-    public $timestamps = true;
+    public $timestamps  = true;
 
+    /**
+     * Mass assignable attributes
+     * ❌ id DIHAPUS (auto generated)
+     */
     protected $fillable = [
-        'id',
         'session_id',
         'st30_results',
         'sjt_results',
@@ -29,6 +33,9 @@ class TestResult extends Model
         'pdf_path',
     ];
 
+    /**
+     * Attribute casting
+     */
     protected $casts = [
         'st30_results'        => 'array',
         'sjt_results'         => 'array',
@@ -36,49 +43,40 @@ class TestResult extends Model
         'email_sent_at'       => 'datetime',
     ];
 
-    /** ---------- Custom ID (TR001) ---------- */
-    protected $customIdPrefix = 'TR';
-
-    public function generateCustomId(): string
-    {
-        $last = static::where('id', 'like', $this->customIdPrefix.'%')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        if (!$last) {
-            return $this->customIdPrefix.'001';
-        }
-
-        $num = (int) substr($last->id, strlen($this->customIdPrefix));
-        return $this->customIdPrefix . str_pad($num + 1, 3, '0', STR_PAD_LEFT);
-    }
+    /**
+     * =======================
+     * CUSTOM ID CONFIG
+     * =======================
+     * Result:
+     * TR001
+     * TR002
+     * TR003
+     */
+    protected string $customIdPrefix = 'TR';
+    protected int $customIdLength    = 3;
 
     // =======================
     // RELATIONS
     // =======================
 
-    /** Nama relasi utama yang dianjurkan */
     public function testSession(): BelongsTo
     {
         return $this->belongsTo(TestSession::class, 'session_id', 'id');
     }
 
     /**
-     * ALIAS untuk kompatibilitas kode lama:
-     * Mengatasi error "undefined relationship [session]" tanpa ubah controller/blade.
+     * Alias untuk legacy code
      */
     public function session(): BelongsTo
     {
         return $this->belongsTo(TestSession::class, 'session_id', 'id');
     }
 
-    /** Relasi ke permintaan kirim ulang (jika dipakai di User Management) */
     public function resendRequests(): HasMany
     {
         return $this->hasMany(ResendRequest::class, 'test_result_id', 'id');
     }
 
-    /** (Opsional) Metadata tipologi dominan */
     public function dominantTypologyDescription(): BelongsTo
     {
         return $this->belongsTo(
@@ -94,7 +92,8 @@ class TestResult extends Model
 
     public function hasPdfReport(): bool
     {
-        return !empty($this->pdf_path) && file_exists(storage_path('app/' . $this->pdf_path));
+        return !empty($this->pdf_path)
+            && file_exists(storage_path('app/' . $this->pdf_path));
     }
 
     public function isEmailSent(): bool
@@ -124,12 +123,9 @@ class TestResult extends Model
 
     public function getSummaryAttribute(): array
     {
-        $st = $this->st30_strengths;
-        $sj = $this->sjt_strengths;
-
         return [
-            'dominant_typology'    => $st[0] ?? null,
-            'top_competency'       => $sj[0] ?? null,
+            'dominant_typology'    => $this->st30_strengths[0] ?? null,
+            'top_competency'       => $this->sjt_strengths[0] ?? null,
             'total_st30_responses' => $this->st30_results['total_responses'] ?? 0,
             'total_sjt_questions'  => $this->sjt_results['total_questions'] ?? 0,
         ];
@@ -139,9 +135,20 @@ class TestResult extends Model
     // SCOPES
     // =======================
 
-    public function scopeEmailSent($q)    { return $q->whereNotNull('email_sent_at'); }
-    public function scopeEmailPending($q) { return $q->whereNull('email_sent_at'); }
-    public function scopeWithPdf($q)      { return $q->whereNotNull('pdf_path'); }
+    public function scopeEmailSent($q)
+    {
+        return $q->whereNotNull('email_sent_at');
+    }
+
+    public function scopeEmailPending($q)
+    {
+        return $q->whereNull('email_sent_at');
+    }
+
+    public function scopeWithPdf($q)
+    {
+        return $q->whereNotNull('pdf_path');
+    }
 
     public function scopeByTypology($q, string $code)
     {
