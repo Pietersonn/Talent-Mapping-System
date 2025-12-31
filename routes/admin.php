@@ -87,9 +87,13 @@ Route::middleware(['auth', 'role:admin,staff'])
             // ------- Competencies -------
             Route::prefix('competencies')->name('competencies.')->group(function () {
                 Route::get('/', [CompetencyController::class, 'index'])->name('index');
+                Route::get('/export', [CompetencyController::class, 'export'])->name('export');
+                Route::get('/create', [CompetencyController::class, 'create'])->name('create')->middleware('role:admin');
+                Route::post('/', [CompetencyController::class, 'store'])->name('store')->middleware('role:admin');
                 Route::get('/{competency}', [CompetencyController::class, 'show'])->name('show');
                 Route::get('/{competency}/edit', [CompetencyController::class, 'edit'])->name('edit')->middleware('role:admin');
                 Route::put('/{competency}', [CompetencyController::class, 'update'])->name('update')->middleware('role:admin');
+                Route::delete('/{competency}', [CompetencyController::class, 'destroy'])->name('destroy')->middleware('role:admin');
             });
 
             // ------- Typologies -------
@@ -97,6 +101,7 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::get('/', [TypologyController::class, 'index'])->name('index');
                 Route::get('/create', [TypologyController::class, 'create'])->name('create')->middleware('role:admin');
                 Route::post('/', [TypologyController::class, 'store'])->name('store')->middleware('role:admin');
+                Route::get('/export', [TypologyController::class, 'export'])->name('export');
 
                 Route::get('/{typology}', [TypologyController::class, 'show'])->name('show');
                 Route::get('/{typology}/edit', [TypologyController::class, 'edit'])->name('edit')->middleware('role:admin');
@@ -153,19 +158,6 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::post('/bulk-approve', [ResendRequestController::class, 'bulkApprove'])->name('bulk-approve');
             Route::post('/bulk-reject', [ResendRequestController::class, 'bulkReject'])->name('bulk-reject');
             Route::delete('/cleanup', [ResendRequestController::class, 'cleanup'])->name('cleanup')->middleware('role:admin');
-        });
-
-        // Monitoring
-        Route::prefix('monitoring')->name('monitoring.')->group(function () {
-            Route::get('/sessions', [MonitoringController::class, 'sessions'])->name('sessions');
-            Route::get('/activities', [MonitoringController::class, 'activities'])->name('activities');
-            Route::get('/system-logs', [MonitoringController::class, 'systemLogs'])->name('system-logs');
-        });
-
-        // Settings
-        Route::prefix('settings')->name('settings.')->middleware('role:admin')->group(function () {
-            Route::get('/', [SettingController::class, 'index'])->name('index');
-            Route::put('/', [SettingController::class, 'update'])->name('update');
         });
 
         // Profile (admin/staff)

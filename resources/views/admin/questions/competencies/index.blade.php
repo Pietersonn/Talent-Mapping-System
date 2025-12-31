@@ -1,361 +1,200 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Competency Management')
-@section('page-title', 'SJT Competency Management')
+@section('title', 'Manajemen Kompetensi')
 
-@section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('admin.questions.index') }}">Question Bank</a></li>
-    <li class="breadcrumb-item active">Competencies</li>
-@endsection
+@push('styles')
+<style>
+    /* --- STYLE TOMBOL --- */
+    .btn-tm { background: #22c55e; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border: none; box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3); transition: all 0.2s; }
+    .btn-tm:hover { background: #16a34a; transform: translateY(-1px); color: white; }
+
+    .btn-icon-square { width: 44px; height: 44px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .btn-icon-square:hover { background: #f0fdf4; color: #15803d; border-color: #22c55e; transform: translateY(-1px); }
+
+    /* --- SEARCH BAR DENGAN LOADING --- */
+    .search-group { position: relative; width: 300px; }
+    .search-input { width: 100%; padding: 10px 12px 10px 40px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.875rem; background: white; transition: all 0.2s; }
+    .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .loading-spinner { position: absolute; right: 12px; top: 33%; transform: translateY(-50%); color: #22c55e; display: none; }
+
+    /* --- TABLE STYLES --- */
+    .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .custom-table th { text-align: left; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    .custom-table td { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 0.9rem; color: #334155; background: white; }
+    .custom-table tr:hover td { background-color: #f8fafc; }
+
+    /* Komponen Tabel */
+    .text-code { font-weight: 800; color: #0f172a; font-family: monospace; font-size: 1rem; }
+    .text-name { font-weight: 700; color: #15803d; font-size: 0.95rem; }
+    .desc-text { font-size: 0.825rem; color: #64748b; line-height: 1.4; }
+
+    .text-expand-btn { color: #22c55e; border: none; background: none; font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0; margin-left: 4px; }
+    .text-expand-btn:hover { text-decoration: underline; }
+
+    .action-buttons { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: none; transition: 0.2s; }
+    .btn-view { background: #ecfdf5; color: #059669; }
+    .btn-edit { background: #eff6ff; color: #2563eb; }
+    .btn-delete { background: #fef2f2; color: #dc2626; }
+    .btn-icon:hover { opacity: 0.8; transform: scale(1.05); }
+
+    /* --- PAGINATION (GREEN) --- */
+    .pagination-wrapper { padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .btn-paginate { background: white; border: 1px solid #e2e8f0; color: #22c55e; padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-paginate:hover:not(.disabled) { background: #f0fdf4; border-color: #22c55e; color: #15803d; transform: translateY(-1px); }
+    .btn-paginate.disabled { color: #94a3b8; background: #f8fafc; cursor: not-allowed; opacity: 0.7; }
+</style>
+@endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-award mr-1"></i>
-                        SJT Competencies
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="searchCompetencies">Search Competencies:</label>
-                            <input type="text" id="searchCompetencies" class="form-control"
-                                   placeholder="Search by name or code...">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="usageFilter">Filter by Usage:</label>
-                            <select id="usageFilter" class="form-control">
-                                <option value="">All Competencies</option>
-                                <option value="used">Used in Questions</option>
-                                <option value="unused">Not Used</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-brain" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; font-size: 1.1rem;"></i>
+                Manajemen Kompetensi
+            </h1>
+            <p style="font-size: 0.9rem; color: #64748b; margin-left: 54px; margin-top: -5px;">Daftar kompetensi, kekuatan, dan area pengembangannya.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="search-group">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="competencySearch" class="search-input" placeholder="Cari kode atau nama..." autocomplete="off">
+                <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
             </div>
+
+            <a href="{{ route('admin.questions.competencies.export') }}" target="_blank" class="btn-icon-square" title="Export PDF">
+                <i class="fas fa-print"></i>
+            </a>
+
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.questions.competencies.create') }}" class="btn-tm"><i class="fas fa-plus"></i> Tambah</a>
+            @endif
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row">
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $competencies->count() }}</h3>
-                    <p>Total Competencies</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-award"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $competencies->where('sjt_questions_count', '>', 0)->count() }}</h3>
-                    <p>Used in Questions</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $competencies->where('sjt_questions_count', 0)->count() }}</h3>
-                    <p>Not Used</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>{{ $competencies->sum('sjt_questions_count') }}</h3>
-                    <p>Total Questions</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-question-circle"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Competencies Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Competencies List</h3>
-                </div>
-                <div class="card-body table-responsive p-0">
-                    <table id="competenciesTable" class="table table-hover text-nowrap">
-                        <thead>
-                            <tr>
-                                <th width="80">Code</th>
-                                <th width="200">Name</th>
-                                <th width="300">Strength Description</th>
-                                <th width="300">Development Activities</th>
-                                <th width="100">Questions</th>
-                                <th width="100">Usage</th>
-                                <th width="120">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($competencies as $competency)
-                            <tr class="competency-row">
-                                <td>
-                                    <span class="badge badge-primary badge-lg">{{ $competency->competency_code }}</span>
-                                </td>
-                                <td>
-                                    <strong>{{ $competency->competency_name }}</strong>
-                                </td>
-                                <td>
-                                    <div class="text-truncate" style="max-width: 300px;"
-                                         title="{{ $competency->strength_description }}">
-                                        {{ Str::limit($competency->strength_description, 80) }}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="text-truncate" style="max-width: 300px;"
-                                         title="{{ $competency->improvement_activity }}">
-                                        {{ Str::limit($competency->improvement_activity, 80) }}
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge badge-{{ $competency->sjt_questions_count > 0 ? 'info' : 'secondary' }}">
-                                        {{ $competency->sjt_questions_count }} questions
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="usage-status badge badge-{{ $competency->sjt_questions_count > 0 ? 'success' : 'warning' }}">
-                                        {{ $competency->sjt_questions_count > 0 ? 'Used' : 'Not Used' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{{ route('admin.questions.competencies.show', $competency) }}"
-                                           class="btn btn-info" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if(Auth::user()->role === 'admin')
-                                            <a href="{{ route('admin.questions.competencies.edit', $competency) }}"
-                                               class="btn btn-warning" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endif
-                                        @if($competency->sjt_questions_count > 0)
-                                            <a href="{{ route('admin.questions.sjt.index') }}?competency={{ $competency->competency_code }}"
-                                               class="btn btn-success" title="View Questions">
-                                                <i class="fas fa-question-circle"></i>
-                                            </a>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Competency Usage Chart -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-bar mr-1"></i>
-                        Question Distribution by Competency
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @foreach($competencies as $competency)
-                            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-{{ $competency->sjt_questions_count >= 5 ? 'success' : ($competency->sjt_questions_count > 0 ? 'warning' : 'secondary') }}">
-                                        {{ $competency->competency_code }}
-                                    </span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">{{ Str::limit($competency->competency_name, 15) }}</span>
-                                        <span class="info-box-number">
-                                            {{ $competency->sjt_questions_count }}
-                                            <small>questions</small>
-                                        </span>
-                                    </div>
+    <div class="table-card">
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th width="5%" class="text-center">No</th>
+                        <th width="10%">Kode</th>
+                        <th width="15%">Kompetensi</th>
+                        <th width="30%">Kekuatan (Strength)</th>
+                        <th width="30%">Kelemahan (Weakness)</th>
+                        <th width="10%" class="text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="competencyTableBody">
+                    @forelse($competencies as $index => $item)
+                        <tr>
+                            <td class="text-center"><span style="color: #94a3b8; font-weight: 600;">{{ $competencies->firstItem() + $index }}</span></td>
+                            <td><span class="text-code">{{ $item->competency_code }}</span></td>
+                            <td><span class="text-name">{{ $item->competency_name }}</span></td>
+                            <td>
+                                <div class="desc-text">
+                                    <span class="short-text">{{ Str::limit(strip_tags($item->strength_description), 60) }}</span>
+                                    @if(strlen(strip_tags($item->strength_description)) > 60)
+                                        <button class="text-expand-btn" onclick="toggleText(this)">Lihat</button>
+                                        <span class="full-text" style="display: none;">{{ strip_tags($item->strength_description) }}</span>
+                                    @endif
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+                            </td>
+                            <td>
+                                <div class="desc-text">
+                                    <span class="short-text">{{ Str::limit(strip_tags($item->weakness_description), 60) }}</span>
+                                    @if(strlen(strip_tags($item->weakness_description)) > 60)
+                                        <button class="text-expand-btn" onclick="toggleText(this)">Lihat</button>
+                                        <span class="full-text" style="display: none;">{{ strip_tags($item->weakness_description) }}</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ route('admin.questions.competencies.show', $item->id) }}" class="btn-icon btn-view"><i class="fas fa-eye text-xs"></i></a>
+                                    <a href="{{ route('admin.questions.competencies.edit', $item->id) }}" class="btn-icon btn-edit"><i class="fas fa-pen text-xs"></i></a>
+                                    <button type="button" onclick="confirmDelete('{{ $item->competency_name }}', '{{ route('admin.questions.competencies.destroy', $item->id) }}')" class="btn-icon btn-delete"><i class="fas fa-trash text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" style="text-align:center; padding: 3rem; color: #94a3b8;">Data tidak ditemukan.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($competencies->hasPages())
+        <div class="pagination-wrapper">
+            <div style="font-size: 0.85rem; color: #64748b;">Halaman <span style="font-weight: 700; color: #22c55e;">{{ $competencies->currentPage() }}</span></div>
+            <div style="display: flex; gap: 10px;">
+                @if ($competencies->onFirstPage())
+                    <span class="btn-paginate disabled">Sebelumnya</span>
+                @else
+                    <a href="{{ $competencies->previousPageUrl() }}" class="btn-paginate">Sebelumnya</a>
+                @endif
+                @if ($competencies->hasMorePages())
+                    <a href="{{ $competencies->nextPageUrl() }}" class="btn-paginate">Selanjutnya</a>
+                @else
+                    <span class="btn-paginate disabled">Selanjutnya</span>
+                @endif
             </div>
         </div>
+        @endif
     </div>
-
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-tools mr-1"></i>
-                        Quick Actions
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="info-box bg-light">
-                                <span class="info-box-icon bg-info">
-                                    <i class="fas fa-plus"></i>
-                                </span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Add SJT Questions</span>
-                                    <span class="info-box-number">
-                                        <a href="{{ route('admin.questions.sjt.create') }}" class="btn btn-sm btn-primary">
-                                            Create Question
-                                        </a>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="info-box bg-light">
-                                <span class="info-box-icon bg-success">
-                                    <i class="fas fa-download"></i>
-                                </span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Export Data</span>
-                                    <span class="info-box-number">
-                                        <button onclick="exportCompetencies()" class="btn btn-sm btn-success">
-                                            Export CSV
-                                        </button>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="info-box bg-light">
-                                <span class="info-box-icon bg-warning">
-                                    <i class="fas fa-chart-line"></i>
-                                </span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">View Analytics</span>
-                                    <span class="info-box-number">
-                                        <button onclick="showAnalytics()" class="btn btn-sm btn-warning">
-                                            View Report
-                                        </button>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
 @endsection
 
 @push('scripts')
-    <script>
-        // Export competencies data
-        function exportCompetencies() {
-            showLoading('Exporting...', 'Preparing competencies data for export...');
+<script>
+    let debounceTimer;
 
-            setTimeout(function() {
-                Swal.close();
-                showSuccessToast('Competencies data exported successfully!');
-                // Here you would trigger actual download
-                // window.location.href = '/admin/competencies/export';
-            }, 2000);
+    // --- PENCARIAN DENGAN JEDA (DEBOUNCE) & LOADING SPINNER ---
+    $('#competencySearch').on('input', function() {
+        const value = $(this).val().toLowerCase();
+
+        // Tampilkan spinner, sembunyikan icon search
+        $('.loading-spinner').show();
+        $('.search-icon').hide();
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            $('#competencyTableBody tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+
+            // Sembunyikan spinner kembali
+            $('.loading-spinner').hide();
+            $('.search-icon').show();
+        }, 500); // Jeda 500ms
+    });
+
+    function toggleText(btn) {
+        const shortText = $(btn).siblings('.short-text');
+        const fullText = $(btn).siblings('.full-text');
+        if (fullText.is(':visible')) {
+            fullText.hide(); shortText.show(); $(btn).text('Lihat');
+        } else {
+            fullText.show(); shortText.hide(); $(btn).text('Tutup');
         }
+    }
 
-        // Show analytics
-        function showAnalytics() {
-            Swal.fire({
-                title: 'Competency Analytics',
-                html: `
-                    <div class="text-left">
-                        <p><strong>Total Competencies:</strong> {{ $competencies->count() }}</p>
-                        <p><strong>Used in Questions:</strong> {{ $competencies->where('sjt_questions_count', '>', 0)->count() }}</p>
-                        <p><strong>Total Questions:</strong> {{ $competencies->sum('sjt_questions_count') }}</p>
-                        <p><strong>Average Questions per Competency:</strong> {{ number_format($competencies->avg('sjt_questions_count'), 1) }}</p>
-                        <hr>
-                        <p class="text-muted">Most Used: {{ $competencies->sortByDesc('sjt_questions_count')->first()->competency_name ?? 'N/A' }}</p>
-                    </div>
-                `,
-                icon: 'info',
-                confirmButtonText: 'Close'
-            });
-        }
-
-        $(document).ready(function() {
-            // Search functionality
-            $('#searchCompetencies').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#competenciesTable tbody tr').filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
-            });
-
-            // Usage filter
-            $('#usageFilter').on('change', function() {
-                var selectedUsage = $(this).val();
-                if (selectedUsage === '') {
-                    $('#competenciesTable tbody tr').show();
-                } else {
-                    $('#competenciesTable tbody tr').each(function() {
-                        var usageStatus = $(this).find('.usage-status').text().trim();
-                        var showRow = (selectedUsage === 'used' && usageStatus === 'Used') ||
-                                     (selectedUsage === 'unused' && usageStatus === 'Not Used');
-                        $(this).toggle(showRow);
-                    });
-                }
-            });
-
-            // Enhanced competency rows interaction
-            $('.competency-row').hover(
-                function() { $(this).addClass('table-active'); },
-                function() { $(this).removeClass('table-active'); }
-            );
-
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+    function confirmDelete(name, url) {
+        Swal.fire({
+            title: 'Hapus Kompetensi?',
+            html: `Yakin ingin menghapus <b>${name}</b>?`,
+            icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#dc2626', cancelButtonColor: '#f1f5f9',
+            confirmButtonText: 'Ya, Hapus', cancelButtonText: '<span style="color:black">Batal</span>',
+            customClass: { popup: 'rounded-2xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form'); form.method = 'POST'; form.action = url;
+                form.innerHTML = '@csrf @method("DELETE")'; document.body.appendChild(form); form.submit();
+            }
         });
-    </script>
-@endpush
-
-@push('styles')
-    <style>
-        .badge-lg {
-            font-size: 0.9rem;
-            padding: 0.5rem 0.75rem;
-        }
-
-        .info-box {
-            min-height: 90px;
-        }
-
-        .competency-row {
-            transition: background-color 0.2s ease;
-        }
-
-        .text-truncate {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    </style>
+    }
+</script>
 @endpush

@@ -10,6 +10,7 @@ use App\Models\CompetencyDescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SJTQuestionController extends Controller
 {
@@ -254,22 +255,6 @@ class SJTQuestionController extends Controller
             ->with('success', 'Pertanyaan SJT berhasil dihapus.');
     }
 
-    /**
-     * Bulk import SJT questions
-     */
-    public function import(Request $request)
-    {
-        $request->validate([
-            'version_id' => 'required|exists:question_versions,id',
-            'import_file' => 'required|file|mimes:csv,xlsx'
-        ]);
-
-        // TODO: Implement CSV/Excel import functionality
-
-        // FIX: Route updated to admin.questions.sjt.index
-        return redirect()->route('admin.questions.sjt.index', ['version' => $request->version_id])
-            ->with('info', 'Fitur impor akan segera tersedia.');
-    }
 
     /**
      * Bulk export SJT questions
@@ -279,16 +264,36 @@ class SJTQuestionController extends Controller
         $versionId = $request->get('version');
 
         if (!$versionId) {
-            // FIX: Route updated to admin.questions.sjt.index
-            return redirect()->route('admin.questions.sjt.index')
-                ->with('error', 'Silakan pilih versi untuk diekspor.');
+            $activeVersion = QuestionVersion::getActive('sjt');
+            if ($activeVersion) {
+                $versionId = $activeVersion->id;
+            } else {
+                return redirect()->back()->with('error', 'Silakan pilih versi untuk diekspor.');
+            }
         }
 
-        // TODO: Implement export functionality
+        $version = QuestionVersion::find($versionId);
 
-        // FIX: Route updated to admin.questions.sjt.index
-        return redirect()->route('admin.questions.sjt.index', ['version' => $versionId])
-            ->with('info', 'Fitur ekspor akan segera tersedia.');
+        // Ambil data soal beserta opsi jawaban dan kompetensi
+        $questions = SJTQuestion::where('version_id', $versionId)
+            ->with(['options', 'competencyDescription'])
+            ->orderBy('number')
+            ->get();
+
+        $data = [
+            'reportTitle' => 'Laporan Bank Soal SJT',
+            'versionName' => $version->version . ' - ' . $version->name,
+            'generatedBy' => Auth::user()->name,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'rows'        => $questions
+        ];
+
+        $pdf = Pdf::loadView('admin.questions.sjt.pdf.sjtReport', $data);
+
+        // SJT mungkin butuh landscape karena teksnya panjang
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Laporan-Soal-SJT-v' . $version->version . '.pdf');
     }
 
     /**

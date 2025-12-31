@@ -7,6 +7,8 @@ use App\Models\ST30Question;
 use App\Models\QuestionVersion;
 use App\Models\TypologyDescription;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class ST30QuestionController extends Controller
 {
@@ -219,13 +221,39 @@ class ST30QuestionController extends Controller
     public function export(Request $request)
     {
         $versionId = $request->get('version');
+
+        // Jika tidak ada versi yang dipilih, cari yang aktif
         if (!$versionId) {
-            return redirect()->route('admin.questions.st30.index')
-                ->with('error', 'Silakan pilih versi untuk diekspor.');
+            $activeVersion = QuestionVersion::getActive('st30');
+            if ($activeVersion) {
+                $versionId = $activeVersion->id;
+            } else {
+                return redirect()->back()->with('error', 'Silakan pilih versi untuk diekspor.');
+            }
         }
 
-        return redirect()->route('admin.questions.st30.index', ['version' => $versionId])
-            ->with('info', 'Fitur ekspor akan segera tersedia.');
+        $version = QuestionVersion::find($versionId);
+
+        // Ambil data soal
+        $questions = ST30Question::where('version_id', $versionId)
+            ->with(['typologyDescription'])
+            ->orderBy('number')
+            ->get();
+
+        $data = [
+            'reportTitle' => 'Laporan Bank Soal ST-30',
+            'versionName' => $version->version . ' - ' . $version->name,
+            'generatedBy' => Auth::user()->name,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'rows'        => $questions
+        ];
+
+        $pdf = Pdf::loadView('admin.questions.st30.pdf.st30Report', $data);
+
+        // Setup ukuran kertas (A4 Portrait)
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Laporan-Soal-ST30-v' . $version->version . '.pdf');
     }
 
     /**

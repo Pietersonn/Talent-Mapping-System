@@ -1,384 +1,243 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Create New Typology')
-@section('page-title', 'Create New ST-30 Typology')
+@section('title', 'Buat Tipologi Baru')
 
-@section('breadcrumbs')
-<li class="breadcrumb-item"><a href="{{ route('admin.questions.index') }}">Question Bank</a></li>
-<li class="breadcrumb-item"><a href="{{ route('admin.questions.typologies.index') }}">Typologies</a></li>
-<li class="breadcrumb-item active">Create New</li>
+@push('styles')
+<style>
+    /* --- STYLE UTAMA (Mengadaptasi dari SJT Create) --- */
+    .form-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .form-section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px dashed #e2e8f0;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-group { margin-bottom: 1.5rem; }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.5rem;
+    }
+    .form-label.required::after { content: "*"; color: #ef4444; margin-left: 4px; }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        color: #0f172a;
+        background-color: #f8fafc;
+        transition: all 0.2s;
+    }
+    .form-control:focus {
+        background-color: white;
+        border-color: #22c55e;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    }
+
+    .form-text { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+
+    /* Tombol Actions */
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-save {
+        background: #22c55e;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-save:hover { background: #16a34a; transform: translateY(-1px); }
+
+    .btn-cancel {
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+
+    /* Custom Textarea Height */
+    textarea.form-control { min-height: 120px; line-height: 1.6; }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-plus-circle" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
+                Buat Tipologi Baru
+            </h1>
+        </div>
+        <a href="{{ route('admin.questions.typologies.index') }}" class="btn-cancel">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-plus-circle"></i> Create New Typology
-                    </h3>
-                    <div class="card-tools">
-                        <a href="{{ route('admin.questions.typologies.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> Back to List
-                        </a>
-                    </div>
+<div class="form-card">
+    <form action="{{ route('admin.questions.typologies.store') }}" method="POST">
+        @csrf
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+            <div>
+                <div class="form-section-title">
+                    <i class="fas fa-file-alt text-green-500"></i> Informasi Tipologi
                 </div>
 
-                <form action="{{ route('admin.questions.typologies.store') }}" method="POST">
-                    @csrf
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Left Column -->
-                            <div class="col-md-6">
-                                <!-- Typology Code -->
-                                <div class="form-group">
-                                    <label for="typology_code" class="required">Typology Code</label>
-                                    <input type="text"
-                                           class="form-control @error('typology_code') is-invalid @enderror"
-                                           id="typology_code"
-                                           name="typology_code"
-                                           value="{{ old('typology_code') }}"
-                                           placeholder="e.g., AMB, COM, ADM"
-                                           maxlength="10"
-                                           style="text-transform: uppercase;">
-                                    <small class="form-text text-muted">
-                                        Use 2-3 letter code for the typology (will be converted to uppercase)
-                                    </small>
-                                    @error('typology_code')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                <div class="form-group">
+                    <label class="form-label required" for="typology_name">Nama Tipologi</label>
+                    <input type="text" name="typology_name" id="typology_name"
+                           class="form-control @error('typology_name') border-red-500 @enderror"
+                           value="{{ old('typology_name') }}"
+                           placeholder="Contoh: Ambassador, Commander..." required>
+                    @error('typology_name') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                </div>
 
-                                <!-- Typology Name -->
-                                <div class="form-group">
-                                    <label for="typology_name" class="required">Typology Name</label>
-                                    <input type="text"
-                                           class="form-control @error('typology_name') is-invalid @enderror"
-                                           id="typology_name"
-                                           name="typology_name"
-                                           value="{{ old('typology_name') }}"
-                                           placeholder="e.g., Ambassador, Communicator">
-                                    @error('typology_name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                <div class="form-group">
+                    <label class="form-label required" for="description">Deskripsi</label>
+                    <textarea name="description" id="description"
+                              class="form-control @error('description') border-red-500 @enderror"
+                              placeholder="Jelaskan karakteristik utama dari tipologi ini..." required>{{ old('description') }}</textarea>
+                    @error('description') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                </div>
 
-                                <!-- Description -->
-                                <div class="form-group">
-                                    <label for="description" class="required">Description</label>
-                                    <textarea class="form-control @error('description') is-invalid @enderror"
-                                              id="description"
-                                              name="description"
-                                              rows="4"
-                                              placeholder="Describe the main characteristics and traits of this typology...">{{ old('description') }}</textarea>
-                                    @error('description')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                <div class="form-group">
+                    <label class="form-label" for="strengths">
+                        <i class="fas fa-bolt text-green-500 mr-1"></i> Kekuatan (Strengths)
+                    </label>
+                    <textarea name="strengths" id="strengths"
+                              class="form-control"
+                              placeholder="Daftar kekuatan utama...">{{ old('strengths') }}</textarea>
+                </div>
 
-                                <!-- Characteristics -->
-                                <div class="form-group">
-                                    <label for="characteristics">Key Characteristics</label>
-                                    <textarea class="form-control @error('characteristics') is-invalid @enderror"
-                                              id="characteristics"
-                                              name="characteristics"
-                                              rows="3"
-                                              placeholder="List the key behavioral characteristics and traits...">{{ old('characteristics') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        Optional: Describe specific behavioral patterns and characteristics
-                                    </small>
-                                    @error('characteristics')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
+                <div class="form-group">
+                    <label class="form-label" for="weaknesses">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-1"></i> Area Pengembangan (Weaknesses)
+                    </label>
+                    <textarea name="weaknesses" id="weaknesses"
+                              class="form-control"
+                              placeholder="Area yang perlu dikembangkan...">{{ old('weaknesses') }}</textarea>
+                </div>
 
-                            <!-- Right Column -->
-                            <div class="col-md-6">
-                                <!-- Strengths -->
-                                <div class="form-group">
-                                    <label for="strengths">Strengths</label>
-                                    <textarea class="form-control @error('strengths') is-invalid @enderror"
-                                              id="strengths"
-                                              name="strengths"
-                                              rows="4"
-                                              placeholder="List the main strengths and advantages of this typology...">{{ old('strengths') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        Optional: What are the positive aspects and advantages?
-                                    </small>
-                                    @error('strengths')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Weaknesses -->
-                                <div class="form-group">
-                                    <label for="weaknesses">Areas for Development</label>
-                                    <textarea class="form-control @error('weaknesses') is-invalid @enderror"
-                                              id="weaknesses"
-                                              name="weaknesses"
-                                              rows="4"
-                                              placeholder="List areas that may need development or attention...">{{ old('weaknesses') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        Optional: What areas might need improvement or development?
-                                    </small>
-                                    @error('weaknesses')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Career Suggestions -->
-                                <div class="form-group">
-                                    <label for="career_suggestions">Career Suggestions</label>
-                                    <textarea class="form-control @error('career_suggestions') is-invalid @enderror"
-                                              id="career_suggestions"
-                                              name="career_suggestions"
-                                              rows="3"
-                                              placeholder="Suggest suitable career paths and roles...">{{ old('career_suggestions') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        Optional: Recommended career paths and professional roles
-                                    </small>
-                                    @error('career_suggestions')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Status -->
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox"
-                                               class="custom-control-input"
-                                               id="is_active"
-                                               name="is_active"
-                                               value="1"
-                                               {{ old('is_active', true) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="is_active">
-                                            Active Status
-                                        </label>
-                                    </div>
-                                    <small class="form-text text-muted">
-                                        Enable this typology for use in assessments
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ST-30 Category Info -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card bg-light">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-info-circle"></i> ST-30 Typology Categories
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <h6>Main Categories:</h6>
-                                                <ul class="list-unstyled">
-                                                    <li><span class="badge badge-primary">H</span> <strong>Headman</strong> - Leadership & influencing others</li>
-                                                    <li><span class="badge badge-info">N</span> <strong>Networking</strong> - Building relationships & collaboration</li>
-                                                    <li><span class="badge badge-success">S</span> <strong>Servicing</strong> - Helping & caring for others</li>
-                                                    <li><span class="badge badge-warning">Gi</span> <strong>Generating Ideas</strong> - Creative & innovative thinking</li>
-                                                </ul>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h6>Additional Categories:</h6>
-                                                <ul class="list-unstyled">
-                                                    <li><span class="badge badge-secondary">T</span> <strong>Thinking</strong> - Analytical & logical processing</li>
-                                                    <li><span class="badge badge-dark">R</span> <strong>Reasoning</strong> - Problem-solving & decision making</li>
-                                                    <li><span class="badge badge-danger">E</span> <strong>Elementary</strong> - Basic operational tasks</li>
-                                                    <li><span class="badge badge-light text-dark">Te</span> <strong>Technical</strong> - Specialized technical skills</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Create Typology
-                                </button>
-                                <button type="reset" class="btn btn-secondary ml-2">
-                                    <i class="fas fa-undo"></i> Reset Form
-                                </button>
-                            </div>
-                            <div class="col-md-6 text-right">
-                                <a href="{{ route('admin.questions.typologies.index') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-times"></i> Cancel
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                <div class="form-group">
+                    <label class="form-label" for="career_suggestions">
+                        <i class="fas fa-briefcase text-blue-500 mr-1"></i> Saran Karir
+                    </label>
+                    <textarea name="career_suggestions" id="career_suggestions" rows="3"
+                              class="form-control"
+                              placeholder="Saran jalur karir yang cocok...">{{ old('career_suggestions') }}</textarea>
+                </div>
             </div>
+
+            <div>
+                <div class="form-section-title">
+                    <i class="fas fa-cog text-green-500"></i> Identifikasi
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="typology_code">Kode Tipologi</label>
+                    <input type="text" name="typology_code" id="typology_code"
+                           class="form-control font-mono font-bold text-center @error('typology_code') border-red-500 @enderror"
+                           value="{{ old('typology_code') }}"
+                           placeholder="AAA" maxlength="10"
+                           style="text-transform: uppercase; letter-spacing: 2px;" required>
+                    <div class="form-text">Maksimal 10 karakter (A-Z).</div>
+                    @error('typology_code') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="characteristics">Karakteristik Kunci</label>
+                    <textarea name="characteristics" id="characteristics" rows="4"
+                              class="form-control text-sm"
+                              placeholder="Poin-poin perilaku...">{{ old('characteristics') }}</textarea>
+                </div>
+
+                <div class="p-3 bg-blue-50 rounded-xl mt-4 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-2 text-blue-700 font-bold text-xs uppercase tracking-wide">
+                        <i class="fas fa-info-circle"></i> Info Sistem
+                    </div>
+                    <p class="text-xs text-blue-600 leading-relaxed">
+                        Kode tipologi harus unik dan tidak boleh ada spasi. Disarankan menggunakan singkatan 3 huruf (misal: AMB).
+                    </p>
+                </div>
+
+            </div>
+
         </div>
-    </div>
+
+        <div class="form-actions">
+            <a href="{{ route('admin.questions.typologies.index') }}" class="btn-cancel">Batal</a>
+            <button type="submit" class="btn-save">
+                <i class="fas fa-save"></i> Simpan Tipologi
+            </button>
+        </div>
+    </form>
 </div>
 @endsection
 
 @push('scripts')
-    <script>
-        $(document).ready(function() {
-            // Character counters for text areas
-            function updateCharacterCount(textareaId, maxLength) {
-                const textarea = $('#' + textareaId);
-                const helpText = textarea.siblings('.form-text').first();
-                const currentLength = textarea.val().length;
-                const remaining = maxLength - currentLength;
+<script>
+    $(document).ready(function() {
+        // Auto-generate code from Name (First 3 letters)
+        $('#typology_name').on('input', function() {
+            let name = $(this).val();
+            let currentCode = $('#typology_code').val();
 
-                if (remaining < 50) {
-                    helpText.addClass('text-warning').removeClass('text-muted');
-                } else {
-                    helpText.addClass('text-muted').removeClass('text-warning');
-                }
-
-                helpText.text(helpText.data('original-text') + ` (${remaining} characters remaining)`);
+            // Hanya auto-fill jika kode masih kosong
+            if (name.length >= 3 && currentCode === '') {
+                let code = name.substring(0, 3).toUpperCase();
+                $('#typology_code').val(code);
             }
-
-            // Initialize character counters
-            $('.form-text').each(function() {
-                $(this).data('original-text', $(this).text());
-            });
-
-            $('#strengths, #weaknesses, #career_suggestions').on('input', function() {
-                const maxLength = 1000;
-                updateCharacterCount($(this).attr('id'), maxLength);
-            });
-
-            // Form submission confirmation for important operations
-            $('form').on('submit', function(e) {
-                e.preventDefault();
-
-                const typologyName = $('#typology_name').val();
-                const typologyCode = $('#typology_code').val();
-
-                if (!typologyName || !typologyCode) {
-                    showErrorToast('Please fill in all required fields.');
-                    return;
-                }
-
-                customConfirm({
-                    title: 'Create New Typology?',
-                    text: `Create typology "${typologyName}" with code "${typologyCode}"?`,
-                    icon: 'question',
-                    confirmButtonText: 'Yes, create it!',
-                    confirmButtonColor: '#28a745'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        showLoading('Creating Typology...', 'Please wait while we save the typology...');
-                        this.submit();
-                    }
-                });
-            });
-
-            // Auto-generate typology code based on name
-            $('#typology_name').on('input', function() {
-                const name = $(this).val();
-                const code = name.substring(0, 3).toUpperCase();
-                if (code && !$('#typology_code').val()) {
-                    $('#typology_code').val(code);
-                }
-            });
-
-            // Validate typology code format
-            $('#typology_code').on('input', function() {
-                const code = $(this).val().toUpperCase();
-                $(this).val(code);
-
-                if (code.length > 5) {
-                    showErrorToast('Typology code cannot exceed 5 characters.');
-                    $(this).val(code.substring(0, 5));
-                }
-            });
-
-            // Preview functionality
-            $('#preview-btn').on('click', function(e) {
-                e.preventDefault();
-
-                const typologyData = {
-                    name: $('#typology_name').val(),
-                    code: $('#typology_code').val(),
-                    strengths: $('#strengths').val(),
-                    weaknesses: $('#weaknesses').val(),
-                    career: $('#career_suggestions').val()
-                };
-
-                if (!typologyData.name || !typologyData.code) {
-                    showErrorToast('Please fill in name and code to preview.');
-                    return;
-                }
-
-                Swal.fire({
-                    title: `${typologyData.name} (${typologyData.code})`,
-                    html: `
-                        <div class="text-left">
-                            <h6 class="text-success">Strengths:</h6>
-                            <p class="small">${typologyData.strengths || 'Not specified'}</p>
-                            <h6 class="text-warning">Areas for Development:</h6>
-                            <p class="small">${typologyData.weaknesses || 'Not specified'}</p>
-                            <h6 class="text-info">Career Suggestions:</h6>
-                            <p class="small">${typologyData.career || 'Not specified'}</p>
-                        </div>
-                    `,
-                    width: 600,
-                    confirmButtonText: 'Close Preview'
-                });
-            });
-
-            // Keyboard shortcuts
-            $(document).keydown(function(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    switch(e.which) {
-                        case 83: // Ctrl+S for Save
-                            e.preventDefault();
-                            $('form').submit();
-                            break;
-                        case 80: // Ctrl+P for Preview
-                            e.preventDefault();
-                            $('#preview-btn').click();
-                            break;
-                    }
-                }
-            });
         });
-    </script>
-@endpush
 
-@push('styles')
-<style>
-.required::after {
-    content: " *";
-    color: #dc3545;
-}
-
-.character-count {
-    text-align: right;
-    font-size: 0.75rem;
-}
-
-.card.bg-light {
-    border-left: 4px solid #007bff;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.badge {
-    font-size: 0.75rem;
-    margin-right: 0.25rem;
-}
-
-.list-unstyled li {
-    margin-bottom: 0.25rem;
-}
-</style>
+        // Force Uppercase for Code
+        $('#typology_code').on('input', function() {
+            $(this).val($(this).val().toUpperCase().replace(/[^A-Z0-9]/g, ''));
+        });
+    });
+</script>
 @endpush

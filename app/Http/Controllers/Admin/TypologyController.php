@@ -4,155 +4,116 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TypologyDescription;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TypologyController extends Controller
 {
-    /**
-     * Display a listing of typologies
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $typologies = TypologyDescription::orderBy('typology_code')->paginate(15);
+        $query = TypologyDescription::query();
 
-        return view('admin.questions.typologies.index', compact('typologies'));
+        // Fix: Mencari di kolom yang benar (strength & weakness)
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('typology_name', 'like', "%{$search}%")
+                  ->orWhere('typology_code', 'like', "%{$search}%")
+                  ->orWhere('strength_description', 'like', "%{$search}%")
+                  ->orWhere('weakness_description', 'like', "%{$search}%");
+            });
+        }
+
+        $typologies = $query->orderBy('typology_code', 'asc')->paginate(10);
+
+        // Statistik
+        $totalTypologies = TypologyDescription::count();
+        $latestUpdate = TypologyDescription::latest('updated_at')->first()->updated_at ?? now();
+
+        return view('admin.questions.typologies.index', compact(
+            'typologies',
+            'totalTypologies',
+            'latestUpdate'
+        ));
     }
 
-    /**
-     * Show the form for creating a new typology
-     */
     public function create()
     {
         return view('admin.questions.typologies.create');
     }
 
-    /**
-     * Store a newly created typology
-     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Validasi kolom strength dan weakness
+        $request->validate([
             'typology_code' => 'required|string|max:10|unique:typology_descriptions,typology_code',
             'typology_name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'characteristics' => 'nullable|string',
-            'strengths' => 'nullable|string',
-            'weaknesses' => 'nullable|string',
-            'career_suggestions' => 'nullable|string',
-            'is_active' => 'boolean'
+            'strength_description' => 'nullable|string',
+            'weakness_description' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+        TypologyDescription::create($request->all());
 
-        try {
-            TypologyDescription::create([
-                'typology_code' => strtoupper($request->typology_code),
-                'typology_name' => $request->typology_name,
-                'description' => $request->description,
-                'characteristics' => $request->characteristics,
-                'strengths' => $request->strengths,
-                'weaknesses' => $request->weaknesses,
-                'career_suggestions' => $request->career_suggestions,
-                'is_active' => $request->has('is_active')
-            ]);
-
-            return redirect()->route('admin.typologies.index')
-                ->with('success', 'Typology created successfully.');
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Failed to create typology: ' . $e->getMessage())
-                ->withInput();
-        }
+        return redirect()->route('admin.questions.typologies.index')
+            ->with('success', 'Tipologi berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified typology
-     */
-    public function show(TypologyDescription $typology)
+    public function show($id)
     {
+        $typology = TypologyDescription::findOrFail($id);
         return view('admin.questions.typologies.show', compact('typology'));
     }
 
-    /**
-     * Show the form for editing the specified typology
-     */
-    public function edit(TypologyDescription $typology)
+    public function edit($id)
     {
+        $typology = TypologyDescription::findOrFail($id);
         return view('admin.questions.typologies.edit', compact('typology'));
     }
 
-    /**
-     * Update the specified typology
-     */
-    public function update(Request $request, TypologyDescription $typology)
+    public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'typology_code' => 'required|string|max:10|unique:typology_descriptions,typology_code,' . $typology->typology_code . ',typology_code',
+        $request->validate([
+            'typology_code' => 'required|string|max:10|unique:typology_descriptions,typology_code,'.$id,
             'typology_name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'characteristics' => 'nullable|string',
-            'strengths' => 'nullable|string',
-            'weaknesses' => 'nullable|string',
-            'career_suggestions' => 'nullable|string',
-            'is_active' => 'boolean'
+            'strength_description' => 'nullable|string',
+            'weakness_description' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+        $typology = TypologyDescription::findOrFail($id);
+        $typology->update($request->all());
 
-        try {
-            $typology->update([
-                'typology_code' => strtoupper($request->typology_code),
-                'typology_name' => $request->typology_name,
-                'description' => $request->description,
-                'characteristics' => $request->characteristics,
-                'strengths' => $request->strengths,
-                'weaknesses' => $request->weaknesses,
-                'career_suggestions' => $request->career_suggestions,
-                'is_active' => $request->has('is_active')
-            ]);
-
-            return redirect()->route('admin.typologies.index')
-                ->with('success', 'Typology updated successfully.');
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Failed to update typology: ' . $e->getMessage())
-                ->withInput();
-        }
+        return redirect()->route('admin.questions.typologies.index')
+            ->with('success', 'Tipologi berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified typology
-     */
-    public function destroy(TypologyDescription $typology)
+    public function destroy($id)
     {
-        try {
-            // Check if typology is being used in ST30 questions
-            $questionsCount = $typology->st30Questions()->count();
+        $typology = TypologyDescription::findOrFail($id);
+        $typology->delete();
 
-            if ($questionsCount > 0) {
-                return redirect()->back()
-                    ->with('error', "Cannot delete typology. It is being used by {$questionsCount} ST-30 questions.");
-            }
+        return redirect()->route('admin.questions.typologies.index')
+            ->with('success', 'Tipologi berhasil dihapus.');
+    }
 
-            $typology->delete();
+    public function export()
+    {
+        // Ambil semua data, urutkan berdasarkan kode (A, B, C...)
+        $typologies = TypologyDescription::orderBy('typology_code', 'asc')->get();
 
-            return redirect()->route('admin.typologies.index')
-                ->with('success', 'Typology deleted successfully.');
+        $data = [
+            'reportTitle' => 'Laporan Data Tipologi (Typologies)',
+            'generatedBy' => Auth::user()->name,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'rows'        => $typologies
+        ];
 
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Failed to delete typology: ' . $e->getMessage());
-        }
+        // Load view PDF
+        $pdf = Pdf::loadView('admin.questions.typologies.pdf.typologyReport', $data);
+
+        // Gunakan Landscape agar kolom deskripsi yang panjang muat
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Laporan-Tipologi-ST30.pdf');
     }
 }

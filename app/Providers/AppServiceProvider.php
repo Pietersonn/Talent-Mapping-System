@@ -4,9 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\View; // Tambahan untuk View Composer
-use Illuminate\Support\Facades\Auth; // Tambahan untuk Auth
+use Illuminate\Pagination\Paginator; // Pastikan ini ada
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,8 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // View Composer: Inject variabel $user ke sidebar dan navbar
-        // Ini solusi paling rapi untuk menghilangkan error "Undefined property"
+        // View Composer (Biarkan kode ini, sudah benar)
         View::composer(
             ['admin.layouts.partials.sidebar', 'admin.layouts.partials.navbar' ,'admin.layouts.app.blade.php'],
             function ($view) {
@@ -32,12 +31,10 @@ class AppServiceProvider extends ServiceProvider
             }
         );
 
-        // Konfigurasi URL & Paginator Existing
+        // Konfigurasi URL untuk Production (Biarkan jika sudah benar)
         if (config('app.env') === 'production') {
             URL::forceRootUrl(config('app.url'));
             URL::forceScheme('https');
         }
-
-        Paginator::useBootstrapFour();
     }
 }

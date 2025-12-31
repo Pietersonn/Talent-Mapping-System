@@ -1,10 +1,9 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Kompetensi')
+@section('title', 'Tambah Kompetensi Baru')
 
 @push('styles')
 <style>
-    /* Gunakan style yang sama dengan create */
     .form-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .form-section-title { font-size: 0.85rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px dashed #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
     .form-group { margin-bottom: 1.5rem; }
@@ -22,16 +21,15 @@
 @section('content')
     <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-edit" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
-            Edit Kompetensi: {{ $competency->competency_code }}
+            <i class="fas fa-plus-circle" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
+            Tambah Kompetensi
         </h1>
         <a href="{{ route('admin.questions.competencies.index') }}" class="btn-cancel"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>
 
     <div class="form-card">
-        <form action="{{ route('admin.questions.competencies.update', $competency->id) }}" method="POST">
+        <form action="{{ route('admin.questions.competencies.store') }}" method="POST">
             @csrf
-            @method('PUT')
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
 
                 <div>
@@ -39,27 +37,27 @@
 
                     <div class="form-group">
                         <label class="form-label required">Nama Kompetensi</label>
-                        <input type="text" name="competency_name" class="form-control" value="{{ old('competency_name', $competency->competency_name) }}" required>
+                        <input type="text" name="competency_name" class="form-control" value="{{ old('competency_name') }}" required placeholder="Misal: Integritas, Kerjasama...">
                     </div>
 
                     <div class="form-group">
                         <label class="form-label required">Kekuatan (Strength Description)</label>
-                        <textarea name="strength_description" class="form-control" required>{{ old('strength_description', $competency->strength_description) }}</textarea>
+                        <textarea name="strength_description" class="form-control" required placeholder="Deskripsikan kekuatan kompetensi ini...">{{ old('strength_description') }}</textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label required">Kelemahan (Weakness Description)</label>
-                        <textarea name="weakness_description" class="form-control" required>{{ old('weakness_description', $competency->weakness_description) }}</textarea>
+                        <textarea name="weakness_description" class="form-control" required placeholder="Deskripsikan area kelemahan/risiko...">{{ old('weakness_description') }}</textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label required">Aktivitas Pengembangan (Improvement Activity)</label>
-                        <textarea name="improvement_activity" class="form-control" required>{{ old('improvement_activity', $competency->improvement_activity) }}</textarea>
+                        <textarea name="improvement_activity" class="form-control" required placeholder="Saran aktivitas untuk mengembangkan kompetensi ini...">{{ old('improvement_activity') }}</textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Rekomendasi Training</label>
-                        <textarea name="training_recommendations" class="form-control">{{ old('training_recommendations', $competency->training_recommendations) }}</textarea>
+                        <textarea name="training_recommendations" class="form-control" placeholder="Daftar training yang disarankan (opsional)...">{{ old('training_recommendations') }}</textarea>
                     </div>
                 </div>
 
@@ -67,19 +65,20 @@
                     <div class="form-section-title"><i class="fas fa-cog text-green-500"></i> Identifikasi</div>
                     <div class="form-group">
                         <label class="form-label required">Kode Kompetensi</label>
-                        <input type="text" name="competency_code" class="form-control font-mono font-bold text-center" value="{{ old('competency_code', $competency->competency_code) }}" maxlength="30" style="text-transform: uppercase;" required>
+                        <input type="text" name="competency_code" class="form-control font-mono font-bold text-center" value="{{ old('competency_code') }}" maxlength="30" style="text-transform: uppercase;" required placeholder="INT">
+                        <small class="form-text">Kode unik maksimal 30 karakter.</small>
                     </div>
 
-                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 mt-4 text-xs text-gray-500">
-                        <div class="mb-2">Dibuat: {{ $competency->created_at->format('d M Y H:i') }}</div>
-                        <div>Terakhir Update: {{ $competency->updated_at->format('d M Y H:i') }}</div>
+                    <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 mt-4">
+                        <h6 class="text-blue-700 font-bold text-xs uppercase mb-2"><i class="fas fa-info-circle mr-1"></i> Informasi</h6>
+                        <p class="text-blue-600 text-xs leading-relaxed mb-0">Pastikan Nama dan Kode kompetensi sesuai dengan framework SJT yang digunakan agar hasil laporan akurat.</p>
                     </div>
                 </div>
             </div>
 
             <div class="form-actions mt-6 pt-6 border-t flex justify-end gap-3">
                 <a href="{{ route('admin.questions.competencies.index') }}" class="btn-cancel">Batal</a>
-                <button type="submit" class="btn-save"><i class="fas fa-save"></i> Perbarui Kompetensi</button>
+                <button type="submit" class="btn-save"><i class="fas fa-save"></i> Simpan Kompetensi</button>
             </div>
         </form>
     </div>

@@ -310,7 +310,9 @@
         function exportQuestions() {
             var versionId = '{{ $selectedVersion ? $selectedVersion->id : '' }}';
             if (versionId) {
-                window.location.href = '{{ route('admin.questions.sjt.export') }}?version=' + versionId;
+                // Perhatikan route-nya: admin.questions.sjt.export
+                var url = '{{ route('admin.questions.sjt.export') }}?version=' + versionId;
+                window.open(url, '_blank');
             } else {
                 Swal.fire('Error', 'Please select a version to export.', 'error');
             }

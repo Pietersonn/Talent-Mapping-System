@@ -1,414 +1,277 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Typology Details')
-@section('page-title', 'Typology Details: ' . $typology->typology_code)
+@section('title', 'Detail Tipologi')
 
-@section('breadcrumbs')
-<li class="breadcrumb-item"><a href="{{ route('admin.questions.index') }}">Question Bank</a></li>
-<li class="breadcrumb-item"><a href="{{ route('admin.questions.typologies.index') }}">Typologies</a></li>
-<li class="breadcrumb-item active">{{ $typology->typology_code }}</li>
+@push('styles')
+<style>
+    /* --- VARIABLES (Mengikuti Style SJT) --- */
+    :root {
+        --text-main: #0f172a;
+        --text-sub: #64748b;
+        --bg-surface: #ffffff;
+        --bg-subtle: #f8fafc;
+        --border-color: #e2e8f0;
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --tm-green: #22c55e;
+        --tm-green-soft: #dcfce7;
+        --tm-green-dark: #15803d;
+    }
+
+    /* --- LAYOUT GRID --- */
+    .bento-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+
+    /* --- CARDS --- */
+    .bento-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        height: 100%;
+        display: flex; flex-direction: column;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .bento-title {
+        font-size: 0.85rem; font-weight: 700; color: var(--text-sub);
+        text-transform: uppercase; letter-spacing: 0.05em;
+        margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;
+    }
+
+    /* --- HERO SECTION (Nama & Kode) --- */
+    .typo-hero {
+        display: flex; align-items: center; gap: 1.25rem;
+        padding: 1.5rem; background: var(--bg-subtle);
+        border-radius: var(--radius-md); border-left: 5px solid var(--tm-green);
+        margin-bottom: 2rem;
+    }
+    .typo-code-display {
+        font-family: monospace; font-size: 2rem; font-weight: 800;
+        color: var(--text-main); letter-spacing: -1px;
+    }
+    .typo-name-display {
+        font-size: 1.25rem; font-weight: 700; color: var(--text-main);
+        line-height: 1.2;
+    }
+
+    /* --- DESCRIPTION BOXES --- */
+    .desc-box {
+        margin-bottom: 1.5rem;
+    }
+    .desc-label {
+        font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .desc-label.strength { color: #15803d; }
+    .desc-label.weakness { color: #b91c1c; }
+
+    .desc-content {
+        font-size: 0.95rem; line-height: 1.6; color: #334155;
+        background: #fff; border: 1px solid var(--border-color);
+        padding: 1rem; border-radius: 12px;
+    }
+    .desc-content.bg-green { background: #f0fdf4; border-color: #bbf7d0; }
+    .desc-content.bg-red { background: #fef2f2; border-color: #fecaca; }
+
+    /* --- SIDEBAR META --- */
+    .meta-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 0; border-bottom: 1px solid var(--bg-subtle); font-size: 0.85rem;
+    }
+    .meta-row:last-child { border-bottom: none; }
+    .mr-label { color: var(--text-sub); font-weight: 600; }
+    .mr-val { color: var(--text-main); font-weight: 600; }
+
+    /* --- BUTTONS --- */
+    .btn-cancel {
+        background: white; color: #64748b; border: 1px solid #e2e8f0;
+        padding: 10px 24px; border-radius: 12px; font-weight: 600;
+        text-decoration: none; transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+
+    .action-btn-group { display: flex; gap: 8px; margin-top: auto; }
+    .btn-act { flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-align: center; border: none; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+
+    .act-edit { background: #eff6ff; color: #2563eb; }
+    .act-edit:hover { background: #dbeafe; }
+
+    .act-del { background: #fef2f2; color: #ef4444; }
+    .act-del:hover { background: #fee2e2; }
+
+    /* --- TABLE (Related Questions) --- */
+    .related-section { margin-top: 1.5rem; }
+    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .custom-table th { text-align: left; padding: 1rem; background: #f8fafc; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    .custom-table td { padding: 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #334155; background: white; }
+    .custom-table tr:hover td { background-color: #f8fafc; }
+
+    @media (max-width: 768px) { .bento-grid { grid-template-columns: 1fr; } }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-shapes" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 10px;"></i>
+                Detail Tipologi
+            </h1>
+        </div>
+        <div>
+            <a href="{{ route('admin.questions.typologies.index') }}" class="btn-cancel">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </div>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
-        </div>
-    @endif
+<div class="bento-grid">
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
-        </div>
-    @endif
+    <div class="bento-card">
+        <div class="bento-title"><i class="fas fa-id-card text-green-500"></i> Identitas Tipologi</div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title d-flex align-items-center">
-                        <span class="badge badge-secondary badge-lg mr-3 px-3 py-2">{{ $typology->typology_code }}</span>
-                        <span>{{ $typology->typology_name }}</span>
-                    </h3>
-                    <div class="card-tools">
-                        <span class="badge badge-{{ $typology->is_active ? 'success' : 'secondary' }} badge-lg">
-                            {{ $typology->is_active ? 'Active' : 'Inactive' }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h5 class="text-primary border-bottom pb-2 mb-3">
-                            <i class="fas fa-info-circle mr-2"></i> Description
-                        </h5>
-                        <div class="card bg-light border-0">
-                            <div class="card-body">
-                                <p class="mb-0 lead">{{ $typology->description }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if($typology->characteristics)
-                    <div class="mb-4">
-                        <h5 class="text-info border-bottom pb-2 mb-3">
-                            <i class="fas fa-list-alt mr-2"></i> Key Characteristics
-                        </h5>
-                        <div class="card border-left-info">
-                            <div class="card-body">
-                                <p class="mb-0">{{ $typology->characteristics }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($typology->strengths)
-                    <div class="mb-4">
-                        <h5 class="text-success border-bottom pb-2 mb-3">
-                            <i class="fas fa-thumbs-up mr-2"></i> Strengths
-                        </h5>
-                        <div class="card border-left-success">
-                            <div class="card-body">
-                                <p class="mb-0">{{ $typology->strengths }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($typology->weaknesses)
-                    <div class="mb-4">
-                        <h5 class="text-warning border-bottom pb-2 mb-3">
-                            <i class="fas fa-exclamation-triangle mr-2"></i> Areas for Development
-                        </h5>
-                        <div class="card border-left-warning">
-                            <div class="card-body">
-                                <p class="mb-0">{{ $typology->weaknesses }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($typology->career_suggestions)
-                    <div class="mb-4">
-                        <h5 class="text-purple border-bottom pb-2 mb-3">
-                            <i class="fas fa-briefcase mr-2"></i> Career Suggestions
-                        </h5>
-                        <div class="card border-left-purple">
-                            <div class="card-body">
-                                <p class="mb-0">{{ $typology->career_suggestions }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-
-                <div class="card-footer bg-light">
-                    <div class="row text-muted small">
-                        <div class="col-md-6">
-                            <i class="fas fa-calendar-plus mr-1"></i> Created: {{ $typology->created_at->format('M d, Y H:i') }}
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <i class="fas fa-calendar-edit mr-1"></i> Updated: {{ $typology->updated_at->format('M d, Y H:i') }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="typo-hero">
+            <div class="typo-code-display">{{ $typology->typology_code }}</div>
+            <div style="width: 1px; height: 40px; background: #cbd5e1;"></div>
+            <div class="typo-name-display">{{ $typology->typology_name }}</div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-cogs mr-2"></i> Actions
-                    </h5>
+        <div style="margin-top: 1rem;">
+            <div class="desc-box">
+                <div class="desc-label strength">
+                    <i class="fas fa-bolt"></i> Kekuatan (Strength)
                 </div>
-                <div class="card-body">
-                    <a href="{{ route('admin.questions.typologies.edit', $typology) }}" class="btn btn-warning btn-block mb-2">
-                        <i class="fas fa-edit mr-2"></i> Edit Typology
-                    </a>
-
-                    <button type="button" class="btn btn-danger btn-block mb-2"
-                            onclick="confirmDelete('{{ $typology->typology_code }}', '{{ route('admin.questions.typologies.destroy', $typology) }}')">
-                        <i class="fas fa-trash mr-2"></i> Delete Typology
-                    </button>
-
-                    <a href="{{ route('admin.questions.typologies.index') }}" class="btn btn-outline-secondary btn-block">
-                        <i class="fas fa-arrow-left mr-2"></i> Back to List
-                    </a>
+                <div class="desc-content bg-green">
+                    {!! nl2br(e($typology->strength_description)) ?? '<span class="text-muted italic">Tidak ada deskripsi.</span>' !!}
                 </div>
             </div>
 
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-bar mr-2"></i> Usage Statistics
-                    </h5>
+            <div class="desc-box">
+                <div class="desc-label weakness">
+                    <i class="fas fa-exclamation-circle"></i> Kelemahan (Weakness)
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-12 mb-3">
-                            <div class="card border-left-info h-100">
-                                <div class="card-body d-flex align-items-center">
-                                    <div class="mr-3">
-                                        <div class="text-info">
-                                            <i class="fas fa-question-circle fa-2x"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                            ST-30 Questions
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            {{ $typology->st30Questions()->count() }}
-                                        </div>
-                                        <div class="small text-muted">Questions using this typology</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 mb-3">
-                            <div class="card border-left-success h-100">
-                                <div class="card-body d-flex align-items-center">
-                                    <div class="mr-3">
-                                        <div class="text-success">
-                                            <i class="fas fa-user-check fa-2x"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Active Questions
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            {{ $typology->st30Questions()->where('is_active', true)->count() }}
-                                        </div>
-                                        <div class="small text-muted">Currently active questions</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="card border-left-warning h-100">
-                                <div class="card-body d-flex align-items-center">
-                                    <div class="mr-3">
-                                        <div class="text-warning">
-                                            <i class="fas fa-percentage fa-2x"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                            Usage Rate
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">0%</div>
-                                        <div class="small text-muted">In completed assessments</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-tags mr-2"></i> Category Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @php
-                        $category = '';
-                        $categoryDesc = '';
-                        $categoryClass = '';
-                        $firstChar = substr($typology->typology_code, 0, 1);
-                        switch($firstChar) {
-                            case 'H':
-                                $category = 'Headman';
-                                $categoryDesc = 'Leadership & influencing others';
-                                $categoryClass = 'primary';
-                                break;
-                            case 'N':
-                                $category = 'Networking';
-                                $categoryDesc = 'Building relationships & collaboration';
-                                $categoryClass = 'info';
-                                break;
-                            case 'S':
-                                $category = 'Servicing';
-                                $categoryDesc = 'Helping & caring for others';
-                                $categoryClass = 'success';
-                                break;
-                            case 'G':
-                                $category = 'Generating Ideas';
-                                $categoryDesc = 'Creative & innovative thinking';
-                                $categoryClass = 'warning';
-                                break;
-                            case 'T':
-                                $category = 'Thinking';
-                                $categoryDesc = 'Analytical & logical processing';
-                                $categoryClass = 'secondary';
-                                break;
-                            case 'R':
-                                $category = 'Reasoning';
-                                $categoryDesc = 'Problem-solving & decision making';
-                                $categoryClass = 'dark';
-                                break;
-                            case 'E':
-                                $category = 'Elementary';
-                                $categoryDesc = 'Basic operational tasks';
-                                $categoryClass = 'danger';
-                                break;
-                            default:
-                                $category = 'Technical';
-                                $categoryDesc = 'Specialized technical skills';
-                                $categoryClass = 'light';
-                        }
-                    @endphp
-
-                    <div class="text-center mb-3">
-                        <span class="badge badge-{{ $categoryClass }} badge-lg px-3 py-2">{{ $category }}</span>
-                        <p class="text-muted mt-2 mb-0">{{ $categoryDesc }}</p>
-                    </div>
-
-                    <hr>
-
-                    <div class="text-muted small">
-                        <strong>ST-30 Framework:</strong><br>
-                        This typology is part of the ST-30 (Strength Typology-30) assessment framework,
-                        which maps individual strengths and potential based on 8 core behavioral categories.
-                    </div>
+                <div class="desc-content bg-red">
+                    {!! nl2br(e($typology->weakness_description)) ?? '<span class="text-muted italic">Tidak ada deskripsi.</span>' !!}
                 </div>
             </div>
         </div>
     </div>
 
-    @if($typology->st30Questions()->count() > 0)
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">
-                        <i class="fas fa-question-circle mr-2"></i> Related ST-30 Questions
-                    </h3>
-                    <span class="badge badge-info">{{ $typology->st30Questions()->count() }} questions</span>
-                </div>
+    <div class="bento-card">
+        <div class="bento-title"><i class="fas fa-info-circle text-gray-500"></i> Meta Data</div>
 
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-hover">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th width="10%">Number</th>
-                                    <th width="60%">Statement</th>
-                                    <th width="15%">Version</th>
-                                    <th width="15%">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($typology->st30Questions()->orderBy('number')->get() as $question)
-                                <tr>
-                                    <td>
-                                        <span class="badge badge-secondary">{{ $question->number }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('admin.questions.st30.show', $question) }}" class="text-decoration-none">
-                                            {{ Str::limit($question->statement, 80) }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ $question->questionVersion->name ?? 'N/A' }}</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-{{ $question->is_active ? 'success' : 'secondary' }}">
-                                            {{ $question->is_active ? 'Active' : 'Inactive' }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <div style="margin-bottom: 2rem;">
+            <div class="meta-row">
+                <span class="mr-label">ID Database</span>
+                <span class="mr-val font-mono text-xs bg-gray-100 px-2 rounded">{{ $typology->id }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Dibuat Pada</span>
+                <span class="mr-val text-xs">{{ $typology->created_at->format('d M Y, H:i') }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="mr-label">Update Terakhir</span>
+                <span class="mr-val text-xs">{{ $typology->updated_at->format('d M Y, H:i') }}</span>
+            </div>
+            <div class="meta-row" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 10px;">
+                <span class="mr-label">Penggunaan (Soal)</span>
+                @php
+                    // Cek safety jika relasi belum didefinisikan di Model
+                    $count = method_exists($typology, 'st30Questions') ? $typology->st30Questions()->count() : 0;
+                @endphp
+                <span class="mr-val text-success">{{ $count }} Soal</span>
             </div>
         </div>
-    </div>
-    @endif
-</div>
 
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
+        @if (Auth::user()->role === 'admin')
+            <div class="action-btn-group">
+                <a href="{{ route('admin.questions.typologies.edit', $typology->id) }}" class="btn-act act-edit">
+                    <i class="fas fa-pen"></i> Edit
+                </a>
+                <button onclick="confirmDelete('{{ $typology->typology_name }}', '{{ route('admin.questions.typologies.destroy', $typology->id) }}')"
+                        class="btn-act act-del">
+                    <i class="fas fa-trash"></i> Hapus
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="text-center mb-3">
-                    <i class="fas fa-exclamation-triangle fa-3x text-warning"></i>
-                </div>
-                <p class="text-center">Are you sure you want to delete typology <strong id="deleteTypologyName"></strong>?</p>
-                <div class="alert alert-warning">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    This action cannot be undone and may affect related ST-30 questions.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash mr-2"></i> Delete
-                    </button>
-                </form>
-            </div>
+        @endif
+    </div>
+
+</div>
+
+@if(method_exists($typology, 'st30Questions') && $typology->st30Questions()->count() > 0)
+<div class="related-section">
+    <div class="bento-card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.25rem; border-bottom: 1px solid var(--border-color); background: #fcfcfc;">
+            <h5 style="margin:0; font-size: 1rem; font-weight: 700; color: var(--text-main);">
+                <i class="fas fa-list-ul mr-2 text-primary"></i> Daftar Soal Terkait (ST-30)
+            </h5>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th width="80">No.</th>
+                        <th>Pernyataan Soal</th>
+                        <th width="100">Status</th>
+                        <th width="80" class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($typology->st30Questions as $q)
+                    <tr>
+                        <td style="font-family: monospace; font-weight: 600; color: #64748b;">
+                            #{{ str_pad($q->number, 2, '0', STR_PAD_LEFT) }}
+                        </td>
+                        <td>{{ Str::limit($q->statement, 100) }}</td>
+                        <td>
+                            @if($q->is_active ?? true)
+                                <span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">Active</span>
+                            @else
+                                <span style="background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">Inactive</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ route('admin.questions.st30.show', $q->id) }}" style="color: #2563eb;">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+@endif
+
 @endsection
 
 @push('scripts')
 <script>
-function confirmDelete(typologyCode, deleteUrl) {
-    document.getElementById('deleteTypologyName').textContent = typologyCode;
-    document.getElementById('deleteForm').action = deleteUrl;
-    $('#deleteModal').modal('show');
-}
-
-setTimeout(function() {
-    $('.alert').fadeOut('slow');
-}, 5000);
+    function confirmDelete(name, url) {
+        Swal.fire({
+            title: 'Hapus Tipologi?',
+            html: `Yakin ingin menghapus tipologi <b>"${name}"</b>?<br><small class="text-muted">Tindakan ini tidak dapat dibatalkan.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#f1f5f9',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: '<span style="color:#0f172a">Batal</span>',
+            customClass: { popup: 'rounded-xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST'; form.action = url;
+                form.innerHTML = '@csrf @method("DELETE")';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
 </script>
-@endpush
-
-@push('styles')
-<style>
-.border-left-primary { border-left: 0.25rem solid #007bff !important; }
-.border-left-success { border-left: 0.25rem solid #28a745 !important; }
-.border-left-warning { border-left: 0.25rem solid #ffc107 !important; }
-.border-left-info { border-left: 0.25rem solid #17a2b8 !important; }
-.border-left-purple { border-left: 0.25rem solid #6f42c1 !important; }
-
-.text-xs { font-size: 0.75rem; }
-.text-gray-800 { color: #5a5c69 !important; }
-.text-purple { color: #6f42c1 !important; }
-
-.badge-lg {
-    font-size: 0.9rem;
-    padding: 0.5rem 0.75rem;
-}
-
-.border-bottom {
-    border-bottom: 2px solid #e9ecef !important;
-}
-</style>
 @endpush
