@@ -8,7 +8,7 @@
     .search-group { position: relative; width: 320px; }
     .search-input { width: 100%; height: 46px; padding: 10px 45px 10px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: #ffffff; transition: all 0.3s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #334155; }
     .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
-    .loading-spinner { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
+    .loading-spinner { position: absolute; right: 14px; top: 33%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
     .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; transition: opacity 0.2s; }
 
     .btn-print { width: 46px; height: 46px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; }
@@ -136,9 +136,16 @@
 <script>
     // --- SEARCH REALTIME ---
     let debounceTimer;
-    $('#realtimeSearch').on('input', function() {
+    const searchInput = $('#realtimeSearch');
+    const searchGroup = $('.search-group');
+    const exportBtn = $('#btnExportPdf');
+    // Base URL tanpa query params
+    const baseExportUrl = "{{ route('admin.users.export.pdf') }}";
+
+    searchInput.on('input', function() {
         const query = $(this).val();
 
+        // Show Spinner, Hide Search Icon
         $('.loading-spinner').show();
         $('.search-icon').hide();
 
@@ -150,13 +157,17 @@
                 data: { search: query },
                 success: function(response) {
                     renderTable(response);
+
+                    // Hide Spinner, Show Search Icon
                     $('.loading-spinner').hide();
                     $('.search-icon').show();
 
-                    // Update Link PDF agar filter terbawa (Tanpa Popup Logic)
-                    let baseUrl = "{{ route('admin.users.export.pdf') }}";
-                    let newUrl = baseUrl + "?search=" + encodeURIComponent(query);
-                    $('#btnExportPdf').attr('href', newUrl);
+                    // Update Link PDF
+                    if (query.trim() !== "") {
+                        exportBtn.attr('href', baseExportUrl + "?search=" + encodeURIComponent(query));
+                    } else {
+                        exportBtn.attr('href', baseExportUrl);
+                    }
                 },
                 error: function() {
                     $('.loading-spinner').hide();
@@ -199,7 +210,10 @@
                 <td style="color: #64748b;">${user.email}</td>
                 <td><span class="badge-role role-${user.role.toLowerCase()}">${user.role}</span></td>
                 <td style="font-family: monospace; font-weight: 600; color: #334155;">${phone}</td>
-                <td><div class="action-buttons">${editBtn}${deleteBtn}</div></td>
+                <td><div class="action-buttons">
+                    <a href="${user.show_url}" class="btn-icon btn-view"><i class="fas fa-eye text-xs"></i></a>
+                    ${editBtn}${deleteBtn}
+                </div></td>
             </tr>`;
         });
         tbody.html(html);

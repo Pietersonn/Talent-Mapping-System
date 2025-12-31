@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\QuestionController as AdminQuestionController;
 use App\Http\Controllers\Admin\ST30QuestionController;
@@ -27,49 +26,23 @@ Route::middleware(['auth', 'role:admin,staff'])
         // QUESTION BANK (VERSIONS + BANK)
         // ==========================
         Route::prefix('questions')->name('questions.')->group(function () {
-            // === Main Version Routes ===
+
+            // 1. Routes Utama (Index, Create, Store)
             Route::get('/', [AdminQuestionController::class, 'index'])->name('index');
             Route::get('/create', [AdminQuestionController::class, 'create'])->name('create')->middleware('role:admin');
             Route::post('/', [AdminQuestionController::class, 'store'])->name('store')->middleware('role:admin');
 
-            // Route Export PDF Versi
-            Route::get('/{questionVersion}/export/pdf', [AdminQuestionController::class, 'exportPdf'])
-                ->name('export.pdf')
-                ->whereNumber('questionVersion');
+            // 2. ROUTE EXPORT PDF GLOBAL (REKAP) - PERBAIKAN DISINI
+            // Ditaruh SEBELUM route dinamis {questionVersion} dan TANPA parameter {questionVersion}
+            Route::get('/export/pdf', [AdminQuestionController::class, 'exportPdf'])->name('export.pdf');
 
-            // Route AJAX Statistics
-            Route::get('/{questionVersion}/statistics', [AdminQuestionController::class, 'statistics'])
-                ->name('statistics')
-                ->whereNumber('questionVersion');
-
-            // Actions
-            Route::post('/{questionVersion}/activate', [AdminQuestionController::class, 'activate'])
-                ->name('activate')->middleware('role:admin')->whereNumber('questionVersion');
-
-            Route::post('/{questionVersion}/clone', [AdminQuestionController::class, 'clone'])
-                ->name('clone')->middleware('role:admin')->whereNumber('questionVersion');
-
-            // CRUD Standard
-            Route::get('/{questionVersion}', [AdminQuestionController::class, 'show'])
-                ->name('show')->whereNumber('questionVersion');
-
-            Route::get('/{questionVersion}/edit', [AdminQuestionController::class, 'edit'])
-                ->name('edit')->middleware('role:admin')->whereNumber('questionVersion');
-
-            Route::put('/{questionVersion}', [AdminQuestionController::class, 'update'])
-                ->name('update')->middleware('role:admin')->whereNumber('questionVersion');
-
-            Route::delete('/{questionVersion}', [AdminQuestionController::class, 'destroy'])
-                ->name('destroy')->middleware('role:admin')->whereNumber('questionVersion');
-
-
-            // ------- ST-30 Question Management -------
+            // 3. Route Group Statis (st30, sjt, dll)
+            // Harus di atas wildcard agar "st30" tidak dianggap sebagai ID versi
             Route::prefix('st30')->name('st30.')->group(function () {
                 Route::get('/', [ST30QuestionController::class, 'index'])->name('index');
                 Route::get('/create', [ST30QuestionController::class, 'create'])->name('create')->middleware('role:admin');
                 Route::post('/', [ST30QuestionController::class, 'store'])->name('store')->middleware('role:admin');
 
-                // Routes khusus ST-30
                 Route::get('/export',  [ST30QuestionController::class, 'export'])->name('export');
                 Route::post('/import', [ST30QuestionController::class, 'import'])->name('import')->middleware('role:admin');
                 Route::post('/reorder', [ST30QuestionController::class, 'reorder'])->name('reorder')->middleware('role:admin');
@@ -80,7 +53,6 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::delete('/{st30Question}', [ST30QuestionController::class, 'destroy'])->name('destroy')->middleware('role:admin');
             });
 
-            // ------- SJT Question Management -------
             Route::prefix('sjt')->name('sjt.')->group(function () {
                 Route::get('/', [SJTQuestionController::class, 'index'])->name('index');
                 Route::get('/create', [SJTQuestionController::class, 'create'])->name('create')->middleware('role:admin');
@@ -95,7 +67,6 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::delete('/{sjtQuestion}', [SJTQuestionController::class, 'destroy'])->name('destroy')->middleware('role:admin');
             });
 
-            // ------- Competencies -------
             Route::prefix('competencies')->name('competencies.')->group(function () {
                 Route::get('/', [CompetencyController::class, 'index'])->name('index');
                 Route::get('/export', [CompetencyController::class, 'export'])->name('export');
@@ -107,7 +78,6 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::delete('/{competency}', [CompetencyController::class, 'destroy'])->name('destroy')->middleware('role:admin');
             });
 
-            // ------- Typologies -------
             Route::prefix('typologies')->name('typologies.')->group(function () {
                 Route::get('/', [TypologyController::class, 'index'])->name('index');
                 Route::get('/create', [TypologyController::class, 'create'])->name('create')->middleware('role:admin');
@@ -119,9 +89,19 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::put('/{typology}', [TypologyController::class, 'update'])->name('update')->middleware('role:admin');
                 Route::delete('/{typology}', [TypologyController::class, 'destroy'])->name('destroy')->middleware('role:admin');
             });
+
+            // 4. Routes Dinamis ({questionVersion}) - TARUH PALING BAWAH
+            Route::get('/{questionVersion}/statistics', [AdminQuestionController::class, 'statistics'])->name('statistics');
+            Route::post('/{questionVersion}/activate', [AdminQuestionController::class, 'activate'])->name('activate')->middleware('role:admin');
+            Route::post('/{questionVersion}/clone', [AdminQuestionController::class, 'clone'])->name('clone')->middleware('role:admin');
+
+            Route::get('/{questionVersion}', [AdminQuestionController::class, 'show'])->name('show');
+            Route::get('/{questionVersion}/edit', [AdminQuestionController::class, 'edit'])->name('edit')->middleware('role:admin');
+            Route::put('/{questionVersion}', [AdminQuestionController::class, 'update'])->name('update')->middleware('role:admin');
+            Route::delete('/{questionVersion}', [AdminQuestionController::class, 'destroy'])->name('destroy')->middleware('role:admin');
         });
 
-        // Users
+        // Users, Events, dll tetap sama...
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/', [AdminUserController::class, 'index'])->name('index');
             Route::get('/create', [AdminUserController::class, 'create'])->name('create');
@@ -135,7 +115,6 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::get('/export/pdf', [AdminUserController::class, 'exportPdf'])->name('export.pdf');
         });
 
-        // Events
         Route::prefix('events')->name('events.')->group(function () {
             Route::get('/', [AdminEventController::class, 'index'])->name('index');
             Route::get('/create', [AdminEventController::class, 'create'])->name('create')->middleware('role:admin');
@@ -148,7 +127,6 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::post('/{event}/toggle-status', [AdminEventController::class, 'toggleStatus'])->name('toggle-status')->middleware('role:admin');
         });
 
-        // Results
         Route::prefix('results')->name('results.')->group(function () {
             Route::get('/', [AdminResultController::class, 'index'])->name('index');
             Route::get('/statistics', [AdminResultController::class, 'getStatistics'])->name('statistics');
@@ -160,7 +138,6 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::post('/bulk-action', [AdminResultController::class, 'bulkAction'])->name('bulk-action');
         });
 
-        // Resend Requests
         Route::prefix('resend')->name('resend.')->group(function () {
             Route::get('/', [ResendRequestController::class, 'index'])->name('index');
             Route::get('/{resendRequest}', [ResendRequestController::class, 'show'])->name('show');
@@ -171,14 +148,12 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::delete('/cleanup', [ResendRequestController::class, 'cleanup'])->name('cleanup')->middleware('role:admin');
         });
 
-        // Profile (admin/staff)
         Route::prefix('profile')->name('profile.')->group(function () {
             Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
             Route::put('/', [ProfileController::class, 'update'])->name('update');
             Route::put('/password', [ProfileController::class, 'updatePassword'])->name('update-password');
         });
 
-        // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/',               [ReportController::class, 'index'])->name('index');
             Route::get('/participants',   [ReportController::class, 'participants'])->name('participants');
@@ -189,7 +164,6 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::get('/anomaly',        [ReportController::class, 'anomaly'])->name('anomaly');
             Route::get('/insight',        [ReportController::class, 'insight'])->name('insight');
 
-            // === PDF EXPORTS ===
             Route::get('/pdf/participants',   [ReportController::class, 'exportParticipantsPdf'])->name('pdf.participants');
             Route::get('/pdf/events',         [ReportController::class, 'exportEventsPdf'])->name('pdf.events');
         });

@@ -18,7 +18,6 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
-        // Ambil Data
         $st30Versions = QuestionVersion::where('type', 'st30')
             ->withCount(['st30Questions'])
             ->orderBy('is_active', 'desc')
@@ -31,7 +30,6 @@ class QuestionController extends Controller
             ->orderBy('version', 'desc')
             ->get();
 
-        // Ambil Versi Aktif
         $activeVersions = [
             'st30' => $st30Versions->where('is_active', true)->first(),
             'sjt' => $sjtVersions->where('is_active', true)->first(),
@@ -145,21 +143,17 @@ class QuestionController extends Controller
     public function destroy(QuestionVersion $questionVersion)
     {
         $hasResponses = false;
-        if (method_exists($questionVersion, 'hasResponses')) {
-            $hasResponses = $questionVersion->hasResponses();
+        // Cek manual respons
+        if ($questionVersion->type === 'st30') {
+            $hasResponses = DB::table('st30_responses')
+                ->join('st30_questions', 'st30_responses.question_id', '=', 'st30_questions.id')
+                ->where('st30_questions.version_id', $questionVersion->id)
+                ->exists();
         } else {
-            // Fallback manual check
-            if ($questionVersion->type === 'st30') {
-                $hasResponses = DB::table('st30_responses')
-                    ->join('st30_questions', 'st30_responses.question_id', '=', 'st30_questions.id')
-                    ->where('st30_questions.version_id', $questionVersion->id)
-                    ->exists();
-            } else {
-                $hasResponses = DB::table('sjt_responses')
-                    ->join('sjt_questions', 'sjt_responses.question_id', '=', 'sjt_questions.id')
-                    ->where('sjt_questions.version_id', $questionVersion->id)
-                    ->exists();
-            }
+            $hasResponses = DB::table('sjt_responses')
+                ->join('sjt_questions', 'sjt_responses.question_id', '=', 'sjt_questions.id')
+                ->where('sjt_questions.version_id', $questionVersion->id)
+                ->exists();
         }
 
         if ($hasResponses) {
@@ -186,7 +180,6 @@ class QuestionController extends Controller
      */
     public function activate(QuestionVersion $questionVersion)
     {
-        // 1. Validasi Jumlah Soal
         $count = $questionVersion->questions_count;
         $required = $questionVersion->type === 'st30' ? 30 : 50;
 
@@ -196,7 +189,6 @@ class QuestionController extends Controller
                 ->with('error', "Gagal aktivasi. Versi ini hanya memiliki {$count} soal (Minimal {$required}).");
         }
 
-        // 2. Validasi Opsi SJT
         if ($questionVersion->type === 'sjt') {
             $questions = $questionVersion->sjtQuestions()->with('options')->get();
             $incompleteQuestions = 0;
@@ -211,11 +203,8 @@ class QuestionController extends Controller
             }
         }
 
-        // 3. Proses Aktivasi
         DB::transaction(function () use ($questionVersion) {
-            // Nonaktifkan semua versi tipe yang sama
             QuestionVersion::where('type', $questionVersion->type)->update(['is_active' => false]);
-            // Aktifkan versi yang dipilih
             $questionVersion->update(['is_active' => true]);
         });
 
@@ -279,31 +268,51 @@ class QuestionController extends Controller
     }
 
     /**
-     * Export PDF Report
+     * Export PDF Report (REKAP SEMUA VERSI)
+     * Mengganti logika sebelumnya yang per-id menjadi global list.
      */
-    public function exportPdf(QuestionVersion $questionVersion)
+    public function exportPdf(Request $request)
     {
-        if ($questionVersion->type === 'st30') {
-            $questionVersion->load(['st30Questions' => fn($q) => $q->orderBy('number')]);
-            $questions = $questionVersion->st30Questions;
-        } else {
-            $questionVersion->load(['sjtQuestions.options' => fn($q) => $q->orderBy('option_letter')]);
-            $questions = $questionVersion->sjtQuestions->sortBy('number');
+        $search = $request->query('search'); // Ambil kata kunci dari URL
+
+        $query = QuestionVersion::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                // Cari berdasarkan Nama
+                $q->where('name', 'LIKE', "%{$search}%")
+                    // Cari berdasarkan Tipe (SJT / ST30)
+                    ->orWhere('type', 'LIKE', "%{$search}%")
+                    // Cari berdasarkan Deskripsi
+                    ->orWhere('description', 'LIKE', "%{$search}%");
+
+                // Cari berdasarkan Status (Aktif / Tidak Aktif)
+                if (stripos($search, 'tidak') !== false || stripos($search, 'non') !== false) {
+                    $q->orWhere('is_active', 0);
+                } elseif (stripos($search, 'aktif') !== false) {
+                    $q->orWhere('is_active', 1);
+                }
+            });
         }
 
+        // Urutkan: Tipe dulu, lalu Versi terbaru
+        $versions = $query->orderBy('type', 'desc')
+            ->orderBy('version', 'desc')
+            ->get();
+
         $data = [
-            'version' => $questionVersion,
-            'questions' => $questions,
-            'generated_at' => now()->format('d F Y H:i'),
-            'user' => Auth::user()->name,
+            'reportTitle' => 'Laporan Versi Soal',
+            'generatedBy' => Auth::user()->name,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'versions'    => $versions,
+            'search'      => $search
         ];
 
         $pdf = Pdf::loadView('admin.questions.versions.pdf.versionReport', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        return $pdf->download('Laporan_' . $questionVersion->name . '.pdf');
+        return $pdf->stream('Laporan_Versi_Soal.pdf');
     }
-
     /**
      * AJAX Statistics
      */

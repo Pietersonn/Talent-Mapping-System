@@ -4,30 +4,24 @@
 
 @push('styles')
 <style>
-    /* --- STYLE TOMBOL --- */
-    .btn-add { background: #22c55e; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border: none; box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3); transition: all 0.2s; }
-    .btn-add:hover { background: #16a34a; transform: translateY(-1px); color: white; }
+    /* --- SEARCH & BUTTONS STYLE --- */
+    .search-group { position: relative; width: 320px; }
+    .search-input { width: 100%; height: 46px; padding: 10px 45px 10px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: #ffffff; transition: all 0.3s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #334155; }
+    .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+    .loading-spinner { position: absolute; right: 14px; top: 33%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
+    .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; transition: opacity 0.2s; }
 
-    /* Tombol Icon (Print/Export/Import) */
-    .btn-icon-square {
-        width: 44px; height: 44px;
-        background: white; border: 1px solid #e2e8f0;
-        border-radius: 12px; display: flex; align-items: center; justify-content: center;
-        color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none;
-    }
-    .btn-icon-square:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; transform: translateY(-1px); }
+    .select-version { height: 46px; padding: 0 35px 0 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: white; cursor: pointer; outline: none; min-width: 200px; color: #334155; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
+    .select-version:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
 
-    /* --- INPUT & SEARCH --- */
-    .search-group { position: relative; width: 250px; }
-    .search-input { width: 100%; padding: 10px 12px 10px 40px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.875rem; background: white; transition: all 0.2s; }
-    .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .btn-print { width: 46px; height: 46px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .btn-print:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; transform: translateY(-1px); }
 
-    .select-version { padding: 10px 30px 10px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.875rem; background: white; cursor: pointer; outline: none; min-width: 180px; }
-    .select-version:focus { border-color: #22c55e; }
+    .btn-add { height: 46px; padding: 0 24px; background: #22c55e; color: white; border-radius: 12px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3); transition: all 0.2s; }
+    .btn-add:hover { background: #16a34a; transform: translateY(-1px); }
 
-    /* --- TABLE STYLES --- */
-    .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+    /* --- TABLE STYLE --- */
+    .table-card { background: white; border: 1px solid #f1f5f9; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
     .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
     .custom-table th { text-align: left; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
     .custom-table td { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 0.9rem; color: #334155; background: white; }
@@ -56,7 +50,7 @@
     .badge-count-success { background: #dcfce7; color: #15803d; }
     .badge-count-warning { background: #fef9c3; color: #854d0e; }
 
-    /* Small Box Stats Adjustment */
+    /* Stats Adjustment */
     .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
     .stat-card { background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; }
     .stat-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
@@ -68,48 +62,48 @@
 @endpush
 
 @section('header')
-    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-clipboard-check" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; font-size: 1.1rem;"></i>
-                SJT Questions
-            </h1>
-            <p style="font-size: 0.9rem; color: #64748b; margin-left: 54px; margin-top: -5px;">
-                Manajemen soal Situational Judgment Test
-            </p>
-        </div>
-
-        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <div style="position: relative;">
-                <select id="version_select" class="select-version" onchange="changeVersion()">
-                    <option value="">-- Pilih Versi --</option>
-                    @foreach($versions as $version)
-                        <option value="{{ $version->id }}" {{ $selectedVersion && $selectedVersion->id == $version->id ? 'selected' : '' }}>
-                            {{ $version->name }} {{ $version->is_active ? '(Active)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
-                <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #94a3b8; pointer-events: none;"></i>
-            </div>
-
-            <div class="search-group">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchQuestions" class="search-input" placeholder="Cari situasi/kompetensi..." autocomplete="off">
-            </div>
-
-            @if($selectedVersion)
-                <button onclick="exportQuestions()" class="btn-icon-square" title="Export Data">
-                    <i class="fas fa-print"></i>
-                </button>
-
-                @if(Auth::user()->role === 'admin')
-                    <a href="{{ route('admin.questions.sjt.create', ['version' => $selectedVersion->id]) }}" class="btn-add">
-                        <i class="fas fa-plus"></i>
-                    </a>
-                @endif
-            @endif
-        </div>
+<div class="header-wrapper">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-clipboard-check" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; font-size: 1.1rem; margin-right: 10px;"></i>
+            SJT Questions
+        </h1>
+        <p style="font-size: 0.9rem; color: #64748b; margin-left: 54px; margin-top: -5px;">
+            Manajemen soal Situational Judgment Test
+        </p>
     </div>
+
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div>
+            <select id="version_select" class="select-version" onchange="changeVersion()">
+                <option value="">-- Pilih Versi --</option>
+                @foreach($versions as $version)
+                    <option value="{{ $version->id }}" {{ $selectedVersion && $selectedVersion->id == $version->id ? 'selected' : '' }}>
+                        {{ $version->name }} {{ $version->is_active ? '(Active)' : '' }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="search-group">
+            <input type="text" id="searchQuestions" class="search-input" placeholder="Cari situasi/kompetensi..." autocomplete="off">
+            <i class="fas fa-search search-icon"></i>
+            <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
+        </div>
+
+        @if($selectedVersion)
+            <button onclick="exportQuestions()" class="btn-print" title="Export Data">
+                <i class="fas fa-print"></i>
+            </button>
+
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.questions.sjt.create', ['version' => $selectedVersion->id]) }}" class="btn-add">
+                    <i class="fas fa-plus"></i> Tambah
+                </a>
+            @endif
+        @endif
+    </div>
+</div>
 @endsection
 
 @section('content')
@@ -163,7 +157,7 @@
                                 <th width="15%">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="questionsTableBody">
                             @foreach($questions as $question)
                                 <tr>
                                     <td>
@@ -175,10 +169,10 @@
                                         <div class="statement-text">
                                             <span class="short-text">{{ Str::limit($question->question_text, 80) }}</span>
                                             @if(strlen($question->question_text) > 80)
-                                                <button class="text-expand-btn" onclick="toggleText(this, {{ $question->id }})">
+                                                <button class="text-expand-btn" onclick="toggleText(this)">
                                                     Lihat
                                                 </button>
-                                                <span class="full-text" id="full-question-{{ $question->id }}" style="display: none;">
+                                                <span class="full-text" style="display: none;">
                                                     {{ $question->question_text }}
                                                 </span>
                                             @endif
@@ -246,7 +240,7 @@
         </div>
 
         @if($questions->count() > 0)
-        <div class="card" style="border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: none;">
+        <div class="card" style="border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: none; margin-top: 1.5rem;">
             <div class="card-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem;">
                 <h3 class="card-title" style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0;">
                     <i class="fas fa-chart-pie mr-2 text-primary"></i> Distribusi Kompetensi
@@ -306,25 +300,20 @@
             }
         }
 
-        // --- PERBAIKAN FUNGSI EXPORT ---
+        // Export questions
         function exportQuestions() {
             var versionId = '{{ $selectedVersion ? $selectedVersion->id : '' }}';
-            // Ambil nilai text yang sedang diketik user
-            var searchValue = document.getElementById('searchQuestions').value;
+            var searchValue = $('#searchQuestions').val();
 
             if (versionId) {
                 var url = '{{ route('admin.questions.sjt.export') }}';
-
-                // Gunakan URLSearchParams agar query string rapi
                 var params = new URLSearchParams();
                 params.append('version', versionId);
 
-                // Jika ada search, tambahkan ke URL
-                if (searchValue) {
+                if(searchValue) {
                     params.append('search', searchValue);
                 }
 
-                // Buka window baru dengan parameter lengkap
                 window.open(url + '?' + params.toString(), '_blank');
             } else {
                 Swal.fire('Error', 'Please select a version to export.', 'error');
@@ -332,7 +321,7 @@
         }
 
         // Toggle Expand Text Logic
-        function toggleText(btn, id) {
+        function toggleText(btn) {
             const shortText = $(btn).siblings('.short-text');
             const fullText = $(btn).siblings('.full-text');
 
@@ -348,16 +337,30 @@
         }
 
         $(document).ready(function() {
-            // Client-side Search Functionality (Untuk tampilan visual tabel)
-            $('#searchQuestions').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#questionsTable tbody tr').filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
+            let searchTimeout;
+            const searchInput = $('#searchQuestions');
+
+            // Client-side Search Functionality
+            searchInput.on('keyup', function() {
+                const query = $(this).val().toLowerCase();
+
+                $('.loading-spinner').show();
+                $('.search-icon').hide();
+
+                clearTimeout(searchTimeout);
+
+                searchTimeout = setTimeout(() => {
+                    $('#questionsTable tbody tr').filter(function() {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1);
+                    });
+
+                    $('.loading-spinner').hide();
+                    $('.search-icon').show();
+                }, 300);
             });
 
             // Delete confirmation with SweetAlert2
-            $('.btn-delete').on('click', function(e) {
+            $(document).on('click', '.btn-delete', function(e) {
                 e.preventDefault();
                 var questionNumber = $(this).data('question-number');
                 var deleteUrl = $(this).data('delete-url');

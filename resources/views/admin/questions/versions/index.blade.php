@@ -4,25 +4,20 @@
 
 @push('styles')
 <style>
-    /* --- CSS VARIABLES & THEME --- */
-    :root {
-        --primary-color: #0f172a;
-        --st30-color: #8b5cf6;
-        --st30-bg: #f5f3ff;
-        --sjt-color: #0ea5e9;
-        --sjt-bg: #f0f9ff;
-    }
+    /* CSS Variables & Theme */
+    :root { --primary-color: #0f172a; --st30-color: #8b5cf6; --st30-bg: #f5f3ff; --sjt-color: #0ea5e9; --sjt-bg: #f0f9ff; }
 
-    /* --- HEADER --- */
+    /* Header */
     .header-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
     .page-title { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); display: flex; align-items: center; gap: 12px; }
     .page-icon { background: #e2e8f0; color: var(--primary-color); padding: 10px; border-radius: 12px; font-size: 1.2rem; }
 
-    /* --- SEARCH & BUTTONS --- */
+    /* Search & Buttons */
     .search-group { position: relative; width: 320px; }
     .search-input { width: 100%; height: 46px; padding: 10px 45px 10px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: #ffffff; transition: all 0.3s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #334155; }
-    .search-input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
-    .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; }
+    .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+    .loading-spinner { position: absolute; right: 14px; top: 33%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
+    .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; transition: opacity 0.2s; }
 
     .btn-print { width: 46px; height: 46px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; }
     .btn-print:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; transform: translateY(-1px); }
@@ -30,46 +25,43 @@
     .btn-add { height: 46px; padding: 0 24px; background: #22c55e; color: white; border-radius: 12px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3); transition: all 0.2s; }
     .btn-add:hover { background: #16a34a; transform: translateY(-1px); }
 
-    /* --- GRID SYSTEM --- */
+    /* Grid & Card */
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     @media (max-width: 992px) { .dashboard-grid { grid-template-columns: 1fr; } }
-
     .content-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); overflow: hidden; display: flex; flex-direction: column; height: 100%; }
 
-    /* --- HERO HEADER (ACTIVE VERSION) --- */
+    /* Hero Header */
     .card-hero { padding: 1.5rem; position: relative; border-bottom: 1px solid #f1f5f9; }
     .hero-st30 { background: linear-gradient(135deg, #fff 0%, var(--st30-bg) 100%); }
     .hero-sjt { background: linear-gradient(135deg, #fff 0%, var(--sjt-bg) 100%); }
-
     .hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
     .hero-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .icon-st30 { background: white; color: var(--st30-color); }
     .icon-sjt { background: white; color: var(--sjt-color); }
-
     .version-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
     .version-subtitle { font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
-    /* --- TABLE LIST --- */
+    /* Table */
     .list-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
     .list-header { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; background: white; display: flex; justify-content: space-between; align-items: center; }
     .table-scroll { overflow-y: auto; max-height: 400px; }
-
-    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
     .custom-table th { position: sticky; top: 0; background: #f8fafc; z-index: 10; padding: 0.75rem 1.5rem; text-align: left; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
     .custom-table td { padding: 0.75rem 1.5rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; color: #334155; }
     .custom-table tr:hover td { background: #f8fafc; }
-
-    /* Active Row Style */
     .row-active { background-color: #f0fdf4 !important; }
     .row-active td { color: #166534; font-weight: 600; }
 
-    /* --- BUTTONS IN TABLE --- */
-    .btn-icon { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; color: #64748b; background: transparent; }
-    .btn-icon:hover { background: #f1f5f9; color: #0f172a; }
+    /* Action Buttons (Matched with User Mgmt) */
+    .action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-view { background: #ecfdf5; color: #059669; }
+    .btn-edit { background: #eff6ff; color: #2563eb; }
+    .btn-delete { background: #fef2f2; color: #dc2626; }
+    .btn-icon:hover { opacity: 0.8; transform: scale(1.05); }
 
-    .btn-activate { padding: 4px 10px; font-size: 0.7rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-activate:hover { border-color: #10b981; background: #ecfdf5; color: #047857; }
-    .btn-activate.disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-activate { padding: 0 12px; height: 32px; font-size: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; }
+    .btn-activate:hover { border-color: #10b981; background: #ecfdf5; color: #047857; transform: translateY(-1px); }
 
     .badge-active { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 4px; }
 </style>
@@ -77,18 +69,22 @@
 
 @section('header')
 <div class="header-wrapper">
-    <div class="page-title">
-        <i class="fas fa-layer-group page-icon"></i>
-        Manajemen Versi Soal
+    <div>
+        <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
+            <i class="fas fa-layer-group" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 8px; margin-right: 8px;"></i>
+            Manajemen Versi Soal
+        </h1>
     </div>
 
     <div style="display: flex; gap: 12px; align-items: center;">
         <div class="search-group">
-            <input type="text" id="versionSearch" class="search-input" placeholder="Cari versi..." autocomplete="off">
+            <input type="text" id="versionSearch" class="search-input" placeholder="Cari (Nama, Tipe, Status)..." autocomplete="off">
             <i class="fas fa-search search-icon"></i>
+            <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
         </div>
 
-        <a href="#" class="btn-print" id="btnExportPdf" title="Cetak Laporan">
+        {{-- Print Button --}}
+        <a href="{{ route('admin.questions.export.pdf') }}" id="btnExportPdf" target="_blank" class="btn-print" title="Cetak Rekap">
             <i class="fas fa-print"></i>
         </a>
 
@@ -104,6 +100,7 @@
 @section('content')
 <div class="dashboard-grid">
 
+    {{-- CARD ST-30 --}}
     <div class="content-card">
         <div class="card-hero hero-st30">
             <div class="hero-top">
@@ -125,7 +122,7 @@
                     </div>
                 </div>
             @else
-                <div class="text-sm text-slate-400 italic">Belum ada versi aktif. Silakan pilih versi di bawah.</div>
+                <div class="text-sm text-slate-400 italic">Belum ada versi aktif.</div>
             @endif
         </div>
 
@@ -143,7 +140,7 @@
                             <th>Ver</th>
                             <th>Nama Versi</th>
                             <th class="text-center">Soal</th>
-                            <th class="text-right">Opsi</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,6 +150,7 @@
                             <td>
                                 <div class="font-semibold">{{ $version->name }}</div>
                                 <div class="text-xs text-slate-400">{{ $version->created_at->format('d/m/Y') }}</div>
+                                <span style="display:none;">{{ $version->is_active ? 'aktif' : 'tidak aktif' }} ST30</span>
                             </td>
                             <td class="text-center">
                                 @if($version->st30_questions_count == 30)
@@ -162,28 +160,27 @@
                                 @endif
                             </td>
                             <td class="text-right">
-                                <div class="flex items-center justify-end gap-1">
+                                <div class="action-buttons">
                                     @if(Auth::user()->role === 'admin' && !$version->is_active)
-                                        <button class="btn-activate" onclick="checkAndActivate({{ $version->id }}, '{{ $version->name }}', 'ST-30', {{ $version->st30_questions_count }}, 30)">
+                                        <button class="btn-activate" onclick="checkAndActivate('{{ $version->id }}', '{{ $version->name }}', 'ST-30', {{ $version->st30_questions_count }}, 30)">
                                             Gunakan
                                         </button>
                                     @endif
 
-                                    <div class="dropdown ml-2">
-                                        <button class="btn-icon" type="button" data-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a class="dropdown-item" href="{{ route('admin.questions.show', $version->id) }}"><i class="fas fa-eye mr-2 text-slate-400"></i> Detail</a>
-                                            @if(Auth::user()->role === 'admin')
-                                                <a class="dropdown-item" href="{{ route('admin.questions.edit', $version->id) }}"><i class="fas fa-pen mr-2 text-slate-400"></i> Edit</a>
-                                                @if(!$version->is_active && !$version->hasResponses())
-                                                    <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-red-600" href="#" onclick="deleteVersion({{ $version->id }}, '{{ $version->name }}'); return false;">
-                                                        <i class="fas fa-trash mr-2"></i> Hapus
-                                                    </a>
-                                                @endif
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <a href="{{ route('admin.questions.show', $version->id) }}" class="btn-icon btn-view" title="Detail">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+
+                                    @if(Auth::user()->role === 'admin')
+                                        <a href="{{ route('admin.questions.edit', $version->id) }}" class="btn-icon btn-edit" title="Edit">
+                                            <i class="fas fa-pen text-xs"></i>
+                                        </a>
+                                        @if(!$version->is_active && !$version->hasResponses())
+                                            <button class="btn-icon btn-delete" title="Hapus" onclick="deleteVersion('{{ $version->id }}', '{{ $version->name }}')">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
+                                        @endif
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -196,6 +193,7 @@
         </div>
     </div>
 
+    {{-- CARD SJT --}}
     <div class="content-card">
         <div class="card-hero hero-sjt">
             <div class="hero-top">
@@ -217,7 +215,7 @@
                     </div>
                 </div>
             @else
-                <div class="text-sm text-slate-400 italic">Belum ada versi aktif. Silakan pilih versi di bawah.</div>
+                <div class="text-sm text-slate-400 italic">Belum ada versi aktif.</div>
             @endif
         </div>
 
@@ -235,7 +233,7 @@
                             <th>Ver</th>
                             <th>Nama Versi</th>
                             <th class="text-center">Soal</th>
-                            <th class="text-right">Opsi</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -245,6 +243,7 @@
                             <td>
                                 <div class="font-semibold">{{ $version->name }}</div>
                                 <div class="text-xs text-slate-400">{{ $version->created_at->format('d/m/Y') }}</div>
+                                <span style="display:none;">{{ $version->is_active ? 'aktif' : 'tidak aktif' }} SJT</span>
                             </td>
                             <td class="text-center">
                                 @if($version->sjt_questions_count == 50)
@@ -254,28 +253,27 @@
                                 @endif
                             </td>
                             <td class="text-right">
-                                <div class="flex items-center justify-end gap-1">
+                                <div class="action-buttons">
                                     @if(Auth::user()->role === 'admin' && !$version->is_active)
-                                        <button class="btn-activate" onclick="checkAndActivate({{ $version->id }}, '{{ $version->name }}', 'SJT', {{ $version->sjt_questions_count }}, 50)">
+                                        <button class="btn-activate" onclick="checkAndActivate('{{ $version->id }}', '{{ $version->name }}', 'SJT', {{ $version->sjt_questions_count }}, 50)">
                                             Gunakan
                                         </button>
                                     @endif
 
-                                    <div class="dropdown ml-2">
-                                        <button class="btn-icon" type="button" data-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a class="dropdown-item" href="{{ route('admin.questions.show', $version->id) }}"><i class="fas fa-eye mr-2 text-slate-400"></i> Detail</a>
-                                            @if(Auth::user()->role === 'admin')
-                                                <a class="dropdown-item" href="{{ route('admin.questions.edit', $version->id) }}"><i class="fas fa-pen mr-2 text-slate-400"></i> Edit</a>
-                                                @if(!$version->is_active && !$version->hasResponses())
-                                                    <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-red-600" href="#" onclick="deleteVersion({{ $version->id }}, '{{ $version->name }}'); return false;">
-                                                        <i class="fas fa-trash mr-2"></i> Hapus
-                                                    </a>
-                                                @endif
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <a href="{{ route('admin.questions.show', $version->id) }}" class="btn-icon btn-view" title="Detail">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+
+                                    @if(Auth::user()->role === 'admin')
+                                        <a href="{{ route('admin.questions.edit', $version->id) }}" class="btn-icon btn-edit" title="Edit">
+                                            <i class="fas fa-pen text-xs"></i>
+                                        </a>
+                                        @if(!$version->is_active && !$version->hasResponses())
+                                            <button class="btn-icon btn-delete" title="Hapus" onclick="deleteVersion('{{ $version->id }}', '{{ $version->name }}')">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
+                                        @endif
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -293,62 +291,62 @@
 
 @push('scripts')
 <script>
-    // === 1. Client-Side Search Logic ===
-    $('#versionSearch').on('keyup', function() {
-        var value = $(this).val().toLowerCase();
+    let searchTimeout;
+    const searchInput = $('#versionSearch');
+    const searchGroup = $('.search-group');
+    const exportBtn = $('#btnExportPdf');
+    const baseExportUrl = exportBtn.attr('href').split('?')[0];
 
-        // Filter ST-30 Table
-        $('#st30Table tbody tr').filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-        });
+    searchInput.on('keyup', function() {
+        const query = $(this).val().toLowerCase();
 
-        // Filter SJT Table
-        $('#sjtTable tbody tr').filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-        });
+        // Show Loading
+        $('.loading-spinner').show();
+        $('.search-icon').hide();
 
-        // NOTE: Untuk tombol print, karena ada dua tipe (ST30 & SJT),
-        // lebih baik biarkan tombol print mencetak apa yang sedang aktif atau buat dropdown.
-        // Di sini saya arahkan ke logic sederhana: jika ada search, mungkin kita bisa
-        // update link print tapi karena strukturnya kompleks (2 tabel),
-        // tombol print lebih baik default ke versi aktif atau print halaman ini (window.print()).
+        clearTimeout(searchTimeout);
+
+        searchTimeout = setTimeout(() => {
+            // Filter ST-30
+            $('#st30Table tbody tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1)
+            });
+            // Filter SJT
+            $('#sjtTable tbody tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1)
+            });
+
+            // Update PDF Link
+            if(query.trim() !== "") {
+                exportBtn.attr('href', baseExportUrl + '?search=' + encodeURIComponent(query));
+            } else {
+                exportBtn.attr('href', baseExportUrl);
+            }
+
+            // Hide Loading
+            $('.loading-spinner').hide();
+            $('.search-icon').show();
+        }, 300);
     });
 
-    // === 2. Check Logic for Activation (SweetAlert) ===
     function checkAndActivate(id, name, type, currentCount, requiredCount) {
         if (currentCount < requiredCount) {
-            // ERROR ALERT: Jika soal belum cukup
             Swal.fire({
                 title: 'Tidak Dapat Diaktifkan',
-                html: `
-                    <div class="mb-3"><i class="fas fa-exclamation-triangle text-warning fa-3x"></i></div>
-                    <p>Versi <b>${name}</b> belum memenuhi syarat kelengkapan soal.</p>
-                    <div class="alert alert-danger d-inline-block text-left" style="font-size:0.9rem;">
-                        <div><i class="fas fa-times-circle mr-1"></i> Soal Saat Ini: <b>${currentCount}</b></div>
-                        <div><i class="fas fa-check-circle mr-1"></i> Target Soal: <b>${requiredCount}</b></div>
-                    </div>
-                    <p class="small text-muted mt-2">Silakan lengkapi soal terlebih dahulu.</p>
-                `,
-                showConfirmButton: true,
-                confirmButtonText: 'Mengerti',
-                confirmButtonColor: '#334155',
-                customClass: { popup: 'rounded-2xl border-0 shadow-lg' }
+                html: `Versi <b>${name}</b> belum memenuhi syarat (${currentCount}/${requiredCount} soal).`,
+                icon: 'warning',
+                confirmButtonColor: '#334155'
             });
         } else {
-            // CONFIRM ALERT: Jika soal cukup
             Swal.fire({
                 title: 'Aktifkan Versi?',
-                html: `Anda akan menggunakan versi <b>${name}</b>.<br>Versi yang sedang aktif akan dinonaktifkan.`,
+                html: `Versi <b>${name}</b> akan diaktifkan.`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#10b981',
-                cancelButtonColor: '#cbd5e1',
-                confirmButtonText: 'Ya, Gunakan',
-                cancelButtonText: '<span style="color:#0f172a">Batal</span>',
-                customClass: { popup: 'rounded-2xl' }
+                confirmButtonText: 'Ya, Gunakan'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Create Form Submit
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '{{ route("admin.questions.activate", ":id") }}'.replace(':id', id);
@@ -360,18 +358,14 @@
         }
     }
 
-    // === 3. Delete Logic ===
     function deleteVersion(id, name) {
         Swal.fire({
             title: 'Hapus Versi?',
-            html: `Yakin ingin menghapus <b>${name}</b>?<br>Tindakan ini tidak dapat dibatalkan.`,
+            html: `Yakin ingin menghapus <b>${name}</b>?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#cbd5e1',
-            confirmButtonText: 'Hapus',
-            cancelButtonText: '<span style="color:#0f172a">Batal</span>',
-            customClass: { popup: 'rounded-2xl' }
+            confirmButtonText: 'Hapus'
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.createElement('form');
@@ -383,11 +377,5 @@
             }
         });
     }
-
-    // === 4. Print Logic (Opsional: Cetak Halaman) ===
-    $('#btnExportPdf').on('click', function(e) {
-        e.preventDefault();
-        window.print(); // Solusi paling simpel untuk "Print All"
-    });
 </script>
 @endpush
