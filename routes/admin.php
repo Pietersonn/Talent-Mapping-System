@@ -13,8 +13,6 @@ use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\ResultController as AdminResultController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ResendRequestController;
-use App\Http\Controllers\Admin\MonitoringController;
-use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\ProfileController;
 
 Route::middleware(['auth', 'role:admin,staff'])
@@ -29,16 +27,29 @@ Route::middleware(['auth', 'role:admin,staff'])
         // QUESTION BANK (VERSIONS + BANK)
         // ==========================
         Route::prefix('questions')->name('questions.')->group(function () {
+            // === Main Version Routes ===
             Route::get('/', [AdminQuestionController::class, 'index'])->name('index');
             Route::get('/create', [AdminQuestionController::class, 'create'])->name('create')->middleware('role:admin');
             Route::post('/', [AdminQuestionController::class, 'store'])->name('store')->middleware('role:admin');
 
+            // Route Export PDF Versi
+            Route::get('/{questionVersion}/export/pdf', [AdminQuestionController::class, 'exportPdf'])
+                ->name('export.pdf')
+                ->whereNumber('questionVersion');
+
+            // Route AJAX Statistics
+            Route::get('/{questionVersion}/statistics', [AdminQuestionController::class, 'statistics'])
+                ->name('statistics')
+                ->whereNumber('questionVersion');
+
+            // Actions
             Route::post('/{questionVersion}/activate', [AdminQuestionController::class, 'activate'])
                 ->name('activate')->middleware('role:admin')->whereNumber('questionVersion');
 
             Route::post('/{questionVersion}/clone', [AdminQuestionController::class, 'clone'])
                 ->name('clone')->middleware('role:admin')->whereNumber('questionVersion');
 
+            // CRUD Standard
             Route::get('/{questionVersion}', [AdminQuestionController::class, 'show'])
                 ->name('show')->whereNumber('questionVersion');
 
@@ -51,13 +62,14 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::delete('/{questionVersion}', [AdminQuestionController::class, 'destroy'])
                 ->name('destroy')->middleware('role:admin')->whereNumber('questionVersion');
 
-            // ------- ST-30 -------
+
+            // ------- ST-30 Question Management -------
             Route::prefix('st30')->name('st30.')->group(function () {
                 Route::get('/', [ST30QuestionController::class, 'index'])->name('index');
                 Route::get('/create', [ST30QuestionController::class, 'create'])->name('create')->middleware('role:admin');
                 Route::post('/', [ST30QuestionController::class, 'store'])->name('store')->middleware('role:admin');
 
-                // Routes khusus ST-30 (Export/Import/Reorder)
+                // Routes khusus ST-30
                 Route::get('/export',  [ST30QuestionController::class, 'export'])->name('export');
                 Route::post('/import', [ST30QuestionController::class, 'import'])->name('import')->middleware('role:admin');
                 Route::post('/reorder', [ST30QuestionController::class, 'reorder'])->name('reorder')->middleware('role:admin');
@@ -68,15 +80,14 @@ Route::middleware(['auth', 'role:admin,staff'])
                 Route::delete('/{st30Question}', [ST30QuestionController::class, 'destroy'])->name('destroy')->middleware('role:admin');
             });
 
-            // ------- SJT -------
+            // ------- SJT Question Management -------
             Route::prefix('sjt')->name('sjt.')->group(function () {
                 Route::get('/', [SJTQuestionController::class, 'index'])->name('index');
                 Route::get('/create', [SJTQuestionController::class, 'create'])->name('create')->middleware('role:admin');
                 Route::post('/', [SJTQuestionController::class, 'store'])->name('store')->middleware('role:admin');
 
-                // [FIX] Menambahkan Route Export untuk SJT
                 Route::get('/export', [SJTQuestionController::class, 'export'])->name('export');
-                Route::post('/import', [SJTQuestionController::class, 'import'])->name('import')->middleware('role:admin'); // Opsional jika ada fitur import SJT
+                Route::post('/import', [SJTQuestionController::class, 'import'])->name('import')->middleware('role:admin');
 
                 Route::get('/{sjtQuestion}', [SJTQuestionController::class, 'show'])->name('show');
                 Route::get('/{sjtQuestion}/edit', [SJTQuestionController::class, 'edit'])->name('edit')->middleware('role:admin');
@@ -167,6 +178,7 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::put('/password', [ProfileController::class, 'updatePassword'])->name('update-password');
         });
 
+        // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/',               [ReportController::class, 'index'])->name('index');
             Route::get('/participants',   [ReportController::class, 'participants'])->name('participants');
