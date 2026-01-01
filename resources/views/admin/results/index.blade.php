@@ -1,374 +1,259 @@
 @extends('admin.layouts.app')
 
-@section('title', 'All Test Results')
+@section('title', 'Peserta Assessment')
+
+@push('styles')
+<style>
+    /* --- SEARCH & FILTER STYLE --- */
+    .filter-wrapper { display: flex; gap: 10px; align-items: center; }
+
+    .search-group { position: relative; width: 280px; }
+    .search-input { width: 100%; height: 46px; padding: 10px 45px 10px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: #ffffff; transition: all 0.3s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); color: #334155; }
+    .search-input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+
+    .event-select { height: 46px; padding: 0 36px 0 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background-color: #ffffff; color: #334155; cursor: pointer; transition: all 0.3s; min-width: 200px; -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
+    .event-select:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
+
+    .loading-spinner { position: absolute; right: 14px; top: 33%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
+    .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; transition: opacity 0.2s; }
+
+    .btn-print { width: 46px; height: 46px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; flex-shrink: 0; }
+    .btn-print:hover { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; transform: translateY(-1px); }
+
+    /* --- TABLE STYLE --- */
+    .table-card { background: white; border: 1px solid #f1f5f9; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .custom-table th { text-align: left; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    .custom-table td { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 0.9rem; color: #334155; background: white; }
+    .custom-table tr:hover td { background-color: #f8fafc; }
+
+    .action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-pdf-result { background-color: #eff6ff; color: #2563eb; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; border: 1px solid transparent; }
+    .btn-pdf-result:hover { background-color: #dbeafe; color: #1d4ed8; transform: translateY(-1px); }
+    .badge-event { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+
+    @media print { body { display: none; } }
+</style>
+@endpush
+
+@section('header')
+    <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
+                <i class="fas fa-poll-h" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 8px; margin-right: 8px;"></i>
+                Peserta Assessment
+            </h1>
+        </div>
+
+        <div class="filter-wrapper">
+            <select id="eventFilter" class="event-select">
+                <option value="">Semua Event</option>
+                @foreach($events as $event)
+                    <option value="{{ $event->id }}" {{ request('event_id') == $event->id ? 'selected' : '' }}>
+                        {{ Str::limit($event->name, 25) }}
+                    </option>
+                @endforeach
+            </select>
+
+            <div class="search-group">
+                <input type="text" id="realtimeSearch" class="search-input" placeholder="Cari Peserta, Instansi, Jabatan..." autocomplete="off" value="{{ request('search') }}">
+                <i class="fas fa-search search-icon"></i>
+                <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
+            </div>
+
+            <a href="{{ route('admin.results.export.pdf', request()->query()) }}"
+               class="btn-print"
+               id="btnExportPdf"
+               target="_blank"
+               title="Cetak Laporan Tabel">
+                <i class="fas fa-print"></i>
+            </a>
+        </div>
+    </div>
+@endsection
 
 @section('content')
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">All Test Results</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">All Results</li>
-                </ol>
-            </div>
+    <div class="table-card">
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th width="20%">Nama Peserta</th>
+                        <th width="15%">No Telp</th>
+                        <th width="20%">Event</th>
+                        <th width="20%">Instansi</th>
+                        <th width="15%">Jabatan</th>
+                        <th width="10%" style="text-align: right;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTableBody">
+                    @forelse($results as $result)
+                        @php
+                            $session = $result->session;
+                            $user = $session->user ?? null;
+                        @endphp
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: #0f172a;">
+                                    {{ $session->participant_name ?? '-' }}
+                                </div>
+                                <div style="font-size: 0.75rem; color: #64748b;">
+                                    {{ $user->email ?? '-' }}
+                                </div>
+                            </td>
+                            <td style="font-family: monospace; color: #334155;">
+                                {{ $user->phone_number ?? '-' }}
+                            </td>
+                            <td>
+                                @if($session->event)
+                                    <span class="badge-event">{{ $session->event->name }}</span>
+                                @else
+                                    <span style="color: #94a3b8;">-</span>
+                                @endif
+                            </td>
+                            <td>{{ $session->participant_background ?? '-' }}</td>
+                            <td>{{ $session->position ?? '-' }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ route('admin.results.download-pdf', $result->id) }}"
+                                       class="btn-pdf-result"
+                                       target="_blank"
+                                       title="Lihat PDF Hasil">
+                                        <i class="fas fa-file-pdf"></i> Result
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" style="text-align:center; padding: 3rem; color: #94a3b8;">Tidak ada hasil assessment ditemukan.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
 
-<div class="content">
-    <div class="container-fluid">
-
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>{{ $stats['total_results'] }}</h3>
-                        <p>Total Results</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ $stats['emails_sent'] }}</h3>
-                        <p>Emails Sent</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>{{ $stats['emails_pending'] }}</h3>
-                        <p>Emails Pending</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-primary">
-                    <div class="inner">
-                        <h3>{{ $stats['this_month'] }}</h3>
-                        <p>This Month</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-calendar"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filters and Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Filter & Actions</h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-success btn-sm" onclick="exportResults()">
-                        <i class="fas fa-download"></i> Export CSV
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <form method="GET" action="{{ route('admin.results.index') }}" class="row">
-                    <div class="col-md-3">
-                        <label>Search User</label>
-                        <input type="text" name="search" class="form-control"
-                               placeholder="Name or email..." value="{{ request('search') }}">
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>Event</label>
-                        <select name="event_id" class="form-control">
-                            <option value="">All Events</option>
-                            @foreach($events as $event)
-                                <option value="{{ $event->id }}"
-                                    {{ request('event_id') == $event->id ? 'selected' : '' }}>
-                                    {{ $event->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>Email Status</label>
-                        <select name="email_status" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="sent" {{ request('email_status') == 'sent' ? 'selected' : '' }}>Sent</option>
-                            <option value="pending" {{ request('email_status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>Date From</label>
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>Date To</label>
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
-                    </div>
-
-                    <div class="col-md-1">
-                        <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Results Table -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Test Results ({{ $results->total() }} found)</h3>
-
-                @if($results->count() > 0)
-                <div class="card-tools">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-success" onclick="bulkSendEmail()">
-                            <i class="fas fa-envelope"></i> Send Selected
-                        </button>
-                        @if(auth()->user()->role === 'admin')
-                        <button type="button" class="btn btn-sm btn-danger" onclick="bulkDelete()">
-                            <i class="fas fa-trash"></i> Delete Selected
-                        </button>
-                        @endif
-                    </div>
-                </div>
-                @endif
-            </div>
-            <div class="card-body p-0">
-                @if($results->count() > 0)
-                <form id="bulkForm">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px">
-                                        <input type="checkbox" id="selectAll">
-                                    </th>
-                                    <th>Participant</th>
-                                    <th>Event</th>
-                                    <th>Generated</th>
-                                    <th>Email Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($results as $result)
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" name="selected_results[]"
-                                               value="{{ $result->id }}" class="result-checkbox">
-                                    </td>
-                                    <td>
-                                        <strong>{{ optional($result->session)->participant_name ?? '-' }}</strong><br>
-                                        <small class="text-muted">{{ optional(optional($result->session)->user)->email ?? '-' }}</small>
-                                    </td>
-                                    <td>
-                                        @if(optional($result->session)->event)
-                                            <span class="badge badge-info">{{ $result->session->event->name }}</span>
-                                        @else
-                                            <span class="text-muted">No Event</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($result->report_generated_at)
-                                            {{ $result->report_generated_at->format('d M Y H:i') }}
-                                        @else
-                                            <span class="text-muted">Not Generated</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($result->email_sent_at)
-                                            <span class="badge badge-success">
-                                                <i class="fas fa-check"></i> Sent
-                                            </span><br>
-                                            <small class="text-muted">{{ $result->email_sent_at->format('d M Y H:i') }}</small>
-                                        @else
-                                            <span class="badge badge-warning">
-                                                <i class="fas fa-clock"></i> Pending
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{{ route('admin.results.show', $result) }}"
-                                               class="btn btn-info btn-xs" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-
-                                            @if(!empty($result->pdf_path))
-                                            <a href="{{ route('admin.results.download-pdf', $result) }}"
-                                               class="btn btn-primary btn-xs" title="Download PDF">
-                                                <i class="fas fa-download"></i>
-                                            </a>
-                                            @endif
-
-                                            @if(!$result->email_sent_at && !empty($result->pdf_path))
-                                            <button type="button" class="btn btn-success btn-xs"
-                                                    onclick="sendEmail('{{ $result->id }}')" title="Send Email">
-                                                <i class="fas fa-envelope"></i>
-                                            </button>
-                                            @elseif($result->email_sent_at)
-                                            <button type="button" class="btn btn-warning btn-xs"
-                                                    onclick="resendEmail('{{ $result->id }}')" title="Resend Email">
-                                                <i class="fas fa-redo"></i>
-                                            </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </form>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-center">
-                    {{ $results->appends(request()->query())->links() }}
-                </div>
-
-                @else
-                <div class="text-center py-4">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No test results found</h5>
-                    <p class="text-muted">Try adjusting your search filters.</p>
-                </div>
-                @endif
-            </div>
-        </div>
+    <div class="mt-6 flex justify-end">
+        {{ $results->appends(request()->query())->links() }}
     </div>
-</div>
 @endsection
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Select All functionality
-    $('#selectAll').change(function() {
-        $('.result-checkbox').prop('checked', $(this).prop('checked'));
-    });
+    // --- VARIABLES ---
+    let debounceTimer;
+    const searchInput = $('#realtimeSearch');
+    const eventSelect = $('#eventFilter');
+    const exportBtn = $('#btnExportPdf');
 
-    $('.result-checkbox').change(function() {
-        if (!$(this).prop('checked')) {
-            $('#selectAll').prop('checked', false);
-        }
-        if ($('.result-checkbox:checked').length === $('.result-checkbox').length) {
-            $('#selectAll').prop('checked', true);
-        }
-    });
-});
+    // Base URLs
+    const baseExportUrl = "{{ route('admin.results.export.pdf') }}";
+    const baseDownloadUrl = "{{ url('admin/results') }}";
 
-function exportResults() {
-    const params = new URLSearchParams(window.location.search);
-    window.location.href = '{{ route("admin.results.export") }}?' + params.toString();
-}
+    // --- FUNCTION: FETCH DATA ---
+    function fetchResults() {
+        const searchQuery = searchInput.val();
+        const eventId = eventSelect.val();
 
-function sendEmail(resultId) {
-    customConfirm({
-        title: 'Send Email?',
-        text: 'Send assessment result via email to participant?',
-        confirmButtonText: 'Yes, send it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('{{ route("admin.results.send-result", ":id") }}'.replace(':id', resultId), {
-                _token: '{{ csrf_token() }}'
-            }).done(function() {
-                location.reload();
-            }).fail(function(xhr) {
-                showAlert('error', 'Failed to send email: ' + (xhr.responseJSON?.message || ''));
-            });
-        }
-    });
-}
+        // Show Spinner
+        $('.loading-spinner').show();
+        $('.search-icon').hide();
 
-function resendEmail(resultId) {
-    customConfirm({
-        title: 'Resend Email?',
-        text: 'Resend assessment result via email to participant?',
-        confirmButtonText: 'Yes, resend it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            sendEmail(resultId);
-        }
-    });
-}
+        $.ajax({
+            url: "{{ route('admin.results.index') }}",
+            type: "GET",
+            data: {
+                search: searchQuery,
+                event_id: eventId
+            },
+            success: function(response) {
+                renderTable(response);
 
-function bulkSendEmail() {
-    const selected = $('.result-checkbox:checked').map(function() {
-        return $(this).val();
-    }).get();
+                $('.loading-spinner').hide();
+                $('.search-icon').show();
 
-    if (selected.length === 0) {
-        showAlert('warning', 'Please select at least one result.');
-        return;
+                // Update URL Export PDF (agar filter terbawa saat print)
+                updateExportLink(searchQuery, eventId);
+            },
+            error: function() {
+                $('.loading-spinner').hide();
+                $('.search-icon').show();
+            }
+        });
     }
 
-    customConfirm({
-        title: 'Send Bulk Emails?',
-        text: `Send emails to ${selected.length} selected participants?`,
-        confirmButtonText: 'Yes, send them!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('{{ route("admin.results.bulk-action") }}', {
-                _token: '{{ csrf_token() }}',
-                action: 'send_email',
-                selected_results: selected
-            }).done(function() {
-                location.reload();
-            }).fail(function(xhr) {
-                showAlert('error', 'Failed to send emails: ' + (xhr.responseJSON?.message || ''));
-            });
+    // --- FUNCTION: UPDATE EXPORT LINK ---
+    function updateExportLink(search, eventId) {
+        let params = new URLSearchParams();
+
+        if (search) params.append('search', search);
+        if (eventId) params.append('event_id', eventId);
+
+        let finalUrl = baseExportUrl;
+        if (params.toString()) {
+            finalUrl += '?' + params.toString();
         }
-    });
-}
 
-function bulkDelete() {
-    const selected = $('.result-checkbox:checked').map(function() {
-        return $(this).val();
-    }).get();
-
-    if (selected.length === 0) {
-        showAlert('warning', 'Please select at least one result.');
-        return;
+        exportBtn.attr('href', finalUrl);
     }
 
-    customConfirm({
-        title: 'Delete Results?',
-        text: `Delete ${selected.length} selected results? This action cannot be undone.`,
-        confirmButtonText: 'Yes, delete them!',
-        icon: 'warning'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('{{ route("admin.results.bulk-action") }}', {
-                _token: '{{ csrf_token() }}',
-                action: 'delete',
-                selected_results: selected
-            }).done(function() {
-                location.reload();
-            }).fail(function(xhr) {
-                showAlert('error', 'Failed to delete results: ' + (xhr.responseJSON?.message || ''));
-            });
-        }
+    // --- EVENTS ---
+
+    // 1. Search Typing (Debounce)
+    searchInput.on('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchResults, 500);
     });
-}
+
+    // 2. Event Dropdown Change (Langsung fetch)
+    eventSelect.on('change', function() {
+        fetchResults();
+    });
+
+    // --- RENDER TABLE ---
+    function renderTable(response) {
+        const tbody = $('#resultTableBody');
+        const results = response.results.data;
+
+        tbody.empty();
+
+        if (results.length === 0) {
+            tbody.html('<tr><td colspan="6" style="text-align:center; padding: 3rem; color: #94a3b8;">Tidak ada hasil assessment ditemukan.</td></tr>');
+            return;
+        }
+
+        let html = '';
+        results.forEach(result => {
+            const session = result.session || {};
+            const user = session.user || {};
+            const event = session.event || {};
+
+            const name = session.participant_name || '-';
+            const email = user.email || '-';
+            const phone = user.phone_number || '-';
+            const instansi = session.participant_background || '-';
+            const jabatan = session.position || '-';
+            const eventName = event.name ? `<span class="badge-event">${event.name}</span>` : '<span style="color: #94a3b8;">-</span>';
+            const downloadUrl = `${baseDownloadUrl}/${result.id}/download-pdf`;
+
+            html += `<tr>
+                <td>
+                    <div style="font-weight: 700; color: #0f172a;">${name}</div>
+                    <div style="font-size: 0.75rem; color: #64748b;">${email}</div>
+                </td>
+                <td style="font-family: monospace; color: #334155;">${phone}</td>
+                <td>${eventName}</td>
+                <td>${instansi}</td>
+                <td>${jabatan}</td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="${downloadUrl}" class="btn-pdf-result" target="_blank" title="Lihat PDF Hasil">
+                            <i class="fas fa-file-pdf"></i> Result
+                        </a>
+                    </div>
+                </td>
+            </tr>`;
+        });
+        tbody.html(html);
+    }
 </script>
 @endpush

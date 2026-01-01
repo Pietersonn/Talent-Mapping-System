@@ -9,7 +9,7 @@ use App\Http\Controllers\Admin\CompetencyController;
 use App\Http\Controllers\Admin\TypologyController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
-use App\Http\Controllers\Admin\ResultController as AdminResultController;
+use App\Http\Controllers\Admin\ResultController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ResendRequestController;
 use App\Http\Controllers\ProfileController;
@@ -37,7 +37,6 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::get('/export/pdf', [AdminQuestionController::class, 'exportPdf'])->name('export.pdf');
 
             // 3. Route Group Statis (st30, sjt, dll)
-            // Harus di atas wildcard agar "st30" tidak dianggap sebagai ID versi
             Route::prefix('st30')->name('st30.')->group(function () {
                 Route::get('/', [ST30QuestionController::class, 'index'])->name('index');
                 Route::get('/create', [ST30QuestionController::class, 'create'])->name('create')->middleware('role:admin');
@@ -128,14 +127,9 @@ Route::middleware(['auth', 'role:admin,staff'])
         });
 
         Route::prefix('results')->name('results.')->group(function () {
-            Route::get('/', [AdminResultController::class, 'index'])->name('index');
-            Route::get('/statistics', [AdminResultController::class, 'getStatistics'])->name('statistics');
-            Route::get('/export', [AdminResultController::class, 'export'])->name('export');
-            Route::get('/{testResult}', [AdminResultController::class, 'show'])->name('show');
-            Route::get('/{testResult}/download-pdf', [AdminResultController::class, 'downloadPdf'])->name('download-pdf');
-            Route::post('/{testResult}/send-result', [AdminResultController::class, 'sendResult'])->name('send-result');
-            Route::post('/{testResult}/regenerate-pdf', [AdminResultController::class, 'regeneratePdf'])->name('regenerate-pdf');
-            Route::post('/bulk-action', [AdminResultController::class, 'bulkAction'])->name('bulk-action');
+            Route::get('/', [ResultController::class, 'index'])->name('index');
+            Route::get('/export-pdf', [ResultController::class, 'exportPdf'])->name('export.pdf');
+            Route::get('/{testResult}/download-pdf', [ResultController::class, 'downloadPdf'])->name('download-pdf');
         });
 
         Route::prefix('resend')->name('resend.')->group(function () {

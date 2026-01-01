@@ -116,7 +116,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-poll {{ request()->routeIs('admin.results.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            All Results
+            Peserta
         </a>
 
         <a href="{{ route('admin.resend.index') }}"
