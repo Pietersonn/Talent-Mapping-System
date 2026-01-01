@@ -145,4 +145,9 @@ class TestSession extends Model
 
         return $flow[$this->current_step] ?? null;
     }
+
+    public function canAccessStage(string $targetStep): bool
+    {
+        return $this->current_step === $targetStep;
+    }
 }

@@ -10,7 +10,6 @@ use App\Models\SJTQuestion;
 use App\Models\SJTResponse;
 use App\Models\QuestionVersion;
 use App\Models\Event;
-use App\Models\TestResult;
 use App\Helpers\QuestionHelper;
 use App\Helpers\ScoringHelper;
 use Illuminate\Http\Request;
@@ -18,7 +17,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -89,8 +87,8 @@ class TestController extends BaseController
             return $this->redirectToCurrentStep($existingActive);
         }
 
+        // ID dibuat otomatis oleh Model/Trait HasCustomId
         $testSession = TestSession::create([
-            'id'                     => $this->generateTestSessionId(),
             'user_id'                => Auth::id(),
             'event_id'               => $event?->id,
             'session_token'          => Str::random(32),
@@ -137,7 +135,8 @@ class TestController extends BaseController
     public function showST30Stage(Request $request, int $stage)
     {
         $session = $this->getCurrentSession($request);
-        if (!$session || !$session->canAccessStage("st30_stage{$stage}")) {
+
+        if (!$session || !$this->canAccessStage($session, "st30_stage{$stage}")) {
             return redirect()->route('test.form')->with('error', 'Selesaikan langkah sebelumnya terlebih dahulu.');
         }
 
@@ -167,7 +166,8 @@ class TestController extends BaseController
     public function processST30Stage(Request $request, int $stage)
     {
         $session = $this->getCurrentSession($request);
-        if (!$session || !$session->canAccessStage("st30_stage{$stage}")) {
+
+        if (!$session || !$this->canAccessStage($session, "st30_stage{$stage}")) {
             return redirect()->route('test.form')->with('error', 'Sesi tidak valid / akses tahap tidak sah.');
         }
 
@@ -231,7 +231,8 @@ class TestController extends BaseController
     public function showSJTPage(Request $request, int $page)
     {
         $session = $this->getCurrentSession($request);
-        if (!$session || !$session->canAccessStage("sjt_page{$page}")) {
+
+        if (!$session || !$this->canAccessStage($session, "sjt_page{$page}")) {
             return redirect()->route('test.form')->with('error', 'Selesaikan langkah sebelumnya terlebih dahulu.');
         }
 
@@ -277,7 +278,8 @@ class TestController extends BaseController
     public function processSJTPage(Request $request, int $page)
     {
         $session = $this->getCurrentSession($request);
-        if (!$session || !$session->canAccessStage("sjt_page{$page}")) {
+
+        if (!$session || !$this->canAccessStage($session, "sjt_page{$page}")) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Sesi tidak valid / akses halaman tidak sah.'], 403);
             }
@@ -313,7 +315,6 @@ class TestController extends BaseController
         $responsesInput = $request->input('responses', []);
 
         $now = now();
-        $rows = [];
         foreach ($questions as $q) {
             $sel = $responsesInput[$q->id] ?? null;
             $responseId = SJTResponse::where('session_id', $session->id)
@@ -323,13 +324,13 @@ class TestController extends BaseController
             SJTResponse::updateOrCreate(
                 ['id' => $responseId],
                 [
-                    'session_id' => $session->id,
-                    'question_id' => $q->id,
+                    'session_id'          => $session->id,
+                    'question_id'         => $q->id,
                     'question_version_id' => $activeVersion->id,
                     'page_number'         => $page,
                     'selected_option'     => $sel,
                     'updated_at'          => $now,
-                    'created_at'          => $now // created_at ignored on update
+                    'created_at'          => $now
                 ]
             );
         }
@@ -363,8 +364,9 @@ class TestController extends BaseController
             Log::error('ScoringHelper failed: ' . $e->getMessage(), ['session' => $session->id]);
         }
 
-        // 3. Generate Report & Kirim Email
+        // 3. Dispatch Job & Kirim Email (Setelah Response / Background)
         try {
+            // dispatchAfterResponse: Mengirim response ke user dulu, baru jalankan job ini di server
             GenerateAssessmentReport::dispatchAfterResponse($session->id);
         } catch (\Throwable $e) {
             Log::error('Failed to dispatch report generation: ' . $e->getMessage());
@@ -376,7 +378,7 @@ class TestController extends BaseController
             return response()->json(['next' => $nextUrl], 200);
         }
 
-        return redirect()->route('test.thank-you')->with('success', 'Terima kasih! Hasil kamu sedang diproses & akan dikirim ke email.');
+        return redirect()->route('test.thank-you')->with('success', 'Tes berhasil diselesaikan! Hasil Anda sedang diproses dan akan dikirim ke email secara otomatis.');
     }
 
     /** Completed page */
@@ -482,12 +484,8 @@ class TestController extends BaseController
         };
     }
 
-    private function getCurrentTestSession(): ?TestSession
+    private function canAccessStage(?TestSession $session, string $targetStep): bool
     {
-        $sessionToken = session('test_session_token');
-        if (!$sessionToken) return null;
-
-        return TestSession::where('session_token', $sessionToken)->first();
+        return $session && $session->current_step === $targetStep;
     }
-
 }
