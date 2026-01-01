@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\User;
+use App\Models\TestSession; // Tambahkan ini
+use App\Models\TestResult;  // Tambahkan ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,12 +20,9 @@ class EventController extends Controller
      */
     public function index(Request $request)
     {
-        // Query dasar: ambil relasi PIC dan hitung jumlah peserta
         $query = Event::with(['pic'])->withCount('participants');
 
         // --- SEARCH & FILTER LOGIC ---
-
-        // 1. Pencarian Global (AJAX & Standard)
         if ($request->filled('search')) {
             $term = trim($request->search);
             $query->where(function ($q) use ($term) {
@@ -37,12 +36,9 @@ class EventController extends Controller
             });
         }
 
-        // Ambil data terbaru dengan pagination (10 item per halaman)
         $events = $query->latest()->paginate(10)->appends($request->query());
 
-        // --- RESPONSE UNTUK SEARCH REALTIME (AJAX) ---
         if ($request->ajax()) {
-            // Transform data agar mudah dibaca oleh JavaScript di frontend
             $events->getCollection()->transform(function ($event) {
                 return [
                     'id' => $event->id,
@@ -54,8 +50,6 @@ class EventController extends Controller
                     'max_participants' => $event->max_participants,
                     'is_active' => $event->is_active,
                     'date_range' => $event->start_date->format('d M') . ' - ' . $event->end_date->format('d M Y'),
-
-                    // URL Actions
                     'show_url' => route('admin.events.show', $event->id),
                     'edit_url' => route('admin.events.edit', $event->id),
                     'delete_url' => route('admin.events.destroy', $event->id),
@@ -72,19 +66,12 @@ class EventController extends Controller
         return view('admin.events.index', compact('events'));
     }
 
-    /**
-     * Menampilkan form untuk membuat event baru.
-     */
     public function create()
     {
-        // Ambil user yang berperan sebagai PIC dan Aktif untuk dropdown
         $pics = User::where('role', 'pic')->where('is_active', true)->orderBy('name')->get();
         return view('admin.events.create', compact('pics'));
     }
 
-    /**
-     * Menyimpan event baru ke database.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -100,18 +87,13 @@ class EventController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-
-            // Ambil angka terakhir dari ID EVT
             $last = DB::table('events')
                 ->lockForUpdate()
                 ->select(DB::raw("CAST(SUBSTRING(id, 4) AS UNSIGNED) as num"))
                 ->orderByDesc('num')
                 ->first();
 
-            // Tentukan nomor berikutnya
             $nextNumber = $last ? $last->num + 1 : 1;
-
-            // Buat ID baru
             $eventId = 'EVT' . $nextNumber;
 
             Event::create([
@@ -128,42 +110,49 @@ class EventController extends Controller
             ]);
         });
 
-        return redirect()
-            ->route('admin.events.index')
-            ->with('success', 'Event berhasil dibuat.');
+        return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat.');
     }
-
 
     /**
      * Menampilkan detail event.
+     * PERBAIKAN: Menggunakan data dari TestSession (Realtime) bukan Pivot.
      */
     public function show(Event $event)
     {
-        $event->load(['pic', 'participants']);
+        // 1. Load participants BESERTA data sesi tes mereka di event ini
+        $event->load(['pic', 'participants.testSessions' => function($q) use ($event) {
+            $q->where('event_id', $event->id);
+        }]);
 
-        // Statistik sederhana untuk halaman detail
+        // 2. Hitung Statistik Realtime dari tabel TestSession & TestResult
+        $totalParticipants = $event->participants->count();
+
+        $completedTests = TestSession::where('event_id', $event->id)
+            ->where('is_completed', true)
+            ->count();
+
+        $resultsSent = TestResult::whereHas('testSession', function($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->whereNotNull('email_sent_at')
+            ->count();
+
         $stats = [
-            'total_participants' => $event->participants()->count(),
-            'completed_tests' => $event->participants()->where('test_completed', true)->count(),
-            'pending_tests' => $event->participants()->where('test_completed', false)->count(),
-            'results_sent' => $event->participants()->where('results_sent', true)->count(),
+            'total_participants' => $totalParticipants,
+            'completed_tests'    => $completedTests,
+            'pending_tests'      => $totalParticipants - $completedTests,
+            'results_sent'       => $resultsSent,
         ];
 
         return view('admin.events.show', compact('event', 'stats'));
     }
 
-    /**
-     * Menampilkan form edit event.
-     */
     public function edit(Event $event)
     {
         $pics = User::where('role', 'pic')->where('is_active', true)->orderBy('name')->get();
         return view('admin.events.edit', compact('event', 'pics'));
     }
 
-    /**
-     * Memperbarui data event.
-     */
     public function update(Request $request, Event $event)
     {
         $request->validate([
@@ -192,12 +181,8 @@ class EventController extends Controller
         return redirect()->route('admin.events.index')->with('success', 'Event berhasil diperbarui.');
     }
 
-    /**
-     * Menghapus event.
-     */
     public function destroy(Event $event)
     {
-        // Cek jika ada peserta
         if ($event->participants()->count() > 0) {
             return back()->with('error', 'Gagal menghapus: Event memiliki peserta terdaftar.');
         }
@@ -206,30 +191,23 @@ class EventController extends Controller
         return redirect()->route('admin.events.index')->with('success', 'Event berhasil dihapus.');
     }
 
-    /**
-     * Quick Action: Ubah status aktif/non-aktif.
-     */
     public function toggleStatus(Event $event)
     {
         $event->update(['is_active' => !$event->is_active]);
         return back()->with('success', 'Status event diperbarui.');
     }
 
-    /**
-     * Export PDF.
-     */
     public function exportPdf(Request $request)
     {
         $query = Event::with(['pic'])->withCount('participants');
 
-        // Terapkan filter pencarian yang SAMA PERSIS dengan method index
         if ($request->filled('search')) {
             $term = trim($request->search);
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', "%{$term}%")
                     ->orWhere('event_code', 'like', "%{$term}%")
                     ->orWhere('company', 'like', "%{$term}%")
-                    ->orWhere('description', 'like', "%{$term}%") // [PERBAIKAN] Tambahkan ini
+                    ->orWhere('description', 'like', "%{$term}%")
                     ->orWhereHas('pic', function ($p) use ($term) {
                         $p->where('name', 'like', "%{$term}%");
                     });

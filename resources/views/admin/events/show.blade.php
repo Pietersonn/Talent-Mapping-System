@@ -135,16 +135,22 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {{-- Menampilkan 10 peserta terbaru saja agar tidak terlalu panjang --}}
+                            {{-- Menampilkan 10 peserta terbaru saja --}}
                             @foreach($event->participants->take(10) as $p)
+                                @php
+                                    // PERBAIKAN LOGIKA STATUS:
+                                    // Ambil data sesi test dari relasi yang sudah di-load di controller
+                                    $session = $p->testSessions->first(); // Ambil sesi pertama (karena difilter per event)
+                                    $isFinished = $session && $session->is_completed;
+                                @endphp
                                 <tr>
                                     <td style="font-weight: 600; color: #0f172a;">{{ $p->name }}</td>
                                     <td style="color: #64748b;">{{ $p->email }}</td>
                                     <td style="text-align: right;">
-                                        @if($p->pivot->test_completed)
+                                        @if($isFinished)
                                             <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">SELESAI</span>
                                         @else
-                                            <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">PENDING</span>
+                                            <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">BELUM SELESAI</span>
                                         @endif
                                     </td>
                                 </tr>

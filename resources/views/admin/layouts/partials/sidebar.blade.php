@@ -119,6 +119,14 @@
             Peserta
         </a>
 
+        <a href="{{ route('admin.score.index') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+            <div class="w-6 flex justify-center mr-3">
+                <i class="fas fa-file-invoice {{ request()->routeIs('admin.reports.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+            </div>
+            Kompetensi Peserta
+        </a>
+
         <a href="{{ route('admin.resend.index') }}"
            class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.resend.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
@@ -127,13 +135,6 @@
             Resend Requests
         </a>
 
-        <a href="{{ route('admin.reports.participants') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
-            <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-file-invoice {{ request()->routeIs('admin.reports.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
-            </div>
-            Report Participants
-        </a>
 
     </nav>
 

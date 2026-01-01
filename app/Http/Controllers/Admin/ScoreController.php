@@ -10,14 +10,13 @@ use App\Models\Event;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-
-class ReportController extends Controller
+class ScoreController extends Controller
 {
     private function filters(Request $r): array
     {
         return [
             'event_id' => $r->query('event_id'),
-            'instansi' => trim((string) $r->query('instansi', '')),
+            // Instansi dihapus dari filter terpisah, digabung ke 'q'
             'q'        => trim((string) $r->query('q', '')),
         ];
     }
@@ -45,23 +44,24 @@ class ReportController extends Controller
                 'ts.position',
                 'e.name as event_name',
                 'e.event_code',
-                'tr.sjt_results', // Ambil JSON
+                'tr.sjt_results',
                 DB::raw("{$topCompExpr} as top_competency")
             );
 
         if (!empty($filters['event_id'])) {
             $q->where('ts.event_id', $filters['event_id']);
         }
-        if (($filters['instansi'] ?? '') !== '') {
-            $q->where('ts.participant_background', 'like', '%' . $filters['instansi'] . '%');
-        }
+
+        // LOGIKA PENCARIAN BARU: Mencakup Nama, Email, dan Instansi
         if (($filters['q'] ?? '') !== '') {
             $term = $filters['q'];
             $q->where(function ($w) use ($term) {
                 $w->where('u.name', 'like', "%{$term}%")
-                    ->orWhere('u.email', 'like', "%{$term}%");
+                    ->orWhere('u.email', 'like', "%{$term}%")
+                    ->orWhere('ts.participant_background', 'like', "%{$term}%"); // Tambahan pencarian instansi
             });
         }
+
         if ($onlyWithResults) {
             $q->whereNotNull('tr.sjt_results');
         }
@@ -69,14 +69,14 @@ class ReportController extends Controller
         return $q;
     }
 
-
+    // ... method participants() sama seperti sebelumnya ...
     public function participants(Request $req)
     {
+        // Validasi
         $validated = $req->validate([
             'mode'     => 'nullable|in:all,top,bottom',
             'n'        => 'nullable|integer|min:1|max:5000',
             'event_id' => 'nullable|string|exists:events,id',
-            'instansi' => 'nullable|string|max:255',
             'q'        => 'nullable|string|max:255',
         ]);
 
@@ -85,7 +85,6 @@ class ReportController extends Controller
 
         $filters = [
             'event_id' => $validated['event_id'] ?? null,
-            'instansi' => $validated['instansi'] ?? null,
             'q'        => $validated['q'] ?? null,
         ];
 
@@ -95,11 +94,12 @@ class ReportController extends Controller
         $q = $this->baseParticipantsQuery($filters, true);
         $results = $q->orderBy('u.name')->orderBy('ts.id')->get();
 
+        // Process Scoring (Sama seperti sebelumnya)
         $processedRows = $results->map(function ($row) {
             $totalScore = 0;
+            $sjtData = null;
             if (!empty($row->sjt_results)) {
                 $sjtData = json_decode($row->sjt_results, true);
-                // Pastikan struktur JSON sesuai: { ..., "all": [ {"code": "...", "score": N}, ... ] }
                 if (isset($sjtData['all']) && is_array($sjtData['all'])) {
                     foreach ($sjtData['all'] as $competency) {
                         if (isset($competency['score']) && is_numeric($competency['score'])) {
@@ -109,17 +109,32 @@ class ReportController extends Controller
                 }
             }
             $row->total_score = $totalScore;
+
+            $codes = ['SM', 'CIA', 'TS', 'WWO', 'CA', 'L', 'SE', 'PS', 'PE', 'GH'];
+            $competencies = collect([]);
+            if (isset($sjtData['all']) && is_array($sjtData['all'])) {
+                foreach ($sjtData['all'] as $c) {
+                    if (isset($c['code'], $c['score'])) {
+                        $competencies->put($c['code'], $c['score']);
+                    }
+                }
+            }
+            foreach ($codes as $code) {
+                $row->{$code} = round($competencies->get($code, 0), 1);
+            }
             return $row;
         });
 
+        // Sorting Logic
         if ($mode === 'top') {
             $sortedRows = $processedRows->sortByDesc('total_score')->take($n);
         } elseif ($mode === 'bottom') {
             $sortedRows = $processedRows->sortBy('total_score')->take($n);
-        } else { // mode 'all'
+        } else {
             $sortedRows = $processedRows->sortByDesc('total_score');
         }
 
+        // Pagination Manual
         $rows = null;
         $pagination = null;
         if ($mode === 'all') {
@@ -128,18 +143,18 @@ class ReportController extends Controller
             $paginatedItems = $sortedRows->slice(($currentPage - 1) * $perPage, $perPage);
 
             $pagination = new LengthAwarePaginator(
-                $paginatedItems->values(), // Gunakan values() agar collection direset indexnya
+                $paginatedItems->values(),
                 $sortedRows->count(),
                 $perPage,
                 $currentPage,
                 ['path' => $req->url(), 'query' => $req->query()]
             );
-            $rows = $paginatedItems->values(); // Ambil item untuk halaman saat ini
+            $rows = $paginatedItems->values();
         } else {
             $rows = $sortedRows->values();
         }
 
-        return view('admin.reports.participants', [
+        return view('admin.score.index', [
             'events'     => $events,
             'mode'       => $mode,
             'n'          => $n,
@@ -149,27 +164,25 @@ class ReportController extends Controller
         ]);
     }
 
-
     public function exportParticipantsPdf(Request $req)
     {
         $mode     = $req->query('mode', 'all');
         $n        = (int) $req->query('n', 10);
         $eventId  = $req->query('event_id');
-        $instansi = trim((string) $req->query('instansi', ''));
         $search   = trim((string) $req->query('q', ''));
 
         $filters = [
             'event_id' => $eventId,
-            'instansi' => $instansi,
             'q'        => $search,
         ];
 
         $q = $this->baseParticipantsQuery($filters, true);
         $results = $q->orderBy('u.name')->orderBy('ts.id')->get();
 
+        // Process Logic (Copy dari atas agar konsisten)
         $processedRows = $results->map(function ($row) {
             $totalScore = 0;
-            $sjtData = null; // Inisialisasi sjtData
+            $sjtData = null;
             if (!empty($row->sjt_results)) {
                 $sjtData = json_decode($row->sjt_results, true);
                 if (isset($sjtData['all']) && is_array($sjtData['all'])) {
@@ -181,11 +194,8 @@ class ReportController extends Controller
                 }
             }
             $row->total_score = $totalScore;
-
-            // Parsing detail kompetensi untuk PDF
             $codes = ['SM', 'CIA', 'TS', 'WWO', 'CA', 'L', 'SE', 'PS', 'PE', 'GH'];
             $competencies = collect([]);
-            // Gunakan $sjtData yang sudah di-decode
             if (isset($sjtData['all']) && is_array($sjtData['all'])) {
                 foreach ($sjtData['all'] as $c) {
                     if (isset($c['code'], $c['score'])) {
@@ -194,10 +204,8 @@ class ReportController extends Controller
                 }
             }
             foreach ($codes as $code) {
-                // Pastikan kolom ini memang dibutuhkan oleh view PDF ('admin.reports.pdf.participants')
                 $row->{$code} = round($competencies->get($code, 0), 1);
             }
-
             return $row;
         });
 
@@ -209,26 +217,37 @@ class ReportController extends Controller
             $rows = $processedRows->sortByDesc('total_score');
         }
 
-        $reportTitle = 'Participants Competency Report';
+        // --- BAHASA INDONESIA UNTUK PDF ---
+        $reportTitle = 'Laporan Kompetensi Peserta';
         $modeText = match ($mode) {
-            'top' => "Top {$n} Participants by Total Score",
-            'bottom' => "Bottom {$n} Participants by Total Score",
-            default => "All Participants — Ordered by Highest Score",
+            'top' => "Top {$n} Peserta Berdasarkan Total Skor",
+            'bottom' => "Bottom {$n} Peserta Berdasarkan Total Skor",
+            default => "Semua Peserta — Diurutkan Berdasarkan Skor Tertinggi",
         };
+
+        // Filter text untuk ditampilkan di PDF (Opsional, agar user tau filter apa yang dipakai)
+        $filterTextParts = [];
+        if($eventId) {
+            $evtName = Event::find($eventId)->name ?? $eventId;
+            $filterTextParts[] = "Event: $evtName";
+        }
+        if($search) {
+            $filterTextParts[] = "Pencarian: '$search'";
+        }
+        $filterInfo = !empty($filterTextParts) ? implode(', ', $filterTextParts) : 'Tanpa Filter Tambahan';
+
 
         $data = [
             'rows'        => $rows,
             'reportTitle' => $reportTitle,
-            'modeText'    => $modeText,
+            'modeText'    => $modeText . " (" . $filterInfo . ")",
             'generatedBy' => Auth::user()->name ?? 'Admin',
             'generatedAt' => now('Asia/Makassar')->format('d M Y H:i') . ' WITA',
         ];
 
-        // Pastikan view PDF 'admin.reports.pdf.participants' ada dan sesuai
-        $pdf = Pdf::loadView('pic.participants.pdf.report-participant', $data)
+        return Pdf::loadView('pic.participants.pdf.report-participant', $data)
             ->setPaper('a4', 'landscape')
-            ->setOptions(['isRemoteEnabled' => true]); // WAJIB untuk membaca URL (asset())
-
-        return $pdf->stream('participants-report.pdf');
+            ->setOptions(['isRemoteEnabled' => true])
+            ->stream('laporan-skor-peserta.pdf');
     }
 }

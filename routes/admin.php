@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\TypologyController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\ResultController;
-use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ScoreController;
 use App\Http\Controllers\Admin\ResendRequestController;
 use App\Http\Controllers\ProfileController;
 
@@ -134,6 +134,7 @@ Route::middleware(['auth', 'role:admin,staff'])
 
         Route::prefix('resend')->name('resend.')->group(function () {
             Route::get('/', [ResendRequestController::class, 'index'])->name('index');
+            Route::get('/export-pdf', [ResendRequestController::class, 'exportPdf'])->name('export.pdf');
             Route::get('/{resendRequest}', [ResendRequestController::class, 'show'])->name('show');
             Route::post('/{resendRequest}/approve', [ResendRequestController::class, 'approve'])->name('approve');
             Route::post('/{resendRequest}/reject', [ResendRequestController::class, 'reject'])->name('reject');
@@ -148,17 +149,8 @@ Route::middleware(['auth', 'role:admin,staff'])
             Route::put('/password', [ProfileController::class, 'updatePassword'])->name('update-password');
         });
 
-        Route::prefix('reports')->name('reports.')->group(function () {
-            Route::get('/',               [ReportController::class, 'index'])->name('index');
-            Route::get('/participants',   [ReportController::class, 'participants'])->name('participants');
-            Route::get('/events',         [ReportController::class, 'events'])->name('events');
-            Route::get('/delivery',       [ReportController::class, 'delivery'])->name('delivery');
-            Route::get('/resend',         [ReportController::class, 'resend'])->name('resend');
-            Route::get('/data-quality',   [ReportController::class, 'dataQuality'])->name('data_quality');
-            Route::get('/anomaly',        [ReportController::class, 'anomaly'])->name('anomaly');
-            Route::get('/insight',        [ReportController::class, 'insight'])->name('insight');
-
-            Route::get('/pdf/participants',   [ReportController::class, 'exportParticipantsPdf'])->name('pdf.participants');
-            Route::get('/pdf/events',         [ReportController::class, 'exportEventsPdf'])->name('pdf.events');
+        Route::prefix('score')->name('score.')->group(function () {
+            Route::get('/', [ScoreController::class, 'participants'])->name('index');
+            Route::get('/pdf', [ScoreController::class, 'exportParticipantsPdf'])->name('export.pdf');
         });
     });

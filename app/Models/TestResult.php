@@ -154,4 +154,20 @@ class TestResult extends Model
     {
         return $q->where('dominant_typology', $code);
     }
+
+    public function getEventTitleAttribute(): string
+    {
+        // 1. Cek Session
+        if (!$this->testSession) {
+            return '-';
+        }
+
+        // 2. Cek Event
+        if (!$this->testSession->event) {
+            return '-';
+        }
+
+        // 3. Ambil Nama Event (Gunakan 'name' bukan 'title')
+        return $this->testSession->event->name ?? '-';
+    }
 }
