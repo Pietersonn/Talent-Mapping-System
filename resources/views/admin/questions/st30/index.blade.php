@@ -62,7 +62,7 @@
     <div>
         <h1 class="page-title">
             <i class="fas fa-brain" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; font-size: 1.1rem; margin-right: 10px;"></i>
-            ST-30 Questions
+            ST-30
         </h1>
         <p style="font-size: 0.9rem; color: #64748b; margin-left: 54px; margin-top: -5px;">
             Manajemen pertanyaan dan versi tes ST-30

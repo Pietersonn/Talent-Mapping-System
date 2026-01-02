@@ -39,7 +39,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-layer-group {{ request()->routeIs('admin.questions.index') || request()->routeIs('admin.questions.show') || request()->routeIs('admin.questions.create') || request()->routeIs('admin.questions.edit') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Question Versions
+            Versi Soal
         </a>
 
         {{-- 2. ST-30 Questions --}}
@@ -48,7 +48,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-list-ol {{ request()->routeIs('admin.questions.st30.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            ST-30 Questions
+            ST-30
         </a>
 
         {{-- 3. SJT Questions --}}
@@ -57,7 +57,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-tasks {{ request()->routeIs('admin.questions.sjt.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            SJT Questions
+            Talent kompentensi
         </a>
 
         {{-- 4. Competencies --}}
@@ -66,7 +66,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-award {{ request()->routeIs('admin.questions.competencies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Competencies
+            Kompentensi
         </a>
 
         {{-- 5. Typologies --}}
@@ -75,7 +75,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-fingerprint {{ request()->routeIs('admin.questions.typologies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Typologies
+            Tipologi
         </a>
 
         <div class="pt-6 pb-2 px-4">
@@ -89,7 +89,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-users-cog {{ request()->routeIs('admin.users.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            User Management
+            Manajemen peserta
         </a>
         @endif
 
@@ -99,7 +99,7 @@
                 <div class="w-6 flex justify-center mr-3">
                     <i class="fas fa-calendar-check {{ request()->routeIs('admin.events.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
                 </div>
-                Events
+                Managemen Events
             </div>
             @if (isset($user) && $user->role === 'staff')
                 <span class="w-2 h-2 rounded-full bg-blue-400"></span>
@@ -132,7 +132,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-paper-plane {{ request()->routeIs('admin.resend.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Resend Requests
+            Permintaan
         </a>
 
 

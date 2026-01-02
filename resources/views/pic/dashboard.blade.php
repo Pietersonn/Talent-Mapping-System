@@ -1,213 +1,386 @@
 @extends('pic.layouts.app')
 
-@section('title', 'PIC Dashboard - TalentMapping')
+@section('title', 'PIC Dashboard')
+
+@push('styles')
+<style>
+    :root {
+        --primary: #22c55e;
+        --secondary: #64748b;
+        --bg-card: #ffffff;
+        --bg-hover: #f8fafc;
+        --border: #e2e8f0;
+        --radius: 12px;
+    }
+
+    /* --- COMPACT GRID LAYOUT --- */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        padding-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* --- BENTO CARD STYLE --- */
+    .bento-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .bento-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    /* --- STATISTIC CARDS --- */
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .stat-icon {
+        width: 36px; height: 36px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+    }
+    .icon-users { background: #eff6ff; color: #3b82f6; }
+    .icon-events { background: #f0fdf4; color: #22c55e; }
+    .icon-tests { background: #fefce8; color: #eab308; }
+    .icon-pending { background: #fef2f2; color: #ef4444; }
+
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; line-height: 1.2; }
+    .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-link {
+        font-size: 0.75rem; font-weight: 500; color: var(--secondary);
+        text-decoration: none; margin-top: 0.5rem; display: inline-flex;
+        align-items: center; gap: 4px; transition: color 0.2s;
+    }
+    .stat-link:hover { color: var(--primary); }
+
+    /* --- LAYOUT SPANS --- */
+    .col-span-3 { grid-column: span 3; }
+    .col-span-2 { grid-column: span 2; }
+    @media (max-width: 1024px) { .col-span-3, .col-span-2 { grid-column: span 2; } }
+    @media (max-width: 640px) { .col-span-3, .col-span-2 { grid-column: span 1; } }
+
+    /* --- SECTION HEADERS --- */
+    .section-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;
+    }
+    .section-title { font-size: 0.9rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* --- COMPACT TABLE --- */
+    .compact-table { width: 100%; border-collapse: collapse; }
+    .compact-table th {
+        text-align: left; font-size: 0.7rem; color: var(--secondary);
+        text-transform: uppercase; padding: 0.5rem; border-bottom: 1px solid var(--border);
+    }
+    .compact-table td {
+        padding: 0.6rem 0.5rem; font-size: 0.8rem; color: #334155;
+        border-bottom: 1px dashed #f1f5f9; vertical-align: middle;
+    }
+    .compact-table tr:last-child td { border-bottom: none; }
+
+    .user-cell { display: flex; align-items: center; gap: 0.5rem; }
+    .avatar-xs {
+        width: 24px; height: 24px; border-radius: 6px; background: #f1f5f9;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: bold; color: #64748b;
+    }
+
+    /* --- QUICK PULSE --- */
+    .quick-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .quick-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    .quick-label { color: var(--secondary); display: flex; align-items: center; gap: 6px; }
+    .quick-val { font-weight: 700; color: #0f172a; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-green { background: #22c55e; }
+    .dot-blue { background: #3b82f6; }
+
+    .chart-container { position: relative; height: 250px; width: 100%; }
+</style>
+@endpush
 
 @section('content')
-<div class="dashboard-header">
-    <div class="row align-items-center">
-        <div class="col">
-            <h1 class="dashboard-title">Dashboard</h1>
-            <p class="dashboard-subtitle">Welcome back, {{ Auth::user()->name }}!</p>
-        </div>
-        <div class="col-auto">
-            <div class="date-info">
-                <i class="bi bi-calendar3"></i>
-                {{ now()->format('l, F j, Y') }}
-            </div>
-        </div>
-    </div>
-</div>
+<div class="dashboard-grid fade-in-up">
 
-<!-- Statistics Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-calendar-event"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $totalEvents }}</div>
-                    <div class="stat-label">My Events</div>
-                </div>
+    {{-- STATS 1: Total Participants --}}
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($totalParticipants) }}</div>
+                <div class="stat-label">Total Peserta</div>
             </div>
+            <div class="stat-icon icon-users"><i class="fas fa-users"></i></div>
         </div>
+        <a href="{{ route('pic.participants.index') }}" class="stat-link">Lihat semua <i class="fas fa-arrow-right text-[10px]"></i></a>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-info">
-            <div class="stat-card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $totalParticipants }}</div>
-                    <div class="stat-label">Total Participants</div>
-                </div>
+    {{-- STATS 2: My Events --}}
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($totalEvents) }}</div>
+                <div class="stat-label">Event Aktif</div>
             </div>
+            <div class="stat-icon icon-events"><i class="fas fa-calendar-check"></i></div>
+        </div>
+        <a href="{{ route('pic.events.index') }}" class="stat-link">Kelola Event <i class="fas fa-arrow-right text-[10px]"></i></a>
+    </div>
+
+    {{-- STATS 3: Completed Tests --}}
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($completedTests) }}</div>
+                <div class="stat-label">Selesai</div>
+            </div>
+            <div class="stat-icon icon-tests"><i class="fas fa-clipboard-check"></i></div>
+        </div>
+        <span class="stat-link text-green-600">Tes Rampung</span>
+    </div>
+
+    {{-- STATS 4: Pending Tests --}}
+    <div class="bento-card">
+        <div class="stat-header">
+            <div>
+                <div class="stat-value">{{ number_format($pendingTests) }}</div>
+                <div class="stat-label">Belum Selesai</div>
+            </div>
+            <div class="stat-icon icon-pending"><i class="fas fa-clock"></i></div>
+        </div>
+        <span class="stat-link text-red-500">Dalam Pengerjaan</span>
+    </div>
+
+
+    {{-- CHART SECTION: Statistik Jumlah Peserta --}}
+    <div class="bento-card col-span-3">
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-chart-bar text-green-500"></i> Statistik Peserta per Event</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="participantsChart"></canvas>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $completedTests }}</div>
-                    <div class="stat-label">Completed Tests</div>
-                </div>
-            </div>
+    {{-- QUICK PULSE: Ringkasan --}}
+    <div class="bento-card">
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-bolt text-yellow-500"></i> Ringkasan</div>
         </div>
-    </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">{{ $pendingTests }}</div>
-                    <div class="stat-label">Pending Tests</div>
-                </div>
+        <div class="quick-list">
+            <div class="quick-item">
+                <span class="quick-label"><span class="status-dot dot-blue"></span> Event</span>
+                <span class="quick-val">{{ $totalEvents }}</span>
             </div>
-        </div>
-    </div>
-</div>
+            <div class="quick-item">
+                <span class="quick-label"><span class="status-dot dot-green"></span> Partisipan</span>
+                <span class="quick-val">{{ $totalParticipants }}</span>
+            </div>
 
-<div class="row g-4">
-    <!-- Event Progress -->
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-bar-chart-line me-2"></i>
-                    Event Progress
-                </h5>
-            </div>
-            <div class="card-body">
-                @if(count($eventProgress) > 0)
-                    @foreach($eventProgress as $progress)
-                        <div class="event-progress-item">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="event-info">
-                                    <h6 class="event-name mb-0">{{ $progress['event']->name }}</h6>
-                                    <small class="text-muted">{{ $progress['event']->event_code }}</small>
-                                </div>
-                                <div class="progress-stats">
-                                    <span class="badge bg-primary">{{ $progress['completion_rate'] }}%</span>
-                                </div>
-                            </div>
-                            <div class="progress mb-3" style="height: 8px;">
-                                <div class="progress-bar" role="progressbar"
-                                     style="width: {{ $progress['completion_rate'] }}%"
-                                     aria-valuenow="{{ $progress['completion_rate'] }}"
-                                     aria-valuemin="0" aria-valuemax="100">
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <small class="text-muted">
-                                    {{ $progress['completed'] }} of {{ $progress['total_participants'] }} completed
-                                </small>
-                                <small class="text-muted">
-                                    {{ $progress['total_participants'] - $progress['completed'] }} pending
-                                </small>
-                            </div>
-                        </div>
-                        @if(!$loop->last)<hr>@endif
-                    @endforeach
-                @else
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-calendar-x display-1"></i>
-                        <p class="mt-3">No events assigned yet</p>
-                    </div>
-                @endif
+            <hr style="border-top: 1px dashed #e2e8f0; margin: 0.5rem 0;">
+
+            <div class="quick-item">
+                <span class="quick-label">Avg. Peserta/Event</span>
+                <span class="quick-val">{{ $totalEvents > 0 ? round($totalParticipants / $totalEvents) : 0 }}</span>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-clock-history me-2"></i>
-                    Recent Activity
-                </h5>
-            </div>
-            <div class="card-body">
-                @if(count($recentSessions) > 0)
-                    <div class="activity-list">
-                        @foreach($recentSessions as $session)
-                            <div class="activity-item">
-                                <div class="activity-icon">
-                                    @if($session->is_completed)
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    @else
-                                        <i class="bi bi-clock text-warning"></i>
-                                    @endif
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">{{ $session->participant_name }}</div>
-                                    <div class="activity-description">
-                                        {{ $session->event->name }}
-                                        @if($session->is_completed)
-                                            <span class="badge bg-success ms-1">Completed</span>
-                                        @else
-                                            <span class="badge bg-warning ms-1">In Progress</span>
-                                        @endif
-                                    </div>
-                                    <div class="activity-time">
-                                        {{ $session->updated_at->diffForHumans() }}
-                                    </div>
+
+    {{-- TABLE 1: Recent Sessions (Aktivitas Terbaru - MIRIP ADMIN) --}}
+    <div class="bento-card col-span-2">
+        <div class="section-header">
+            <div class="section-title">Aktivitas Terbaru</div>
+            <a href="{{ route('pic.participants.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="compact-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentSessions as $session)
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar-xs">{{ substr($session->user->name ?? '?', 0, 1) }}</div>
+                                <div style="display:flex; flex-direction:column; line-height:1.1;">
+                                    {{-- Nama Peserta --}}
+                                    <span style="font-weight:600; font-size:0.8rem;">{{ Str::limit($session->user->name ?? 'Guest', 15) }}</span>
+                                    {{-- Nama Event (sebagai subtext) --}}
+                                    <span style="font-size:0.65rem; color:#94a3b8;">{{ Str::limit($session->event->name ?? '-', 25) }}</span>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox display-4"></i>
-                        <p class="mt-3">No recent activity</p>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row g-3 mt-4">
-    <div class="col-md-4">
-        <div class="quick-action-card">
-            <div class="quick-action-icon">
-                <i class="bi bi-calendar-plus"></i>
-            </div>
-            <div class="quick-action-content">
-                <h6>Create Event</h6>
-                <p class="text-muted">Set up a new assessment event</p>
-                <a href="{{ route('admin.events.create') }}" class="btn btn-primary btn-sm">
-                    Get Started
-                </a>
-            </div>
+                        </td>
+                        <td>
+                            @if($session->is_completed)
+                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">DONE</span>
+                            @else
+                                <span style="font-size:0.65rem; font-weight:700; color:#854d0e; background:#fef9c3; padding:2px 6px; border-radius:4px;">PROG</span>
+                            @endif
+                        </td>
+                        <td style="text-align: right; color: #94a3b8; font-size: 0.7rem;">
+                            {{ $session->updated_at->diffForHumans(null, true) }}
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="3" style="text-align:center; padding: 1rem; color:#94a3b8;">Belum ada aktivitas</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="quick-action-card">
-            <div class="quick-action-icon">
-                <i class="bi bi-people-fill"></i>
-            </div>
-            <div class="quick-action-content">
-                <h6>Manage Participants</h6>
-                <p class="text-muted">View and manage event participants</p>
-                <a href="{{ route('pic.participants.index') }}" class="btn btn-primary btn-sm">
-                    View All
-                </a>
-            </div>
+    {{-- TABLE 2: Data Event --}}
+    <div class="bento-card col-span-2">
+        <div class="section-header">
+            <div class="section-title">Data Event</div>
+            <a href="{{ route('pic.events.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="compact-table">
+                <thead>
+                    <tr>
+                        <th>Nama Event</th>
+                        <th>Kode</th>
+                        <th style="text-align: right;">Peserta / Kuota</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($eventsData as $data)
+                        {{-- Batasi tampilan hanya 5 event --}}
+                        @if($loop->iteration <= 5)
+                        <tr>
+                            <td>
+                                <span style="font-weight:600; font-size:0.8rem;">{{ Str::limit($data['event']->name, 25) }}</span>
+                            </td>
+                            <td>
+                                <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-mono border border-gray-200">
+                                    {{ $data['event']->event_code }}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <span style="font-weight:700; color:#0f172a;">{{ $data['registered'] }}</span>
+                                <span class="text-gray-400 text-xs"> / {{ $data['quota'] > 0 ? $data['quota'] : '∞' }}</span>
+                            </td>
+                        </tr>
+                        @endif
+                    @empty
+                    <tr><td colspan="3" style="text-align:center; padding: 1rem; color:#94a3b8;">Tidak ada event aktif</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    Chart.defaults.font.family = "'Figtree', sans-serif";
+    Chart.defaults.color = '#94a3b8';
+
+    // --- Persiapkan Data untuk Chart ---
+    const rawData = @json($eventsData);
+
+    // Ambil maksimal 10 event
+    const chartData = rawData.slice(0, 10);
+
+    const labels = chartData.map(item => item.event.name.substring(0, 15) + (item.event.name.length > 15 ? '...' : ''));
+    const registeredData = chartData.map(item => item.registered);
+    const quotaData = chartData.map(item => item.quota);
+
+    // --- Config Chart ---
+    const ctx = document.getElementById('participantsChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Peserta Terdaftar',
+                    data: registeredData,
+                    backgroundColor: '#3b82f6', // Biru
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                },
+                {
+                    label: 'Kuota Maksimal',
+                    data: quotaData,
+                    backgroundColor: '#e2e8f0', // Abu-abu
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
+                    grouped: false, // Stack visual trick
+                    order: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: { boxWidth: 10, usePointStyle: true, pointStyle: 'circle' }
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 10,
+                    cornerRadius: 8,
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.raw;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9', borderDash: [2, 2] },
+                    ticks: { font: { size: 10 } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10 } }
+                }
+            },
+            layout: { padding: { top: 0, bottom: 0, left: 0, right: 0 } }
+        }
+    });
+});
+</script>
+@endpush

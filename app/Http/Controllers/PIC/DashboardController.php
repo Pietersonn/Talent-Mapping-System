@@ -5,6 +5,7 @@ namespace App\Http\Controllers\PIC;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\TestSession;
+use App\Models\EventParticipant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -13,108 +14,95 @@ class DashboardController extends Controller
     public function index()
     {
         $pic = Auth::user();
-        abort_unless($pic, 401);
+        abort_unless($pic !== null, 401);
 
-        // Ambil semua event milik PIC (aktif saja, sesuai kode kamu)
+        // 1. Ambil Event milik PIC
         $myEvents = Event::query()
             ->where('pic_id', $pic->id)
             ->where('is_active', true)
             ->orderByDesc('start_date')
-            ->get(['id','name','event_code','start_date','end_date','is_active','max_participants']);
+            ->get(['id', 'name', 'event_code', 'start_date', 'end_date', 'is_active', 'max_participants']);
 
         $eventIds = $myEvents->pluck('id');
 
-        // ====== Aggregate peserta untuk seluruh event PIC ======
+        // 2. Hitung Statistik Global
+        // Total Peserta: Diambil dari tabel event_participants (Orang yang didaftarkan/diundang)
+        $totalParticipants = 0;
         if ($eventIds->isNotEmpty()) {
-            $agg = DB::table('event_participants as ep')
-                ->selectRaw('
-                    COUNT(*) AS total_participants,
-                    SUM(CASE WHEN ep.test_completed = 1 THEN 1 ELSE 0 END) AS completed_tests,
-                    SUM(CASE WHEN ep.results_sent   = 1 THEN 1 ELSE 0 END) AS results_sent
-                ')
-                ->whereIn('ep.event_id', $eventIds)
-                ->first();
-        } else {
-            // fallback jika belum ada event
-            $agg = (object)[
-                'total_participants' => 0,
-                'completed_tests'    => 0,
-                'results_sent'       => 0,
-            ];
+            $totalParticipants = EventParticipant::whereIn('event_id', $eventIds)->count();
         }
 
-        $totalEvents       = $myEvents->count();
-        $totalParticipants = (int) ($agg->total_participants ?? 0);
-        $completedTests    = (int) ($agg->completed_tests ?? 0);
-        $pendingTests      = max(0, $totalParticipants - $completedTests);
+        // Completed Tests: Diambil dari tabel test_sessions (Orang yang benar-benar mengerjakan & selesai)
+        $completedTests = 0;
+        if ($eventIds->isNotEmpty()) {
+            $completedTests = TestSession::whereIn('event_id', $eventIds)
+                ->where('is_completed', true)
+                ->count();
+        }
 
-        // ====== Recent activity (sesi terbaru di event PIC) ======
+        // Pending Tests: Peserta terdaftar dikurangi yang sudah selesai
+        // (Max 0 untuk mencegah angka negatif jika ada anomali data)
+        $pendingTests = max(0, $totalParticipants - $completedTests);
+        $totalEvents  = $myEvents->count();
+
+        // 3. Ambil Sesi Terbaru (Recent Activity)
         $recentSessions = $eventIds->isNotEmpty()
             ? TestSession::query()
-                ->whereIn('event_id', $eventIds)
-                ->with(['user:id,name,email', 'event:id,name,event_code'])
-                ->latest('updated_at')
-                ->limit(10)
-                ->get()
+            ->whereIn('event_id', $eventIds)
+            ->with(['user:id,name,email', 'event:id,name,event_code'])
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
             : collect();
 
-        // ====== Progress per event (pakai agregasi sekali + mapping) ======
-        $progressMap = [];
+        // 4. Siapkan Data Per Event (Untuk Tabel & Chart)
+        // Map Peserta Terdaftar (Registered)
+        $registeredMap = [];
         if ($eventIds->isNotEmpty()) {
-            $perEventAgg = DB::table('event_participants as ep')
-                ->selectRaw('
-                    ep.event_id,
-                    COUNT(*) AS total_participants,
-                    SUM(CASE WHEN ep.test_completed = 1 THEN 1 ELSE 0 END) AS completed
-                ')
-                ->whereIn('ep.event_id', $eventIds)
-                ->groupBy('ep.event_id')
-                ->get();
-
-            foreach ($perEventAgg as $row) {
-                $progressMap[(int)$row->event_id] = [
-                    'total_participants' => (int)$row->total_participants,
-                    'completed'          => (int)$row->completed,
-                ];
-            }
+            $registeredMap = EventParticipant::select('event_id', DB::raw('count(*) as total'))
+                ->whereIn('event_id', $eventIds)
+                ->groupBy('event_id')
+                ->pluck('total', 'event_id')
+                ->toArray();
         }
 
-        $eventProgress = [];
-        foreach ($myEvents as $ev) {
-            $p = $progressMap[$ev->id] ?? ['total_participants' => 0, 'completed' => 0];
-            $participants = (int) $p['total_participants'];
-            $completed    = (int) $p['completed'];
-            $rate         = $participants > 0 ? round($completed / $participants * 100, 1) : 0.0;
+        // Map Peserta Selesai (Completed) - Optional jika ingin dipakai di view
+        $completedMap = [];
+        if ($eventIds->isNotEmpty()) {
+            $completedMap = TestSession::select('event_id', DB::raw('count(*) as total'))
+                ->whereIn('event_id', $eventIds)
+                ->where('is_completed', true)
+                ->groupBy('event_id')
+                ->pluck('total', 'event_id')
+                ->toArray();
+        }
 
-            // Sediakan DUA nama key untuk kompatibilitas Blade lama/baru
-            $eventProgress[] = [
-                'event'              => $ev,
-                'total_participants' => $participants,
-                'participants'       => $participants,
-                'completed'          => $completed,
-                'completion_rate'    => $rate,
+        $eventsData = [];
+        foreach ($myEvents as $ev) {
+            $registered = $registeredMap[$ev->id] ?? 0;
+            $completed  = $completedMap[$ev->id] ?? 0;
+            $quota      = $ev->max_participants ?? 0;
+
+            $eventsData[] = [
+                'event'      => $ev,
+                'registered' => $registered,
+                'completed'  => $completed,
+                'quota'      => $quota,
+                // Hitung persentase untuk progress bar (opsional)
+                'completion_rate' => $registered > 0 ? round(($completed / $registered) * 100) : 0,
             ];
         }
 
-        // ====== Stats array (biar Blade yang pakai $stats nggak error) ======
-        $stats = [
-            'total_events'       => (int) $totalEvents,
-            'total_participants' => (int) $totalParticipants,
-            'completed_tests'    => (int) $completedTests,
-            'pending_tests'      => (int) $pendingTests,
-        ];
-
         return view('pic.dashboard', [
-            // variabel terpisah (kompatibel dengan Blade lama)
             'totalEvents'       => $totalEvents,
             'totalParticipants' => $totalParticipants,
             'completedTests'    => $completedTests,
             'pendingTests'      => $pendingTests,
+            'recentSessions'    => $recentSessions,
+            'eventsData'        => $eventsData, // Variabel utama untuk tabel
 
-            // paket stats (kompatibel dengan Blade baru)
-            'stats'         => $stats,
-            'recentSessions'=> $recentSessions,
-            'eventProgress' => $eventProgress,
+            // Variabel kompatibilitas (jika view lama masih pakai ini)
+            'eventProgress'     => $eventsData,
         ]);
     }
 }

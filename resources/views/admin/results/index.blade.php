@@ -41,7 +41,7 @@
         <div>
             <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
                 <i class="fas fa-poll-h" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 8px; margin-right: 8px;"></i>
-                Peserta Assessment
+                Peserta 
             </h1>
         </div>
 

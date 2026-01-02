@@ -1,138 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'PIC Dashboard - TalentMapping')</title>
 
+    <title>@yield('title', 'PIC Dashboard') | TalentMapping</title>
     <link rel="icon" href="{{ asset('assets/public/images/tm-logo.png') }}" type="image/png">
 
-    <link rel="stylesheet" href="{{ asset('assets/pic/css/dashboard.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    {{-- Fonts --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    {{-- Styles & Scripts (Vite) --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <style>
+        :root {
+            --primary: #22c55e;
+            --primary-soft: #dcfce7;
+            --primary-hover: #16a34a;
+            --secondary: #64748b;
+            --dark: #0f172a;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Figtree', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--dark);
+        }
+
+        /* Scrollbar Halus */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        [x-cloak] { display: none !important; }
+    </style>
     @stack('styles')
 </head>
 
-<body>
-    @php
-        $isDashActive = request()->routeIs('pic.dashboard');
-        $isEventsActive = request()->routeIs('pic.events.*');
-        $isPartsActive = request()->routeIs('pic.participants.*');
-    @endphp
+<body class="antialiased h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
 
-    <!-- SIDEBAR -->
-    <nav id="sidebar" class="sidebar">
-        <div class="sidebar-header d-flex align-items-center justify-content-between px-3 py-2">
-            <div class="sidebar-brand d-flex align-items-center gap-2">
-                <i class="bi bi-person-badge fs-5"></i>
-                <span class="fw-semibold">PIC Panel</span>
-            </div>
-            <button class="btn btn-sm btn-light d-lg-none" id="sidebarToggle" aria-label="Toggle sidebar">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
+    <div class="flex h-full w-full">
+        {{-- Include Sidebar khusus PIC --}}
+        @include('pic.layouts.partials.sidebar')
 
-        <ul class="sidebar-nav list-unstyled px-2 mb-0">
-            <li class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 {{ $isDashActive ? 'active' : '' }}"
-                    href="{{ route('pic.dashboard') }}">
-                    <i class="bi bi-speedometer2"></i><span>Dashboard</span>
-                </a>
-            </li>
+        <div class="flex-1 flex flex-col h-full relative overflow-hidden transition-all duration-300">
+            {{-- Include Navbar khusus PIC --}}
+            @include('pic.layouts.partials.navbar')
 
-            <li class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 {{ $isEventsActive ? 'active' : '' }}"
-                    href="{{ route('pic.events.index') }}">
-                    <i class="bi bi-calendar-event"></i><span>My Events</span>
-                </a>
-            </li>
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 pb-24 scroll-smooth">
+                <div class="max-w-7xl mx-auto fade-in-up">
+                    @if (session('success'))
+                        <div class="mb-6 p-4 rounded-xl bg-green-50 border border-green-100 text-green-700 flex items-center gap-3">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="font-medium">{{ session('success') }}</span>
+                        </div>
+                    @endif
 
-            <li class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 {{ $isPartsActive ? 'active' : '' }}"
-                    href="{{ route('pic.participants.index') }}">
-                    <i class="bi bi-people"></i><span>Participants</span>
-                </a>
-            </li>
-            {{-- Tidak ada menu Results / Reports --}}
-        </ul>
+                    @if (session('error'))
+                        <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 flex items-center gap-3">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span class="font-medium">{{ session('error') }}</span>
+                        </div>
+                    @endif
 
-        <div class="sidebar-footer mt-auto p-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-person-circle fs-4"></i>
-                <div>
-                    <div class="fw-semibold">{{ Auth::user()->name }}</div>
-                    <div class="text-muted small">PIC</div>
+                    @hasSection('header')
+                        @yield('header')
+                    @endif
+
+                    @yield('content')
                 </div>
-            </div>
 
-            <a href="{{ route('logout') }}" class="btn btn-outline-light btn-sm w-100"
-                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
-            <form id="logout-form" class="d-none" action="{{ route('logout') }}" method="POST">@csrf</form>
-        </div>
-    </nav>
-
-    <!-- MAIN -->
-    <div class="main-content">
-        <!-- TOPBAR -->
-        <nav class="topbar navbar navbar-expand navbar-light bg-white border-bottom px-3">
-            <button class="btn btn-link d-lg-none" id="sidebarToggleTop" aria-label="Toggle sidebar">
-                <i class="bi bi-list fs-4"></i>
-            </button>
-
-            <div class="ms-auto navbar-nav">
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> <span>{{ Auth::user()->name }}</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('home') }}">
-                                <i class="bi bi-house"></i><span>Home</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="bi bi-box-arrow-right"></i><span>Logout</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <!-- CONTENT -->
-        <div class="content-wrapper p-3 p-lg-4">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @yield('content')
+                {{-- Include Footer khusus PIC --}}
+                @include('pic.layouts.partials.footer')
+            </main>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('assets/pic/js/dashboard.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     @stack('scripts')
 </body>
-
 </html>
