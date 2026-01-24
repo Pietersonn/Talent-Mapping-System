@@ -1,4 +1,7 @@
 @php
+    use Carbon\Carbon;
+
+    // --- 1. Setup Logo ---
     $logoPath = public_path('assets/public/images/logo-bcti1.png');
     $logoBase64 = '';
     if (file_exists($logoPath)) {
@@ -7,6 +10,12 @@
         $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
     }
 
+    // --- 2. Setup Tanggal & Lokasi ---
+    Carbon::setLocale('id');
+    $currentDate  = Carbon::now()->isoFormat('D MMMM Y'); // Contoh: 21 Januari 2026
+    $cityLocation = 'Barito Kuala';
+
+    // --- 3. Data Default ---
     $companyName    = 'BUSINESS & COMMUNICATION TRAINING INSTITUTE';
     $companyAddr1   = 'Kompleks Sekolah Global Islamic Boarding School (GIBS)';
     $companyAddr2   = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2, Sungai Lumbah, Kec. Alalak, Kab. Barito Kuala, Kalimantan Selatan 70582';
@@ -98,7 +107,7 @@
         width: 100%;
         border-collapse: collapse;
         background: #fff;
-        table-layout: auto; /* PENTING */
+        table-layout: auto;
     }
 
     thead th {
@@ -121,21 +130,23 @@
         white-space: normal;
     }
 
-    /* ===== COLUMN WIDTH (ONLY SMALL COLUMNS) ===== */
-    .col-no {
-        width: 30px;
-        text-align: center;
-    }
+    /* ===== COLUMN WIDTH ===== */
+    .col-no { width: 30px; text-align: center; }
+    .col-kode { width: 50px; text-align: center; font-weight: bold; }
+    .col-nama { width: 120px; font-weight: bold; }
 
-    .col-kode {
-        width: 50px;
-        text-align: center;
-        font-weight: bold;
+    /* ===== SIGNATURE TABLE CSS (New) ===== */
+    .signature-table {
+        width: 100%;
+        margin-top: 20px;
+        border: none !important;
+        page-break-inside: avoid;
     }
-
-    .col-nama {
-        width: 120px;
-        font-weight: bold;
+    .signature-table td {
+        border: none !important;
+        padding: 0;
+        vertical-align: top;
+        text-align: center;
     }
 
     /* ===== FOOTER ===== */
@@ -157,7 +168,6 @@
 
 <body>
 
-    <!-- HEADER -->
     <div class="header clearfix">
         <div class="h-left">
             @if($logoBase64)
@@ -179,7 +189,6 @@
 
     <hr class="divider">
 
-    <!-- TITLE -->
     <div class="title-wrap">
         <div class="title">LAPORAN KOMPETENSI</div>
         <div class="subtitle">
@@ -187,7 +196,6 @@
         </div>
     </div>
 
-    <!-- TABLE -->
     <table>
         <thead>
             <tr>
@@ -221,7 +229,36 @@
         </tbody>
     </table>
 
-    <!-- FOOTER -->
+    <table class="signature-table">
+        <tr>
+            {{-- Spacer Kiri (65%) agar tanda tangan pas di kanan bawah landscape --}}
+            <td style="width: 65%; text-align:left;"></td>
+
+            {{-- Blok Tanda Tangan (35%) --}}
+            <td style="width: 35%;">
+                {{-- Tanggal --}}
+                <div style="margin-bottom: 5px;">
+                    {{ $cityLocation }}, {{ $currentDate }}
+                </div>
+
+                {{-- Jabatan Atas --}}
+                <div style="margin-bottom: 60px;">
+                    Mengetahui, Pimpinan Unit
+                </div>
+
+                {{-- Nama (Bold & Underline) --}}
+                <div style="font-weight: bold; text-decoration: underline;">
+                    Muhammad Zain Mahbuby, B.Eng
+                </div>
+
+                {{-- Jabatan Bawah --}}
+                <div>
+                    Koordinator BCTI
+                </div>
+            </td>
+        </tr>
+    </table>
+
     <div class="footer">
         Halaman <span class="pagenum"></span>
     </div>

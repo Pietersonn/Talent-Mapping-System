@@ -1,10 +1,19 @@
 @php
+    use Carbon\Carbon;
+
+    // --- 1. Setup Logo ---
     $logoFile = public_path('assets/public/images/logo-bcti1.png');
     $logoBase64 = '';
     if (file_exists($logoFile)) {
         $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile));
     }
 
+    // --- 2. Setup Tanggal & Lokasi ---
+    Carbon::setLocale('id');
+    $currentDate  = Carbon::now()->isoFormat('D MMMM Y'); // Contoh: 21 Januari 2026
+    $cityLocation = 'Barito Kuala';
+
+    // --- 3. Data Default ---
     $companyName = 'BUSINESS & COMMUNICATION TRAINING INSTITUTE';
     $companyAddr1 = 'Kompleks Sekolah Global Islamic Boarding School (GIBS)';
     $companyAddr2 = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2, Sungai Lumbah, Barito Kuala, 70582';
@@ -32,12 +41,15 @@
         .title { font-size: 14px; font-weight: bold; text-transform: uppercase; }
         .subtitle { font-size: 10px; margin-top: 5px; }
 
-        /* Table */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #000; padding: 5px; vertical-align: top; text-align: left; }
+        /* Table Data Style */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .data-table th, .data-table td { border: 1px solid #000; padding: 5px; vertical-align: top; text-align: left; }
+        .data-table th { background-color: #f0f0f0; font-weight: bold; text-align: center; font-size: 10px; }
+        .data-table td { font-size: 10px; background-color: transparent; font-weight: normal; }
 
-        th { background-color: #f0f0f0; font-weight: bold; text-align: center; font-size: 10px; }
-        td { font-size: 10px; background-color: transparent; font-weight: normal; }
+        /* Signature Table Style (Override Borders) */
+        .signature-table { width: 100%; margin-top: 20px; border: none; page-break-inside: avoid; }
+        .signature-table td { border: none; padding: 0; vertical-align: top; text-align: center; }
 
         .footer { position: fixed; bottom: -5mm; left: 0; right: 0; text-align: right; font-size: 9px; color: #666; }
         .pagenum:before { content: counter(page); }
@@ -70,13 +82,14 @@
         </div>
     </div>
 
-    <table>
+    {{-- Tambahkan class "data-table" agar CSS spesifik --}}
+    <table class="data-table">
         <thead>
             <tr>
                 <th style="width: 4%;">No</th>
                 <th style="width: 15%;">Nama</th>
                 <th style="width: 15%;">Email</th>
-                <th style="width: 15%;">Acara</th> {{-- KOLOM ACARA BARU --}}
+                <th style="width: 15%;">Acara</th>
                 <th style="width: 10%;">Tgl Req</th>
                 <th style="width: 8%;">Status</th>
                 <th style="width: 13%;">Diproses Oleh</th>
@@ -123,6 +136,37 @@
                 </tr>
             @endforelse
         </tbody>
+    </table>
+
+    {{-- BAGIAN TANDA TANGAN (STYLE SURAT RESMI - LANDSCAPE) --}}
+    <table class="signature-table">
+        <tr>
+            {{-- Spacer Kiri (65%) --}}
+            <td style="width: 65%; text-align: left;"></td>
+
+            {{-- Blok Tanda Tangan Kanan (35%) --}}
+            <td style="width: 35%;">
+                {{-- Tanggal --}}
+                <div style="margin-bottom: 5px;">
+                    {{ $cityLocation }}, {{ $currentDate }}
+                </div>
+
+                {{-- Jabatan Atas --}}
+                <div style="margin-bottom: 60px;">
+                    Mengetahui, Pimpinan Unit
+                </div>
+
+                {{-- Nama (Bold & Underline) --}}
+                <div style="font-weight: bold; text-decoration: underline;">
+                    Muhammad Zain Mahbuby, B.Eng
+                </div>
+
+                {{-- Jabatan Bawah --}}
+                <div>
+                    Koordinator BCTI
+                </div>
+            </td>
+        </tr>
     </table>
 
     <div class="footer">Halaman <span class="pagenum"></span></div>

@@ -245,7 +245,7 @@ class ScoreController extends Controller
             'generatedAt' => now('Asia/Makassar')->format('d M Y H:i') . ' WITA',
         ];
 
-        return Pdf::loadView('pic.participants.pdf.report-participant', $data)
+        return Pdf::loadView('admin.score.pdf.score', $data)
             ->setPaper('a4', 'landscape')
             ->setOptions(['isRemoteEnabled' => true])
             ->stream('laporan-skor-peserta.pdf');

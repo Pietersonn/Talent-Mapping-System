@@ -1,4 +1,7 @@
 @php
+    use Carbon\Carbon;
+
+    // --- 1. Setup Logo ---
     $logoPath = public_path('assets/public/images/logo-bcti1.png');
     $logoBase64 = '';
     if (file_exists($logoPath)) {
@@ -6,17 +9,21 @@
         $data = file_get_contents($logoPath);
         $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
     }
-@endphp
 
-@php
-  $reportTitle    = $reportTitle ?? 'Laporan Peserta';
-  $generatedBy    = $generatedBy ?? 'Admin';
-  $generatedAt    = $generatedAt ?? now()->format('d/m/Y H:i');
+    // --- 2. Setup Tanggal & Lokasi ---
+    Carbon::setLocale('id');
+    $currentDate  = Carbon::now()->isoFormat('D MMMM Y'); // Contoh: 21 Januari 2026
+    $cityLocation = 'Barito Kuala';
 
-  $companyName    = 'BUSINESS & COMMUNICATION TRAINING INSTITUTE';
-  $companyAddr1   = 'Kompleks Sekolah Global Islamic Boarding School (GIBS)';
-  $companyAddr2   = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2, Sungai Lumbah, Kec. Alalak, Kab. Barito Kuala, Kalimantan Selatan 70582';
-  $companyContact = 'Email : bcti@hasnurcentre.org | Website: bcti.id';
+    // --- 3. Data Default ---
+    $reportTitle    = $reportTitle ?? 'Laporan Peserta';
+    $generatedBy    = $generatedBy ?? 'Admin';
+    $generatedAt    = $generatedAt ?? now()->format('d/m/Y H:i');
+
+    $companyName    = 'BUSINESS & COMMUNICATION TRAINING INSTITUTE';
+    $companyAddr1   = 'Kompleks Sekolah Global Islamic Boarding School (GIBS)';
+    $companyAddr2   = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2, Sungai Lumbah, Kec. Alalak, Kab. Barito Kuala, Kalimantan Selatan 70582';
+    $companyContact = 'Email : bcti@hasnurcentre.org | Website: bcti.id';
 @endphp
 
 <!DOCTYPE html>
@@ -28,7 +35,7 @@
   @page { size: A4 portrait; margin: 18mm 14mm 16mm 14mm; }
   body { font-family: "Times New Roman", Times, serif; font-size: 11px; color: #111; }
 
-  /* --- HEADER & KOP SURAT (Sesuai Referensi) --- */
+  /* --- HEADER & KOP SURAT --- */
   .clearfix:after { content:""; display: table; clear: both; }
   .header { margin-bottom: 8px; }
   .h-left  { float:left;  width:38%; }
@@ -43,11 +50,15 @@
   .title   { font-size: 18px; font-weight:700; text-transform:uppercase; margin:0 0 4px; }
   .subtitle{ font-size: 11px; color:#333; }
 
-  /* --- TABEL --- */
+  /* --- TABEL DATA --- */
   table { width:100%; border-collapse: collapse; background:#fff; margin-top: 10px; table-layout: fixed; }
   thead th { background:#ededed; border:1px solid #000; font-weight:700; font-size: 11px; padding: 6px; text-align:center; vertical-align: middle; }
   tbody td { border:1px solid #000; padding: 6px; vertical-align: top; font-size: 10px; word-wrap: break-word; }
   tbody td.name-col { text-align:left; font-weight: normal; }
+
+  /* --- TANDA TANGAN STYLE (Override Borders) --- */
+  .signature-table { width: 100%; margin-top: 30px; border: none; page-break-inside: avoid; }
+  .signature-table td { border: none; padding: 0; vertical-align: top; text-align: center; }
 
   /* Utilities */
   .text-center{ text-align:center; }
@@ -108,6 +119,37 @@
         <tr><td colspan="6" class="text-center" style="padding:20px;">Tidak ada data hasil assessment.</td></tr>
       @endforelse
     </tbody>
+  </table>
+
+  {{-- BAGIAN TANDA TANGAN RESMI --}}
+  <table class="signature-table">
+    <tr>
+      {{-- Spacer Kiri (60%) --}}
+      <td style="width: 60%;"></td>
+
+      {{-- Blok Tanda Tangan Kanan (40%) --}}
+      <td style="width: 40%;">
+        {{-- Tanggal --}}
+        <div style="margin-bottom: 5px;">
+            {{ $cityLocation }}, {{ $currentDate }}
+        </div>
+
+        {{-- Jabatan Atas --}}
+        <div style="margin-bottom: 60px;">
+            Mengetahui, Pimpinan Unit
+        </div>
+
+        {{-- Nama (Bold & Underline) --}}
+        <div style="font-weight: bold; text-decoration: underline;">
+            Muhammad Zain Mahbuby, B.Eng
+        </div>
+
+        {{-- Jabatan Bawah --}}
+        <div>
+            Koordinator BCTI
+        </div>
+      </td>
+    </tr>
   </table>
 
   <div class="footer">Halaman <span class="pagenum"></span></div>

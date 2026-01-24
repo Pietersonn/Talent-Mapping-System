@@ -1,4 +1,7 @@
 @php
+    use Carbon\Carbon;
+
+    // Setup Logo
     $logoPath = public_path('assets/public/images/logo-bcti1.png');
     $logoBase64 = '';
     if (file_exists($logoPath)) {
@@ -7,13 +10,17 @@
         $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
     }
 
+    // Default Variables
     $reportTitle    = $reportTitle ?? 'Laporan Versi Soal';
     $generatedBy    = $generatedBy ?? 'Admin';
-    $generatedAt    = $generatedAt ?? now()->format('d/m/Y H:i');
+
+    // Mengatur Tanggal Surat (Bahasa Indonesia)
+    Carbon::setLocale('id');
+    $currentDate = Carbon::now()->isoFormat('D MMMM Y'); // Hasil: 21 Januari 2026
+    $cityLocation = 'Barito Kuala'; // Bisa disesuaikan dengan kota kantor
 
     $companyName    = 'BUSINESS & COMMUNICATION TRAINING INSTITUTE';
     $companyAddr1   = 'Kompleks Sekolah Global Islamic Boarding School (GIBS)';
-    // Memecah alamat agar rapi dan tidak kepanjangan
     $companyAddr2   = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2,';
     $companyAddr3   = 'Sungai Lumbah, Kec. Alalak, Kab. Barito Kuala, Kalimantan Selatan 70582';
     $companyContact = 'Email : bcti@hasnurcentre.org | Website: bcti.id';
@@ -25,37 +32,69 @@
 <meta charset="utf-8">
 <title>{{ $reportTitle }}</title>
 <style>
-  @page { size: A4 potrait; margin: 18mm 14mm 16mm 14mm; }
-  body { font-family: "Times New Roman", Times, serif; font-size: 11px; color: #000; }
+  /* Margin disesuaikan agar muat A4 */
+  @page { size: A4 portrait; margin: 20mm 15mm 15mm 15mm; }
+
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11px;
+    color: #000;
+    line-height: 1.3;
+  }
+
+  /* Helper Classes */
   .clearfix:after { content:""; display: table; clear: both; }
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+  .font-bold { font-weight: bold; }
+  .uppercase { text-transform: uppercase; }
 
-  .header { margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; }
-  .h-left  { float:left;  width:10%; }
-  .h-right { float:right; width:88%; text-align:right; }
-  .h-logo  { height: 60px; width: auto; }
+  /* Header Section */
+  .header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+  .h-left  { float:left;  width: 12%; }
+  .h-right { float:right; width: 88%; text-align: right; }
+  .h-logo  { height: 65px; width: auto; }
 
-  .company-name { font-weight: 700; font-size: 14px; text-transform: uppercase; }
-  .company-sub  { font-size: 10px; line-height:1.3; }
+  .company-name { font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .company-sub  { font-size: 10px; }
 
-  .title-wrap { text-align:center; margin: 15px 0 20px; }
-  .title   { font-size: 16px; font-weight:700; text-transform:uppercase; margin-bottom: 5px; }
+  /* Title Section */
+  .title-wrap { text-align:center; margin-bottom: 25px; }
+  .title   { font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; text-decoration: underline; }
   .subtitle{ font-size: 11px; }
 
-  table { width:100%; border-collapse: collapse; margin-top: 10px; }
-  thead th { border:1px solid #000; font-weight:700; font-size: 11px; padding: 6px; text-align:left; background-color: #f0f0f0; }
-  tbody td { border:1px solid #000; padding: 6px; vertical-align: top; font-size: 11px; }
+  /* Table Section */
+  table.data-table { width:100%; border-collapse: collapse; margin-bottom: 10px; }
+  table.data-table thead th {
+    border: 1px solid #000;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 8px 5px;
+    text-align: center;
+    background-color: #e0e0e0;
+  }
+  table.data-table tbody td {
+    border: 1px solid #000;
+    padding: 6px 5px;
+    vertical-align: middle; /* Isi tabel di tengah vertikal */
+  }
 
-  .text-center{ text-align:center; }
-  .footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: right; font-size: 10px; font-style: italic; }
+  /* Footer Page Number */
+  .footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: right; font-size: 9px; font-style: italic; }
   .pagenum:before { content: counter(page); }
+
+  /* Signature Section (Surat Resmi Style) */
+  .signature-table { width: 100%; margin-top: 40px; border: none; page-break-inside: avoid; }
+  .signature-table td { border: none; padding: 0; vertical-align: top; }
 </style>
 </head>
 <body>
 
+  {{-- HEADER --}}
   <div class="header clearfix">
     <div class="h-left">
       @if(!empty($logoBase64))
-        <img class="h-logo" src="{{ $logoBase64 }}" alt="BCTI">
+        <img class="h-logo" src="{{ $logoBase64 }}" alt="Logo">
       @else
         <strong>BCTI</strong>
       @endif
@@ -71,23 +110,25 @@
     </div>
   </div>
 
+  {{-- JUDUL LAPORAN --}}
   <div class="title-wrap">
     <div class="title">{{ $reportTitle }}</div>
     <div class="subtitle">Dicetak oleh: {{ $generatedBy }}</div>
     @if(!empty($search))
-        <div class="subtitle" style="margin-top:2px;">Filter Pencarian: "{{ $search }}"</div>
+        <div class="subtitle">Filter Pencarian: "{{ $search }}"</div>
     @endif
   </div>
 
-  <table>
+  {{-- TABEL DATA --}}
+  <table class="data-table">
     <thead>
       <tr>
-        <th style="width:30px; text-align:center;">No.</th>
-        <th style="width:20%;">Nama Versi</th>
-        <th style="width:35%;">Deskripsi</th>
-        <th style="width:10%; text-align:center;">Tipe</th>
-        <th style="width:10%; text-align:center;">Jml Soal</th>
-        <th style="width:10%; text-align:center;">Status</th>
+        <th style="width:30px;">No.</th>
+        <th style="width:25%;">Nama Versi</th>
+        <th style="width:30%;">Deskripsi</th>
+        <th style="width:10%;">Tipe</th>
+        <th style="width:10%;">Jml Soal</th>
+        <th style="width:10%;">Status</th>
       </tr>
     </thead>
     <tbody>
@@ -95,26 +136,52 @@
       @forelse($versions as $v)
         <tr>
           <td class="text-center">{{ $no++ }}</td>
-          <td>
-              {{ $v->name }}
-          </td>
+          <td>{{ $v->name }}</td>
           <td>{{ $v->description ?: '-' }}</td>
           <td class="text-center">{{ strtoupper($v->type) }}</td>
           <td class="text-center">{{ $v->questions_count }}</td>
           <td class="text-center">
-              @if($v->is_active)
-                  Aktif
-              @else
-                  Tidak Aktif
-              @endif
+              @if($v->is_active) Aktif @else Tidak Aktif @endif
           </td>
         </tr>
       @empty
-        <tr><td colspan="6" class="text-center" style="padding:20px;">Tidak ada data versi soal.</td></tr>
+        <tr><td colspan="6" class="text-center" style="padding:15px;">Tidak ada data versi soal.</td></tr>
       @endforelse
     </tbody>
   </table>
 
+  {{-- TANDA TANGAN (STYLE SURAT DINAS) --}}
+  <table class="signature-table">
+    <tr>
+      {{-- Spacer Kiri (60%) --}}
+      <td style="width: 60%;"></td>
+
+      {{-- Blok Tanda Tangan Kanan (40%) --}}
+      <td style="width: 40%; text-align: center;">
+        {{-- Tanggal Surat --}}
+        <div style="margin-bottom: 5px;">
+            {{ $cityLocation }}, {{ $currentDate }}
+        </div>
+
+        {{-- Jabatan Atas --}}
+        <div style="margin-bottom: 60px;">
+            Mengetahui, Pimpinan Unit
+        </div>
+
+        {{-- Nama (Bold & Underline) --}}
+        <div style="font-weight: bold; text-decoration: underline;">
+            Muhammad Zain Mahbuby, B.Eng
+        </div>
+
+        {{-- Jabatan Bawah --}}
+        <div>
+            Koordinator BCTI
+        </div>
+      </td>
+    </tr>
+  </table>
+
   <div class="footer">Halaman <span class="pagenum"></span></div>
+
 </body>
 </html>

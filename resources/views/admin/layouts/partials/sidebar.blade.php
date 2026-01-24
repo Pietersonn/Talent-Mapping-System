@@ -89,7 +89,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-users-cog {{ request()->routeIs('admin.users.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Manajemen peserta
+            Manajemen pengguna
         </a>
         @endif
 
@@ -99,7 +99,7 @@
                 <div class="w-6 flex justify-center mr-3">
                     <i class="fas fa-calendar-check {{ request()->routeIs('admin.events.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
                 </div>
-                Managemen Events
+                Manajemen Event
             </div>
             @if (isset($user) && $user->role === 'staff')
                 <span class="w-2 h-2 rounded-full bg-blue-400"></span>

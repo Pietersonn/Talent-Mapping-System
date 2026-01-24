@@ -1,151 +1,213 @@
-<!doctype html>
-<html lang="en">
-
+<!DOCTYPE html>
+<html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Masuk — TalentMapping</title>
 
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <link rel="stylesheet" href="{{ asset('assets/login-form-09/fonts/icomoon/style.css') }}">
-
-    <link rel="stylesheet" href="{{ asset('assets/login-form-09/css/owl.carousel.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/login-form-09/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/login-form-09/css/style.css') }}">
-
-    <title>Login — TalentMapping</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-      .password-wrapper {
-        position: relative;
-      }
-      #togglePassword {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #6c757d; /* Warna ikon */
-      }
+        body { font-family: 'Inter', sans-serif; }
+        .text-tm-green { color: #10b981; }
+        .bg-tm-green { background-color: #10b981; }
+        .bg-tm-green:hover { background-color: #059669; }
 
-      .password-wrapper .form-control {
-        padding-right: 40px;
-      }
+        /* Mencegah highlight biru saat tap di mobile */
+        * { -webkit-tap-highlight-color: transparent; }
+
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+            background-color: #10b981 !important;
+        }
     </style>
-    </head>
+</head>
 
-<body>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
 
-    <div class="content">
-        <div class="container">
-            <div class="row justify-content-center align-items-center min-vh-100">
-                <div class="col-md-6 contents">
-                    <div class="form-block mx-auto">
-                        <div class="mb-4 text-center">
-                            <h3><strong>TalentMapping</strong></h3>
-                            <p class="mb-4">Discover your potential and unlock your talent with us.</p>
+    <div class="absolute top-0 left-0 -translate-x-1/4 -translate-y-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
+
+    <div class="w-full max-w-md z-10">
+
+        <div class="bg-white py-8 px-6 sm:py-10 sm:px-10 shadow-lg sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl border border-gray-100">
+
+            <div class="text-center mb-6 sm:mb-8">
+                <img class="mx-auto h-12 w-auto sm:h-14 drop-shadow-sm hover:scale-105 transition-transform duration-300" src="{{ asset('assets/public/images/tm-logo.png') }}" alt="TalentMapping Logo">
+
+                <h2 class="mt-4 text-2xl font-extrabold text-gray-900 tracking-tight">
+                    Talent<span class="text-tm-green">Mapping</span>
+                </h2>
+                <p class="mt-2 text-sm text-gray-500 px-4 sm:px-0 leading-relaxed">
+                    Masuk untuk melanjutkan asesmen Anda.
+                </p>
+            </div>
+
+            <form class="space-y-5 sm:space-y-6" action="{{ route('login') }}" method="POST">
+                @csrf
+
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Alamat Email</label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
                         </div>
-
-                        {{-- session success --}}
-                        @if (session('status'))
-                            <div class="alert alert-success py-2 text-center mb-4">{{ session('status') }}</div>
-                        @endif
-
-                        <form method="POST" action="{{ route('login') }}">
-                            @csrf
-
-                            <div class="form-group first">
-                                <label for="email">Email</label>
-                                <input id="email" type="email" name="email"
-                                    class="form-control @error('email') is-invalid @enderror"
-                                    value="{{ old('email') }}" required autofocus>
-                                @error('email')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="form-group last mb-4">
-                                <label for="password">Password</label>
-
-                                <div class="password-wrapper">
-                                  <input id="password" type="password" name="password"
-                                    class="form-control @error('password') is-invalid @enderror" required>
-                                  <span id="togglePassword">
-                                    <span class="icon-eye" id="toggleIcon"></span>
-                                  </span>
-                                </div>
-
-                                @error('password')
-                                  <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="d-flex mb-4 align-items-center justify-content-between">
-                                <label class="control control--checkbox mb-0">
-                                    <span class="caption">Remember me</span>
-                                    <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }} />
-                                    <div class="control__indicator"></div>
-                                </label>
-
-                                @if (Route::has('password.request'))
-                                    <a href="{{ route('password.request') }}" class="forgot-pass">Forgot Password</a>
-                                @endif
-                            </div>
-
-                            <button type="submit" class="btn btn-pill text-white btn-block btn-primary">
-                                Log In
-                            </button>
-
-                            <span class="d-block text-center my-4 text-muted">or sign in with</span>
-
-                            <div class="social-login text-center mb-4">
-                                <a href="{{ route('login.google.redirect') }}" class="google">
-                                    <span class="icon-google mr-3"></span>
-                                </a>
-                            </div>
-
-                            @if (Route::has('register'))
-                                <div class="text-center">
-                                    <small>Don’t have an account?
-                                        <a href="{{ route('register') }}">Create one</a>
-                                    </small>
-                                </div>
-                            @endif
-                        </form>
+                        <input id="email" name="email" type="email" required value="{{ old('email') }}"
+                            class="appearance-none block w-full pl-10 pr-3 py-3 sm:py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+                            placeholder="nama@email.com">
                     </div>
                 </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="password" class="block text-sm font-semibold text-gray-700">Kata Sandi</label>
+                        @if (Route::has('password.request'))
+                            <div class="text-sm">
+                                <a href="{{ route('password.request') }}" class="font-medium text-green-600 hover:text-green-500 transition p-1 -mr-1 rounded-md active:bg-green-50">
+                                    Lupa sandi?
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input id="password" name="password" type="password" required
+                            class="appearance-none block w-full pl-10 pr-10 py-3 sm:py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+                            placeholder="••••••••">
+
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button" onclick="togglePassword()" class="text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer p-2 rounded-full active:bg-gray-100 transition">
+                                <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg id="eye-slash-icon" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.577-3.23m3.29-3.29a9.969 9.969 0 013.675-1.12c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.577 3.23M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center">
+                    <input id="remember_me" name="remember" type="checkbox" class="h-5 w-5 sm:h-4 sm:w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer">
+                    <label for="remember_me" class="ml-2 block text-sm text-gray-700 cursor-pointer py-1">
+                        Ingat saya
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-3 sm:py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-tm-green hover:bg-green-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200">
+                    Masuk Sekarang
+                </button>
+            </form>
+
+            <div class="mt-8 relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-3 bg-white text-gray-500 font-medium">Atau masuk dengan</span>
+                </div>
             </div>
+
+            <div class="mt-6">
+                <a href="{{ route('login.google.redirect') }}" class="w-full flex items-center justify-center px-4 py-3 sm:py-2.5 border-2 border-gray-200 rounded-lg shadow-sm bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 active:bg-gray-100 hover:border-gray-300 transition duration-200">
+                    <svg class="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M12.0003 20.45c4.6667 0 8.525-3.375 9.875-7.875H12.0003v-4.125h12.5667c.125.625.1833 1.2833.1833 2 0 7.375-5.2583 12-12.75 12-7.1833 0-13-5.8167-13-13s5.8167-13 13-13c3.5083 0 6.6333 1.2917 9.025 3.5583l-3.6583 3.6583c-1.425-1.3667-3.25-2.0917-5.3667-2.0917-4.4167 0-8.1583 3.1917-9.4583 7.35z" fill="#4285F4" fill-rule="evenodd" clip-rule="evenodd"/>
+                        <path d="M2.54199 10.4503c.425-1.2667 1.0583-2.4333 1.8667-3.4667l3.6583 3.6583c-.45.8667-.7083 1.85-.7083 2.9084s.2583 2.0416.7083 2.9083l-3.6583 3.6584c-.8084-1.0334-1.4417-2.2-1.8667-3.4667-.425-1.3083-.6417-2.6916-.6417-4.1s.2167-2.7916.6417-4.1z" fill="#FBBC05" fill-rule="evenodd" clip-rule="evenodd"/>
+                        <path d="M12.0003 24c3.2417 0 6.175-1.125 8.425-3.025l-3.95-3.325c-1.1.75-2.55 1.225-4.475 1.225-3.625 0-6.8583-2.3583-8.0333-5.6917L.291992 16.275C2.52533 20.8167 7.20866 24 12.0003 24z" fill="#34A853" fill-rule="evenodd" clip-rule="evenodd"/>
+                        <path d="M12.0003 4.80001c2.1167 0 3.9417.72501 5.3667 2.09169l3.6583-3.65833C18.6336 1.29167 15.5086 0 12.0003 0 7.20866 0 2.52533 3.18334.291992 7.72501l3.675008 3.09169c1.175-3.33336 4.4083-5.69169 8.0333-5.69169z" fill="#EA4335" fill-rule="evenodd" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-gray-700">Masuk dengan Google</span>
+                </a>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-gray-600">
+                    Belum punya akun?
+                    <a href="{{ route('register') }}" class="font-bold text-green-600 hover:text-green-500 transition p-1 rounded-md active:bg-green-50">
+                        Daftar sekarang
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center text-xs text-gray-400">
+            &copy; {{ date('Y') }} TalentMapping. All rights reserved.
         </div>
     </div>
 
-    <script src="{{ asset('assets/login-form-09/js/jquery-3.3.1.min.js') }}"></script>
-    <script src="{{ asset('assets/login-form-09/js/popper.min.js') }}"></script>
-    <script src="{{ asset('assets/login-form-09/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/login-form-09/js/main.js') }}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-      const toggleButton = document.getElementById("togglePassword");
-      const passwordField = document.getElementById("password");
-      const toggleIcon = document.getElementById("toggleIcon");
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            const eyeSlashIcon = document.getElementById('eye-slash-icon');
 
-      if (toggleButton) {
-        toggleButton.addEventListener("click", function() {
-          // Toggle tipe atribut
-          const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
-          passwordField.setAttribute("type", type);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeSlashIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeSlashIcon.classList.add('hidden');
+            }
+        }
 
-          // Toggle kelas ikon
-          if (type === "text") {
-            // Ganti ke ikon "mata-tercoret".
-            // Pastikan kamu punya 'icon-eye-slash' di icomoon pack kamu.
-            toggleIcon.classList.remove("icon-eye");
-            toggleIcon.classList.add("icon-eye-slash");
-          } else {
-            toggleIcon.classList.remove("icon-eye-slash");
-            toggleIcon.classList.add("icon-eye");
-          }
+        document.addEventListener('DOMContentLoaded', function() {
+            // SweetAlert Mixin untuk mobile (Toast style di mobile seringkali lebih baik, tapi ini standard popup)
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            @if (session('status'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: "{{ session('status') }}",
+                    confirmButtonText: 'Oke',
+                    timer: 3000,
+                    customClass: {
+                        popup: 'rounded-xl', // Styling popup lebih bulat
+                        confirmButton: 'rounded-lg'
+                    }
+                });
+            @endif
+
+            @if ($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Masuk',
+                    text: 'Email atau kata sandi salah.',
+                    confirmButtonText: 'Coba Lagi',
+                    confirmButtonColor: '#d33',
+                    customClass: {
+                        popup: 'rounded-xl',
+                        confirmButton: 'rounded-lg'
+                    }
+                });
+            @endif
         });
-      }
     </script>
-    </body>
-
+</body>
 </html>

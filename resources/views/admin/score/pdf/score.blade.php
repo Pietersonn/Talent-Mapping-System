@@ -1,12 +1,19 @@
 @php
+    use Carbon\Carbon;
+
+    // --- 1. Setup Logo ---
     $logoFile = public_path('assets/public/images/logo-bcti1.png');
     $logoBase64 = '';
     if (file_exists($logoFile)) {
         $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile));
     }
-@endphp
 
-@php
+    // --- 2. Setup Tanggal & Lokasi ---
+    Carbon::setLocale('id');
+    $currentDate  = Carbon::now()->isoFormat('D MMMM Y'); // Contoh: 21 Januari 2026
+    $cityLocation = 'Barito Kuala';
+
+    // --- 3. Data Default ---
     $reportTitle = $reportTitle ?? 'Laporan Kompetensi Peserta';
     $generatedBy = $generatedBy ?? (auth()->user()->name ?? 'Admin');
     $generatedAt = $generatedAt ?? now()->format('d M Y H:i') . ' WITA';
@@ -27,6 +34,7 @@
         body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #111; }
         .clearfix:after { content: ""; display: table; clear: both; }
 
+        /* Header */
         .header { margin-bottom: 8px; }
         .h-left { float: left; width: 38%; }
         .h-right { float: right; width: 60%; text-align: right; }
@@ -37,14 +45,20 @@
 
         .divider { border: 0; border-top: 2px solid #000; margin: 6px 0 12px; }
 
+        /* Judul */
         .title-wrap { text-align: center; margin: 4px 0 10px; }
         .title { font-size: 18px; font-weight: 700; text-transform: uppercase; margin: 0 0 4px; }
         .subtitle { font-size: 11px; color: #333; }
 
-        table { width: 100%; border-collapse: collapse; background: #fff; }
-        thead th { background: #ededed; border: 1px solid #000; font-weight: 700; font-size: 12px; padding: 7px 8px; text-align: center; }
-        tbody td { border: 1px solid #000; padding: 7px 8px; vertical-align: middle; font-size: 12px; text-align: center; }
-        tbody td.name { text-align: left; }
+        /* Tabel Data */
+        table.data-table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 20px; }
+        table.data-table thead th { background: #ededed; border: 1px solid #000; font-weight: 700; font-size: 12px; padding: 7px 8px; text-align: center; }
+        table.data-table tbody td { border: 1px solid #000; padding: 7px 8px; vertical-align: middle; font-size: 12px; text-align: center; }
+        table.data-table tbody td.name { text-align: left; }
+
+        /* Tanda Tangan (Override) */
+        .signature-table { width: 100%; margin-top: 30px; border: none; page-break-inside: avoid; }
+        .signature-table td { border: none; padding: 0; vertical-align: top; text-align: center; }
 
         .muted { color: #6b7280; }
         .footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: right; font-size: 11px; color: #6b7280; }
@@ -80,7 +94,7 @@
         </div>
     </div>
 
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
                 <th style="width:25px;">No.</th>
@@ -106,7 +120,6 @@
                     <td>{{ $no++ }}</td>
                     <td class="name">
                         {{ $r->name ?? '—' }}<br>
-                        <span style="font-size:10px; color:#555;">{{ $r->instansi ?? '' }}</span>
                     </td>
                     <td>{{ $r->phone_number ?? '—' }}</td>
                     <td>{{ $r->SM ?? 0 }}</td>
@@ -127,6 +140,37 @@
                 </tr>
             @endforelse
         </tbody>
+    </table>
+
+    {{-- BAGIAN TANDA TANGAN (STYLE SURAT RESMI - LANDSCAPE) --}}
+    <table class="signature-table">
+        <tr>
+            {{-- Spacer Kiri (65%) --}}
+            <td style="width: 65%; text-align: left;"></td>
+
+            {{-- Blok Tanda Tangan Kanan (35%) --}}
+            <td style="width: 35%;">
+                {{-- Tanggal --}}
+                <div style="margin-bottom: 5px;">
+                    {{ $cityLocation }}, {{ $currentDate }}
+                </div>
+
+                {{-- Jabatan Atas --}}
+                <div style="margin-bottom: 60px;">
+                    Mengetahui, Pimpinan Unit
+                </div>
+
+                {{-- Nama (Bold & Underline) --}}
+                <div style="font-weight: bold; text-decoration: underline;">
+                    Muhammad Zain Mahbuby, B.Eng
+                </div>
+
+                {{-- Jabatan Bawah --}}
+                <div>
+                    Koordinator BCTI
+                </div>
+            </td>
+        </tr>
     </table>
 
     <div class="footer">Halaman <span class="pagenum"></span></div>
