@@ -33,10 +33,10 @@
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
-        padding: 1rem;
+        padding: 1.25rem;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: space-between; /* Default: header di atas, link di bawah (untuk kartu stat kecil) */
         height: 100%;
         position: relative;
         overflow: hidden;
@@ -82,33 +82,48 @@
     /* --- SECTION HEADERS --- */
     .section-header {
         display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;
+        /* Margin-bottom diatur via gap di inline style */
     }
-    .section-title { font-size: 0.9rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; }
+    .section-title { font-size: 0.95rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; }
 
     /* --- COMPACT TABLE --- */
     .compact-table { width: 100%; border-collapse: collapse; }
     .compact-table th {
         text-align: left; font-size: 0.7rem; color: var(--secondary);
-        text-transform: uppercase; padding: 0.5rem; border-bottom: 1px solid var(--border);
+        text-transform: uppercase; font-weight: 700; padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid var(--border);
     }
     .compact-table td {
-        padding: 0.6rem 0.5rem; font-size: 0.8rem; color: #334155;
+        padding: 0.8rem 0.5rem; font-size: 0.85rem; color: #334155;
         border-bottom: 1px dashed #f1f5f9; vertical-align: middle;
     }
     .compact-table tr:last-child td { border-bottom: none; }
 
-    .user-cell { display: flex; align-items: center; gap: 0.5rem; }
+    .user-cell { display: flex; align-items: center; gap: 0.75rem; }
     .avatar-xs {
-        width: 24px; height: 24px; border-radius: 6px; background: #f1f5f9;
+        width: 28px; height: 28px; border-radius: 6px; background: #f1f5f9;
         display: flex; align-items: center; justify-content: center;
-        font-size: 0.7rem; font-weight: bold; color: #64748b;
+        font-size: 0.75rem; font-weight: bold; color: #64748b;
+    }
+
+    /* Code Badge Style */
+    .code-badge {
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid #e2e8f0;
+        display: inline-block;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     /* --- QUICK PULSE --- */
-    .quick-list { display: flex; flex-direction: column; gap: 0.75rem; }
-    .quick-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
-    .quick-label { color: var(--secondary); display: flex; align-items: center; gap: 6px; }
+    .quick-list { display: flex; flex-direction: column; gap: 1rem; }
+    .quick-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+    .quick-label { color: var(--secondary); display: flex; align-items: center; gap: 8px; }
     .quick-val { font-weight: 700; color: #0f172a; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
     .dot-green { background: #22c55e; }
@@ -172,7 +187,7 @@
 
     {{-- CHART SECTION: Statistik Jumlah Peserta --}}
     <div class="bento-card col-span-3">
-        <div class="section-header">
+        <div class="section-header" style="margin-bottom: 1rem;">
             <div class="section-title"><i class="fas fa-chart-bar text-green-500"></i> Statistik Peserta per Event</div>
         </div>
         <div class="chart-container">
@@ -181,7 +196,8 @@
     </div>
 
     {{-- QUICK PULSE: Ringkasan --}}
-    <div class="bento-card">
+    {{-- FIX: style="justify-content: flex-start; gap: 1rem;" agar ringkasan tidak melayang di tengah --}}
+    <div class="bento-card" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title"><i class="fas fa-bolt text-yellow-500"></i> Ringkasan</div>
         </div>
@@ -199,26 +215,27 @@
             <hr style="border-top: 1px dashed #e2e8f0; margin: 0.5rem 0;">
 
             <div class="quick-item">
-                <span class="quick-label">Avg. Peserta/Event</span>
+                <span class="quick-label">Rata-Rata Peserta/Event</span>
                 <span class="quick-val">{{ $totalEvents > 0 ? round($totalParticipants / $totalEvents) : 0 }}</span>
             </div>
         </div>
     </div>
 
 
-    {{-- TABLE 1: Recent Sessions (Aktivitas Terbaru - MIRIP ADMIN) --}}
-    <div class="bento-card col-span-2">
+    {{-- TABLE 1: Recent Sessions (Aktivitas Terbaru) --}}
+    {{-- FIX: style="justify-content: flex-start; gap: 1rem;" --}}
+    <div class="bento-card col-span-2" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title">Aktivitas Terbaru</div>
-            <a href="{{ route('pic.participants.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+            <a href="{{ route('pic.participants.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">Liat Semua</a>
         </div>
         <div style="overflow-x: auto;">
             <table class="compact-table">
                 <thead>
                     <tr>
-                        <th>User</th>
+                        <th>Peserta</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Time</th>
+                        <th style="text-align: right;">Waktu    </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -227,23 +244,21 @@
                         <td>
                             <div class="user-cell">
                                 <div class="avatar-xs">{{ substr($session->user->name ?? '?', 0, 1) }}</div>
-                                <div style="display:flex; flex-direction:column; line-height:1.1;">
-                                    {{-- Nama Peserta --}}
-                                    <span style="font-weight:600; font-size:0.8rem;">{{ Str::limit($session->user->name ?? 'Guest', 15) }}</span>
-                                    {{-- Nama Event (sebagai subtext) --}}
-                                    <span style="font-size:0.65rem; color:#94a3b8;">{{ Str::limit($session->event->name ?? '-', 25) }}</span>
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <span style="font-weight:600; font-size:0.85rem;">{{ Str::limit($session->user->name ?? 'Guest', 15) }}</span>
+                                    <span style="font-size:0.7rem; color:#94a3b8;">{{ Str::limit($session->event->name ?? '-', 25) }}</span>
                                 </div>
                             </div>
                         </td>
                         <td>
                             @if($session->is_completed)
-                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">DONE</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 8px; border-radius:4px;">SELESAI</span>
                             @else
-                                <span style="font-size:0.65rem; font-weight:700; color:#854d0e; background:#fef9c3; padding:2px 6px; border-radius:4px;">PROG</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#854d0e; background:#fef9c3; padding:2px 8px; border-radius:4px;">PROGRES</span>
                             @endif
                         </td>
-                        <td style="text-align: right; color: #94a3b8; font-size: 0.7rem;">
-                            {{ $session->updated_at->diffForHumans(null, true) }}
+                        <td style="text-align: right; color: #94a3b8; font-size: 0.75rem;">
+                            {{ $session->updated_at->locale('id')->diffForHumans(null, true) }}
                         </td>
                     </tr>
                     @empty
@@ -255,30 +270,30 @@
     </div>
 
     {{-- TABLE 2: Data Event --}}
-    <div class="bento-card col-span-2">
+    {{-- FIX: style="justify-content: flex-start; gap: 1rem;" --}}
+    <div class="bento-card col-span-2" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title">Data Event</div>
-            <a href="{{ route('pic.events.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+            <a href="{{ route('pic.events.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">Liat Semua</a>
         </div>
         <div style="overflow-x: auto;">
-            <table class="compact-table">
+            <table class="compact-table" style="table-layout: fixed; width: 100%;">
                 <thead>
                     <tr>
-                        <th>Nama Event</th>
-                        <th>Kode</th>
-                        <th style="text-align: right;">Peserta / Kuota</th>
+                        <th style="width: 45%;">Nama Event</th>
+                        <th style="width: 25%;">Kode</th>
+                        <th style="text-align: right; width: 30%;">Peserta / Kuota</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($eventsData as $data)
-                        {{-- Batasi tampilan hanya 5 event --}}
                         @if($loop->iteration <= 5)
                         <tr>
                             <td>
-                                <span style="font-weight:600; font-size:0.8rem;">{{ Str::limit($data['event']->name, 25) }}</span>
+                                <span style="font-weight:600; font-size:0.85rem; color: #334155;">{{ Str::limit($data['event']->name, 25) }}</span>
                             </td>
                             <td>
-                                <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-mono border border-gray-200">
+                                <span class="code-badge">
                                     {{ $data['event']->event_code }}
                                 </span>
                             </td>
@@ -306,17 +321,13 @@ $(document).ready(function() {
     Chart.defaults.font.family = "'Figtree', sans-serif";
     Chart.defaults.color = '#94a3b8';
 
-    // --- Persiapkan Data untuk Chart ---
     const rawData = @json($eventsData);
-
-    // Ambil maksimal 10 event
     const chartData = rawData.slice(0, 10);
 
     const labels = chartData.map(item => item.event.name.substring(0, 15) + (item.event.name.length > 15 ? '...' : ''));
     const registeredData = chartData.map(item => item.registered);
     const quotaData = chartData.map(item => item.quota);
 
-    // --- Config Chart ---
     const ctx = document.getElementById('participantsChart').getContext('2d');
 
     new Chart(ctx, {
@@ -327,7 +338,7 @@ $(document).ready(function() {
                 {
                     label: 'Peserta Terdaftar',
                     data: registeredData,
-                    backgroundColor: '#3b82f6', // Biru
+                    backgroundColor: '#3b82f6',
                     borderRadius: 4,
                     barPercentage: 0.6,
                     categoryPercentage: 0.8
@@ -335,11 +346,11 @@ $(document).ready(function() {
                 {
                     label: 'Kuota Maksimal',
                     data: quotaData,
-                    backgroundColor: '#e2e8f0', // Abu-abu
+                    backgroundColor: '#e2e8f0',
                     borderRadius: 4,
                     barPercentage: 0.6,
                     categoryPercentage: 0.8,
-                    grouped: false, // Stack visual trick
+                    grouped: false,
                     order: 1
                 }
             ]

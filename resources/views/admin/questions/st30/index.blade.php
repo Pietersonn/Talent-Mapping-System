@@ -147,7 +147,7 @@
                             <tr>
                                 <th width="80">No.</th>
                                 <th width="50%">Statement (Pernyataan)</th>
-                                <th width="20%">Typology</th>
+                                <th width="20%">Tipologi</th>
                                 <th width="10%">Status</th>
                                 <th width="15%">Aksi</th>
                             </tr>
@@ -185,9 +185,9 @@
                                     </td>
                                     <td>
                                         @if($question->questionVersion->is_active)
-                                            <span class="status-dot dot-active"></span> <span style="font-size: 0.85rem; color: #0f172a;">Active</span>
+                                            <span class="status-dot dot-active"></span> <span style="font-size: 0.85rem; color: #0f172a;">Aktif</span>
                                         @else
-                                            <span class="status-dot dot-inactive"></span> <span style="font-size: 0.85rem; color: #94a3b8;">Inactive</span>
+                                            <span class="status-dot dot-inactive"></span> <span style="font-size: 0.85rem; color: #94a3b8;">Tidak Aktif</span>
                                         @endif
                                     </td>
                                     <td>

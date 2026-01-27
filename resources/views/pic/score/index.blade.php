@@ -103,7 +103,7 @@
                                class="custom-input count-input"
                                value="{{ $n }}" min="1" max="1000"
                                {{ $mode === 'all' ? 'disabled' : '' }}>
-                        <span class="count-label">Rows</span>
+                        <span class="count-label">Baris</span>
                     </div>
 
                     {{-- 4. Search Input --}}

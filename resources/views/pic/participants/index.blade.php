@@ -46,7 +46,7 @@
         <div>
             <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center;">
                 <i class="fas fa-users" style="color: #22c55e; background: #dcfce7; padding: 10px; border-radius: 12px; margin-right: 12px; font-size: 1.1rem;"></i>
-                Peserta Assessment
+                Peserta
             </h1>
         </div>
 
@@ -88,7 +88,7 @@
                         <th width="20%">Email</th> <th width="20%">Event</th>
                         <th width="15%">Instansi</th>
                         <th width="10%" class="text-center">Skor</th>
-                        <th width="15%" style="text-align: right;">Aksi</th>
+                        <th width="15%" style="text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -110,7 +110,7 @@
                                 @endif
                             </td>
                             <td style="color: #334155;">{{ $row->instansi ?? '-' }}</td>
-                            <td class="text-center">
+                            <td class="text-left">
                                 @if(isset($row->total_score))
                                     <span class="score-value">{{ $row->total_score }}</span>
                                 @else

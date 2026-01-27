@@ -119,7 +119,7 @@
             <div class="stat-card">
                 <div>
                     <div class="stat-value" style="color: {{ $selectedVersion->is_active ? '#22c55e' : '#94a3b8' }}">
-                        {{ $selectedVersion->is_active ? 'Active' : 'Inactive' }}
+                        {{ $selectedVersion->is_active ? 'Aktif' : 'Tidak Aktif' }}
                     </div>
                     <div class="stat-label">Status Versi</div>
                 </div>
@@ -151,7 +151,7 @@
                             <tr>
                                 <th width="80">No.</th>
                                 <th width="40%">Situation (Situasi)</th>
-                                <th width="20%">Competency</th>
+                                <th width="20%">Kompetensi</th>
                                 <th width="10%">Opsi</th>
                                 <th width="10%">Status</th>
                                 <th width="15%">Aksi</th>
@@ -195,9 +195,9 @@
                                     </td>
                                     <td>
                                         @if($question->questionVersion->is_active)
-                                            <span class="status-dot dot-active"></span> <span style="font-size: 0.85rem; color: #0f172a;">Active</span>
+                                            <span class="status-dot dot-active"></span> <span style="font-size: 0.85rem; color: #0f172a;">Aktif</span>
                                         @else
-                                            <span class="status-dot dot-inactive"></span> <span style="font-size: 0.85rem; color: #94a3b8;">Inactive</span>
+                                            <span class="status-dot dot-inactive"></span> <span style="font-size: 0.85rem; color: #94a3b8;">Tidak Aktif</span>
                                         @endif
                                     </td>
                                     <td>

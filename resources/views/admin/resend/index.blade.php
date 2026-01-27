@@ -269,7 +269,10 @@
                         </td>
                         <td>
                             <div class="text-dark" style="font-size: 0.8rem;">{{ $req->approvedBy->name ?? '-' }}</div>
-                            <div class="text-muted" style="font-size: 0.7rem;">{{ $req->approved_at ? $req->approved_at->diffForHumans() : '' }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">
+                                {{-- Tambahkan ->locale('id') di sini --}}
+                                {{ $req->approved_at ? $req->approved_at->locale('id')->diffForHumans() : '' }}
+                            </div>
                         </td>
                     </tr>
                     @empty

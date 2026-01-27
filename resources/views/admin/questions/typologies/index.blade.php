@@ -106,7 +106,7 @@
                 <div class="stat-value">
                     {{ isset($latestUpdate) ? \Carbon\Carbon::parse($latestUpdate)->format('d M') : '-' }}
                 </div>
-                <div class="stat-label">Update Terakhir</div>
+                <div class="stat-label">Perubahan Terakhir</div>
             </div>
             <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
         </div>

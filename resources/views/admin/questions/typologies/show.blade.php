@@ -229,9 +229,9 @@
                         <td>{{ Str::limit($q->statement, 100) }}</td>
                         <td>
                             @if($q->is_active ?? true)
-                                <span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">Active</span>
+                                <span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">aktif</span>
                             @else
-                                <span style="background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">Inactive</span>
+                                <span style="background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">tidak aktif</span>
                             @endif
                         </td>
                         <td class="text-center">

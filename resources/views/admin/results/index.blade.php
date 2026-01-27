@@ -41,7 +41,7 @@
         <div>
             <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
                 <i class="fas fa-poll-h" style="color: #22c55e; background: #dcfce7; padding: 8px; border-radius: 8px; margin-right: 8px;"></i>
-                Peserta 
+                Peserta
             </h1>
         </div>
 
@@ -83,7 +83,7 @@
                         <th width="20%">Event</th>
                         <th width="20%">Instansi</th>
                         <th width="15%">Jabatan</th>
-                        <th width="10%" style="text-align: right;">Aksi</th>
+                        <th width="10%" style="text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="resultTableBody">
@@ -119,7 +119,7 @@
                                        class="btn-pdf-result"
                                        target="_blank"
                                        title="Lihat PDF Hasil">
-                                        <i class="fas fa-file-pdf"></i> Result
+                                        <i class="fas fa-file-pdf"></i> Hasil
                                     </a>
                                 </div>
                             </td>

@@ -6,6 +6,7 @@
     class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100 transition-transform duration-300 lg:static lg:translate-x-0 flex flex-col"
     :class="sidebarOpen ? 'translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]' : '-translate-x-full'"
 >
+    {{-- LOGO HEADER --}}
     <div class="h-24 flex items-center px-8 border-b border-gray-50/50 bg-white">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 group transition-all">
             <img src="{{ asset('assets/public/images/tm-logo.png') }}" alt="TalentMapping" class="h-9 w-auto group-hover:scale-105 transition-transform duration-300">
@@ -16,6 +17,7 @@
         </a>
     </div>
 
+    {{-- MENU LIST --}}
     <nav class="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-1 scroll-smooth">
 
         {{-- DASHBOARD --}}
@@ -27,11 +29,10 @@
             Dashboard
         </a>
 
+        {{-- SECTION: BANK SOAL --}}
         <div class="pt-6 pb-2 px-4">
             <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Bank Soal & Data</p>
         </div>
-
-        {{-- MENU QUESTION BANK (Updated Logic) --}}
 
         {{-- 1. All Versions (General) --}}
         <a href="{{ route('admin.questions.index') }}"
@@ -57,7 +58,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-tasks {{ request()->routeIs('admin.questions.sjt.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Talent kompentensi
+            Talent Kompetensi
         </a>
 
         {{-- 4. Competencies --}}
@@ -66,7 +67,7 @@
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-award {{ request()->routeIs('admin.questions.competencies.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Kompentensi
+            Kompetensi
         </a>
 
         {{-- 5. Typologies --}}
@@ -78,18 +79,18 @@
             Tipologi
         </a>
 
+        {{-- SECTION: OPERASIONAL --}}
         <div class="pt-6 pb-2 px-4">
             <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Operasional</p>
         </div>
 
-        {{-- OPERASIONAL --}}
         @if (isset($user) && $user->role === 'admin')
         <a href="{{ route('admin.users.index') }}"
            class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
                 <i class="fas fa-users-cog {{ request()->routeIs('admin.users.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
-            Manajemen pengguna
+            Manajemen Pengguna
         </a>
         @endif
 
@@ -106,11 +107,11 @@
             @endif
         </a>
 
+        {{-- SECTION: LAPORAN & HASIL --}}
         <div class="pt-6 pb-2 px-4">
             <p class="text-[10px] font-extrabold text-gray-300 uppercase tracking-[0.2em]">Laporan & Hasil</p>
         </div>
 
-        {{-- LAPORAN --}}
         <a href="{{ route('admin.results.index') }}"
            class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.results.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
@@ -119,10 +120,11 @@
             Peserta
         </a>
 
+        {{-- FIX: Logika routeIs diganti ke admin.score.* agar highlight aktif --}}
         <a href="{{ route('admin.score.index') }}"
-           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
+           class="flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.score.*') ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900' }}">
             <div class="w-6 flex justify-center mr-3">
-                <i class="fas fa-file-invoice {{ request()->routeIs('admin.reports.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
+                <i class="fas fa-file-invoice {{ request()->routeIs('admin.score.*') ? 'text-green-500' : 'text-gray-300 group-hover:text-gray-500' }}"></i>
             </div>
             Kompetensi Peserta
         </a>
@@ -135,9 +137,9 @@
             Permintaan
         </a>
 
-
     </nav>
 
+    {{-- FOOTER: PROFILE & LOGOUT --}}
     <div class="p-4 bg-white border-t border-gray-50">
         <div class="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/80 hover:bg-green-50 transition-colors border border-gray-100 group">
             <a href="{{ route('admin.profile.edit') }}" class="relative shrink-0">
@@ -159,6 +161,7 @@
     </div>
 </aside>
 
+{{-- SCRIPT: LOGOUT CONFIRMATION --}}
 <script>
     function confirmLogout() {
         Swal.fire({

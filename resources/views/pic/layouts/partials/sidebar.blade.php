@@ -70,7 +70,7 @@
             </a>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold text-gray-800 truncate">{{ Auth::user()->name }}</p>
-                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide truncate">PIC ACCOUNT</p>
+                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide truncate">PIC PANEL</p>
             </div>
             <button onclick="confirmLogout()" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Logout">
                 <i class="fas fa-power-off"></i>

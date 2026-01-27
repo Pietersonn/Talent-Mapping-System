@@ -18,9 +18,9 @@
                 <div class="hero-buttons">
 
                     @auth
-                        <a href="{{ route('test.form') }}" class="btn test">Explore Now</a>
+                        <a href="{{ route('test.form') }}" class="btn test">Cari Tau Sekarang</a>
                     @else
-                        <a href="{{ route('login') }}" class="btn test">Explore Now</a>
+                        <a href="{{ route('login') }}" class="btn test">Cari Tau Sekarang</a>
                     @endauth
 
                     <a href="#" class="btn profile-bcti">BCTI Profile</a>
@@ -53,9 +53,9 @@
                     </div>
                     <div class="hero-buttons">
                         @auth
-                            <a href="{{ route('test.form') }}" class="btn test">Explore Now</a>
+                            <a href="{{ route('test.form') }}" class="btn test">Cari Tau Sekarang</a>
                         @else
-                            <a href="{{ route('login') }}" class="btn test">Explore Now</a>
+                            <a href="{{ route('login') }}" class="btn test">Cari Tau Sekarang</a>
                         @endauth
                     </div>
                 </div>
@@ -98,7 +98,7 @@
 
     <section class="how-it-works">
         <div class="container">
-            <h2>How it works</h2>
+            <h2>Bagaimana Ini Bekerja</h2>
             <div class="steps">
 
                 <div class="step">
@@ -128,14 +128,14 @@
             </div>
 
             <div class="button-wrapper">
-                <a href="#" class="start-btn">Start Personality Test</a>
+                <a href="#" class="start-btn">Mulai Tes Kamu</a>
             </div>
         </div>
     </section>
 
     <section class="what-you-will-receive">
         <div class="container">
-            <h2>What You Will Receive</h2>
+            <h2>Apa Yang Akan Kamu Dapatkan</h2>
             <div class="items">
 
                 <div class="item">

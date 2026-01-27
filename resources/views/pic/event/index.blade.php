@@ -1,6 +1,6 @@
 @extends('pic.layouts.app')
 
-@section('title', 'My Events')
+@section('title', 'Event Saya')
 
 @push('styles')
 <style>
@@ -36,7 +36,7 @@
     .dot-active { background-color: #22c55e; }
     .dot-inactive { background-color: #ef4444; }
 
-    .action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+    .action-buttons { display: flex; gap: 8px; justify-content: flex-start; }
     .btn-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; }
     .btn-view { background: #ecfdf5; color: #059669; }
     .btn-icon:hover { opacity: 0.8; transform: scale(1.05); }

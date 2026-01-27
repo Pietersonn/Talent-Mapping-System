@@ -20,19 +20,19 @@
     <div class="navbar-menu" id="tmNavbarMenu">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
+          <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Beranda</a>
         </li>
 
         <li class="nav-item">
           @auth
-            <a href="{{ route('test.form') }}" class="nav-link {{ request()->routeIs('test.*') ? 'active' : '' }}">Test</a>
+            <a href="{{ route('test.form') }}" class="nav-link {{ request()->routeIs('test.*') ? 'active' : '' }}">Tes</a>
           @else
             <a href="{{ route('login') }}" class="nav-link">Tes</a>
           @endauth
         </li>
 
         <li class="nav-item">
-          <a href="#" class="nav-link">Contact</a>
+          <a href="#" class="nav-link">Kontak</a>
         </li>
 
         <!-- Tombol login hanya muncul di mobile -->
@@ -69,12 +69,12 @@
             @endif
 
             <a href="{{ route('profile.index') }}" class="dropdown-item">
-              <i class="icon-user"></i> Profile
+              <i class="icon-user"></i> Profil
             </a>
 
             @if (Auth::user()->role === 'user')
               <a href="{{ route('profile.index') }}" class="dropdown-item">
-                <i class="icon-test"></i> My Tests
+                <i class="icon-test"></i> Tes Saya
               </a>
             @endif
 

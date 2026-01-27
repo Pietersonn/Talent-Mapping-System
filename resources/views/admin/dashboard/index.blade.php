@@ -18,7 +18,7 @@
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: auto auto auto;
-        gap: 1rem; /* Jarak antar kotak rapat */
+        gap: 1rem;
         padding-bottom: 2rem;
     }
 
@@ -35,10 +35,10 @@
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
-        padding: 1rem; /* Padding compact */
+        padding: 1.25rem; /* Sedikit diperbesar agar lega */
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: space-between; /* Default untuk kartu statistik angka */
         transition: transform 0.2s, box-shadow 0.2s;
         height: 100%;
         position: relative;
@@ -96,7 +96,7 @@
     }
     .stat-link:hover { color: var(--primary); }
 
-    /* --- CHART SECTION (Span 3 Cols) --- */
+    /* --- CHART SECTION --- */
     .col-span-3 { grid-column: span 3; }
     .col-span-2 { grid-column: span 2; }
 
@@ -111,12 +111,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
         padding-bottom: 0.5rem;
         border-bottom: 1px solid #f1f5f9;
+        /* Margin bottom dihapus disini, diatur via gap inline style */
     }
     .section-title {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: #334155;
         display: flex;
@@ -131,12 +131,13 @@
         font-size: 0.7rem;
         color: var(--secondary);
         text-transform: uppercase;
-        padding: 0.5rem;
+        font-weight: 700;
+        padding: 0.75rem 0.5rem;
         border-bottom: 1px solid var(--border);
     }
     .compact-table td {
-        padding: 0.6rem 0.5rem;
-        font-size: 0.8rem;
+        padding: 0.8rem 0.5rem;
+        font-size: 0.85rem;
         color: #334155;
         border-bottom: 1px dashed #f1f5f9;
         vertical-align: middle;
@@ -144,22 +145,22 @@
     .compact-table tr:last-child td { border-bottom: none; }
 
     /* User Avatar in Table */
-    .user-cell { display: flex; align-items: center; gap: 0.5rem; }
+    .user-cell { display: flex; align-items: center; gap: 0.75rem; }
     .avatar-xs {
-        width: 24px; height: 24px;
+        width: 28px; height: 28px;
         border-radius: 6px;
         background: #f1f5f9;
         display: flex; align-items: center; justify-content: center;
-        font-size: 0.7rem; font-weight: bold; color: #64748b;
+        font-size: 0.75rem; font-weight: bold; color: #64748b;
     }
 
     /* --- QUICK LIST (System Health) --- */
-    .quick-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .quick-list { display: flex; flex-direction: column; gap: 1rem; }
     .quick-item {
         display: flex; justify-content: space-between; align-items: center;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
-    .quick-label { color: var(--secondary); display: flex; align-items: center; gap: 6px; }
+    .quick-label { color: var(--secondary); display: flex; align-items: center; gap: 8px; }
     .quick-val { font-weight: 700; color: #0f172a; }
 
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -179,46 +180,50 @@
 @endpush
 
 @section('content')
-<div class="dashboard-grid">
+<div class="dashboard-grid fade-in-up">
 
+    {{-- STATS 1: Total Pengguna --}}
     <div class="bento-card">
         <div class="stat-header">
             <div>
                 <div class="stat-value">{{ number_format($totalUsers) }}</div>
-                <div class="stat-label">Total Users</div>
+                <div class="stat-label">Total Pengguna</div>
             </div>
             <div class="stat-icon icon-users"><i class="fas fa-users"></i></div>
         </div>
         <a href="{{ route('admin.users.index') }}" class="stat-link">Lihat semua <i class="fas fa-arrow-right text-[10px]"></i></a>
     </div>
 
+    {{-- STATS 2: Active Events --}}
     <div class="bento-card">
         <div class="stat-header">
             <div>
                 <div class="stat-value">{{ number_format($activeEvents) }}</div>
-                <div class="stat-label">Active Events</div>
+                <div class="stat-label">Event Aktif</div>
             </div>
             <div class="stat-icon icon-events"><i class="fas fa-calendar-check"></i></div>
         </div>
         <a href="{{ route('admin.events.index') }}" class="stat-link">Kelola Event <i class="fas fa-arrow-right text-[10px]"></i></a>
     </div>
 
+    {{-- STATS 3: Completed --}}
     <div class="bento-card">
         <div class="stat-header">
             <div>
                 <div class="stat-value">{{ number_format($completedTests) }}</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-label">Tes Selesai</div>
             </div>
             <div class="stat-icon icon-tests"><i class="fas fa-clipboard-check"></i></div>
         </div>
         <a href="{{ route('admin.results.index') }}" class="stat-link">Lihat Hasil <i class="fas fa-arrow-right text-[10px]"></i></a>
     </div>
 
+    {{-- STATS 4: Questions --}}
     <div class="bento-card">
         <div class="stat-header">
             <div>
                 <div class="stat-value">{{ number_format($totalST30Questions + $totalSJTQuestions) }}</div>
-                <div class="stat-label">Questions</div>
+                <div class="stat-label">Total Soal</div>
             </div>
             <div class="stat-icon icon-db"><i class="fas fa-database"></i></div>
         </div>
@@ -226,13 +231,14 @@
     </div>
 
 
-    <div class="bento-card col-span-3">
+    {{-- CHART SECTION --}}
+    <div class="bento-card col-span-3" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title"><i class="fas fa-chart-area text-green-500"></i> Aktivitas Tes</div>
             <div style="display: flex; gap: 5px;">
-                <button class="chart-filter active" onclick="updateStats('today')">Today</button>
-                <button class="chart-filter" onclick="updateStats('week')">Week</button>
-                <button class="chart-filter" onclick="updateStats('month')">Month</button>
+                <button class="chart-filter active" onclick="updateStats('today')">Hari Ini</button>
+                <button class="chart-filter" onclick="updateStats('week')">Minggu</button>
+                <button class="chart-filter" onclick="updateStats('month')">Bulan</button>
             </div>
         </div>
         <div style="flex: 1; min-height: 200px; position: relative;">
@@ -240,51 +246,55 @@
         </div>
     </div>
 
-    <div class="bento-card">
+    {{-- QUICK PULSE / RINGKASAN --}}
+    {{-- Menggunakan justify-content: flex-start agar konten rapat ke atas --}}
+    <div class="bento-card" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
-            <div class="section-title"><i class="fas fa-bolt text-yellow-500"></i> Quick Pulse</div>
+            <div class="section-title"><i class="fas fa-bolt text-yellow-500"></i> Ringkasan</div>
         </div>
 
         <div class="quick-list">
             <div class="quick-item">
-                <span class="quick-label"><span class="status-dot dot-blue"></span> Today</span>
+                <span class="quick-label"><span class="status-dot dot-blue"></span> Hari Ini</span>
                 <span class="quick-val">{{ $testsToday }}</span>
             </div>
             <div class="quick-item">
-                <span class="quick-label"><span class="status-dot dot-green"></span> This Week</span>
+                <span class="quick-label"><span class="status-dot dot-green"></span> Minggu Ini</span>
                 <span class="quick-val">{{ $testsThisWeek }}</span>
             </div>
             <div class="quick-item">
-                <span class="quick-label"><span class="status-dot dot-red"></span> Pending</span>
+                <span class="quick-label"><span class="status-dot dot-red"></span> Menunggu</span>
                 <span class="quick-val text-danger">{{ $pendingResendRequests }}</span>
             </div>
 
             <hr style="border-top: 1px dashed #e2e8f0; margin: 0.5rem 0;">
 
             <div class="quick-item">
-                <span class="quick-label">Completion</span>
+                <span class="quick-label">Penyelesaian</span>
                 <span class="quick-val">{{ $completionRate }}%</span>
             </div>
             <div class="quick-item">
-                <span class="quick-label">Email Sent</span>
+                <span class="quick-label">Email Terkirim</span>
                 <span class="quick-val">{{ $totalResults > 0 ? round(($emailsSent / $totalResults) * 100) : 0 }}%</span>
             </div>
         </div>
     </div>
 
 
-    <div class="bento-card col-span-2">
+    {{-- TABLE 1: Sesi Terbaru --}}
+    {{-- FIX: Menggunakan justify-content: flex-start agar tabel tidak terdorong ke bawah --}}
+    <div class="bento-card col-span-2" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title">Sesi Terbaru</div>
-            <a href="{{ route('admin.results.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+            <a href="{{ route('admin.results.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">Lihat Semua</a>
         </div>
         <div style="overflow-x: auto;">
             <table class="compact-table">
                 <thead>
                     <tr>
-                        <th>User</th>
+                        <th>Peserta</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Time</th>
+                        <th style="text-align: right;">Waktu</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -293,35 +303,37 @@
                         <td>
                             <div class="user-cell">
                                 <div class="avatar-xs">{{ substr($session->participant_name ?? $session->user->name, 0, 1) }}</div>
-                                <div style="display:flex; flex-direction:column; line-height:1.1;">
-                                    <span style="font-weight:600; font-size:0.8rem;">{{ $session->participant_name ?? $session->user->name }}</span>
-                                    <span style="font-size:0.65rem; color:#94a3b8;">{{ Str::limit($session->event->name ?? '-', 20) }}</span>
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <span style="font-weight:600; font-size:0.85rem;">{{ Str::limit($session->participant_name ?? $session->user->name, 15) }}</span>
+                                    <span style="font-size:0.7rem; color:#94a3b8;">{{ Str::limit($session->event->name ?? '-', 20) }}</span>
                                 </div>
                             </div>
                         </td>
                         <td>
                             @if($session->is_completed)
-                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">DONE</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 8px; border-radius:4px;">SELESAI</span>
                             @else
-                                <span style="font-size:0.65rem; font-weight:700; color:#854d0e; background:#fef9c3; padding:2px 6px; border-radius:4px;">PROG</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#854d0e; background:#fef9c3; padding:2px 8px; border-radius:4px;">PROSES</span>
                             @endif
                         </td>
-                        <td style="text-align: right; color: #94a3b8; font-size: 0.7rem;">
-                            {{ $session->created_at->diffForHumans(null, true) }}
+                        <td style="text-align: right; color: #94a3b8; font-size: 0.75rem;">
+                            {{ $session->created_at->locale('id')->diffForHumans(null, true) }}
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" style="text-align:center; padding: 1rem;">No data</td></tr>
+                    <tr><td colspan="3" style="text-align:center; padding: 1rem; color:#94a3b8;">Tidak ada data</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div class="bento-card col-span-2">
+    {{-- TABLE 2: Permintaan Resend --}}
+    {{-- FIX: Menggunakan justify-content: flex-start agar tabel tidak terdorong ke bawah --}}
+    <div class="bento-card col-span-2" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title">Permintaan Resend</div>
-            <a href="{{ route('admin.resend.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">View All</a>
+            <a href="{{ route('admin.resend.index') }}" style="font-size: 0.75rem; font-weight: 600; color: var(--primary);">Lihat Semua</a>
         </div>
         <div style="overflow-x: auto;">
             <table class="compact-table">
@@ -329,7 +341,7 @@
                     <tr>
                         <th>Email</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Action</th>
+                        <th style="text-align: right;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -340,23 +352,27 @@
                         </td>
                         <td>
                             @if($request->status === 'pending')
-                                <span style="font-size:0.65rem; font-weight:700; color:#9a3412; background:#ffedd5; padding:2px 6px; border-radius:4px;">PENDING</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#9a3412; background:#ffedd5; padding:2px 6px; border-radius:4px;">MENUNGGU</span>
                             @elseif($request->status === 'approved')
-                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">OK</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#166534; background:#dcfce7; padding:2px 6px; border-radius:4px;">di Setujui</span>
                             @else
-                                <span style="font-size:0.65rem; font-weight:700; color:#991b1b; background:#fee2e2; padding:2px 6px; border-radius:4px;">REJECT</span>
+                                <span style="font-size:0.65rem; font-weight:700; color:#991b1b; background:#fee2e2; padding:2px 6px; border-radius:4px;">TOLAK</span>
                             @endif
                         </td>
-                        <td style="text-align: right;">
-                            @if($request->status === 'pending')
-                                <a href="{{ route('admin.resend.show', $request->id) }}" style="font-size:0.7rem; font-weight:700; color:#3b82f6;">REVIEW</a>
-                            @else
-                                <span style="font-size:0.7rem; color:#cbd5e1;">-</span>
-                            @endif
-                        </td>
+                    <td style="text-align: right;">
+                        @if($request->status === 'pending')
+                            {{-- Mengarahkan ke admin.resend.show dengan membawa ID request --}}
+                            <a href="{{ route('admin.resend.index', $request->id) }}"
+                            style="font-size:0.7rem; font-weight:700; color:#3b82f6; text-decoration:none;">
+                            TINJAU
+                            </a>
+                        @else
+                            <span style="font-size:0.7rem; color:#cbd5e1;">-</span>
+                        @endif
+                    </td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" style="text-align:center; padding: 1rem;">No requests</td></tr>
+                    <tr><td colspan="3" style="text-align:center; padding: 1rem; color:#94a3b8;">Tidak ada permintaan</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -386,12 +402,12 @@ $(document).ready(function() {
         data: {
             labels: {!! json_encode(array_column($testsPerDay, 'date')) !!},
             datasets: [{
-                label: 'Tests',
+                label: 'Tes', // Translate Label
                 data: {!! json_encode(array_column($testsPerDay, 'count')) !!},
                 borderColor: '#22c55e',
                 backgroundColor: gradient,
                 borderWidth: 2,
-                pointRadius: 2, // Titik kecil
+                pointRadius: 2,
                 pointHoverRadius: 4,
                 fill: true,
                 tension: 0.3
@@ -403,7 +419,7 @@ $(document).ready(function() {
             plugins: { legend: { display: false } },
             scales: {
                 y: {
-                    display: false, // Hilangkan sumbu Y agar chart terlihat bersih/compact
+                    display: false,
                     beginAtZero: true
                 },
                 x: {
@@ -420,7 +436,6 @@ function updateStats(period) {
     $('.chart-filter').removeClass('active');
     $(event.target).addClass('active');
 
-    // AJAX Call logic here
     $.get('{{ route("admin.dashboard.stats") }}', { period: period })
         .done(function(data) { console.log('Stats updated'); });
 }

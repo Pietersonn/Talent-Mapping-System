@@ -109,7 +109,7 @@
 @section('header')
     <div class="header-wrapper">
         <div>
-            <h1 class="page-title"><i class="fas fa-user-plus"></i> Tambah User Baru</h1>
+            <h1 class="page-title"><i class="fas fa-user-plus"></i> Tambah Pengguna Baru</h1>
         </div>
         <a href="{{ route('admin.users.index') }}" class="btn-cancel">
             <i class="fas fa-arrow-left"></i> Kembali

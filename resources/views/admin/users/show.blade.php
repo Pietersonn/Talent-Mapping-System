@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'User Profile')
+@section('title', 'Profil Pengguna')
 
 @push('styles')
 <style>
@@ -71,19 +71,19 @@
         <div style="display: flex; gap: 8px;">
             @if(Auth::user()->role === 'admin' || Auth::id() === $user->id)
                 <a href="{{ route('admin.users.edit', $user->id) }}" class="btn-action btn-edit">
-                    <i class="fas fa-pen"></i> Edit Profile
+                    <i class="fas fa-pen"></i> Edit Profil
                 </a>
             @endif
             @if(Auth::user()->role === 'admin' && Auth::id() !== $user->id)
                  <form action="{{ route('admin.users.toggle-status', $user->id) }}" method="POST" style="display:inline;">
                     @csrf @method('PATCH')
-                    <button type="submit" class="btn-action btn-toggle" title="Toggle Active Status">
-                        <i class="fas fa-power-off"></i> {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                    <button type="submit" class="btn-action btn-toggle" title="Ubah Status Aktif">
+                        <i class="fas fa-power-off"></i> {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                     </button>
                 </form>
 
                 <button onclick="deleteUser()" class="btn-action btn-delete">
-                    <i class="fas fa-trash"></i> Delete
+                    <i class="fas fa-trash"></i> Hapus
                 </button>
             @endif
         </div>
@@ -93,20 +93,20 @@
 
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             <div class="bento-card">
-                <div class="card-title"><i class="fas fa-info-circle"></i> Account Details</div>
+                <div class="card-title"><i class="fas fa-info-circle"></i> Detail Akun</div>
                 <div class="info-item">
                     <span class="info-label">Status</span>
                     <span class="info-value">
                         @if($user->is_active)
-                            <span style="color: #166534; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">ACTIVE</span>
+                            <span style="color: #166534; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">AKTIF</span>
                         @else
-                            <span style="color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">INACTIVE</span>
+                            <span style="color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">NONAKTIF</span>
                         @endif
                     </span>
                 </div>
-                <div class="info-item"><span class="info-label">Phone</span><span class="info-value">{{ $user->phone_number ?? '-' }}</span></div>
-                <div class="info-item"><span class="info-label">Joined</span><span class="info-value">{{ $user->created_at->format('d M Y') }}</span></div>
-                <div class="info-item"><span class="info-label">Account Age</span><span class="info-value">{{ $stats['account_age'] }}</span></div>
+                <div class="info-item"><span class="info-label">No. Telepon</span><span class="info-value">{{ $user->phone_number ?? '-' }}</span></div>
+                <div class="info-item"><span class="info-label">Bergabung</span><span class="info-value">{{ $user->created_at->translatedFormat('d M Y') }}</span></div>
+                <div class="info-item"><span class="info-label">Umur Akun</span><span class="info-value">{{ $stats['account_age'] }}</span></div>
             </div>
         </div>
 
@@ -114,43 +114,43 @@
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-val">{{ $stats['total_test_sessions'] }}</div>
-                    <div class="stat-label">Total Tests</div>
+                    <div class="stat-label">Total Tes</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-val" style="color: #22c55e;">{{ $stats['completed_tests'] }}</div>
-                    <div class="stat-label">Completed</div>
+                    <div class="stat-label">Selesai</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-val" style="color: #eab308;">{{ $stats['events_as_pic'] }}</div>
-                    <div class="stat-label">Events (PIC)</div>
+                    <div class="stat-label">Event (PIC)</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-val">{{ $user->resendRequests->count() }}</div>
-                    <div class="stat-label">Requests</div>
+                    <div class="stat-label">Permintaan</div>
                 </div>
             </div>
 
             <div class="bento-card">
-                <div class="card-title"><i class="fas fa-history"></i> Recent Test Activity</div>
+                <div class="card-title"><i class="fas fa-history"></i> Aktivitas Tes Terbaru</div>
                 <div style="overflow-x: auto;">
                     <table class="clean-table">
                         <thead>
                             <tr>
-                                <th>Event / Session</th>
+                                <th>Event / Sesi</th>
                                 <th>Status</th>
-                                <th style="text-align: right;">Date</th>
+                                <th style="text-align: right;">Tanggal</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($user->testSessions->take(5) as $session)
                                 <tr>
                                     <td>
-                                        <div style="font-weight: 600;">{{ $session->event->name ?? 'Unknown Event' }}</div>
+                                        <div style="font-weight: 600;">{{ $session->event->name ?? 'Event Tidak Dikenal' }}</div>
                                         <div style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;">{{ $session->session_token }}</div>
                                     </td>
                                     <td>
                                         <span class="badge-status {{ $session->is_completed ? 'status-completed' : 'status-pending' }}">
-                                            {{ $session->is_completed ? 'DONE' : 'PROGRESS' }}
+                                            {{ $session->is_completed ? 'SELESAI' : 'PROSES' }}
                                         </span>
                                     </td>
                                     <td style="text-align: right; color: #64748b;">
@@ -158,7 +158,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="3" style="text-align:center; padding: 1rem; color: #94a3b8;">No activity found</td></tr>
+                                <tr><td colspan="3" style="text-align:center; padding: 1rem; color: #94a3b8;">Tidak ada aktivitas ditemukan</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -173,12 +173,14 @@
 <script>
     function deleteUser() {
         Swal.fire({
-            title: 'Hapus User Ini?',
-            text: "Aksi ini tidak dapat dibatalkan.",
+            title: 'Hapus Pengguna Ini?',
+            text: "Data yang dihapus tidak dapat dikembalikan!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc2626',
-            confirmButtonText: 'Ya, Hapus'
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
                 let form = document.createElement('form');
