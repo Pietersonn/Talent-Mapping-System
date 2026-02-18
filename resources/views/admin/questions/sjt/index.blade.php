@@ -11,7 +11,7 @@
     .loading-spinner { position: absolute; right: 14px; top: 33%; transform: translateY(-50%); display: none; color: #22c55e; font-size: 1.1rem; pointer-events: none; }
     .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; pointer-events: none; transition: opacity 0.2s; }
 
-    .select-version { height: 46px; padding: 0 35px 0 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: white; cursor: pointer; outline: none; min-width: 200px; color: #334155; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
+    .select-version { height: 46px; padding: 0 35px 0 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; background: white; cursor: pointer; outline: none; min-width: 200px; color: #334155; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
     .select-version:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
 
     .btn-print { width: 46px; height: 46px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s; text-decoration: none; }
@@ -26,6 +26,12 @@
     .custom-table th { text-align: left; padding: 1.25rem; background: #f8fafc; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
     .custom-table td { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 0.9rem; color: #334155; background: white; }
     .custom-table tr:hover td { background-color: #f8fafc; }
+
+    /* --- PAGINATION (GREEN STYLE) --- */
+    .pagination-wrapper { padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .btn-paginate { background: white; border: 1px solid #e2e8f0; color: #22c55e; padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-paginate:hover:not(.disabled) { background: #f0fdf4; border-color: #22c55e; color: #15803d; transform: translateY(-1px); }
+    .btn-paginate.disabled { color: #94a3b8; background: #f8fafc; cursor: not-allowed; opacity: 0.7; }
 
     /* --- COMPONENTS --- */
     .statement-text { font-size: 0.95rem; color: #0f172a; line-height: 1.5; }
@@ -57,7 +63,7 @@
     .stat-label { font-size: 0.875rem; color: #64748b; }
     .stat-icon { font-size: 1.5rem; color: #e2e8f0; align-self: flex-end; margin-top: -1.5rem; }
 
-    @media print { body { visibility: hidden; } }
+    @media print { body { display: none; } }
 </style>
 @endpush
 
@@ -86,7 +92,7 @@
         </div>
 
         <div class="search-group">
-            <input type="text" id="searchQuestions" class="search-input" placeholder="Cari situasi/kompetensi..." autocomplete="off">
+            <input type="text" id="searchQuestions" class="search-input" placeholder="Cari di halaman ini..." autocomplete="off">
             <i class="fas fa-search search-icon"></i>
             <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
         </div>
@@ -111,7 +117,8 @@
         <div class="stats-container">
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">{{ $questions->count() }}</div>
+                    {{-- Total Soal: Gunakan total() karena paginator object --}}
+                    <div class="stat-value">{{ $questions instanceof \Illuminate\Pagination\LengthAwarePaginator ? $questions->total() : $questions->count() }}</div>
                     <div class="stat-label">Total Soal</div>
                 </div>
                 <div class="stat-icon"><i class="fas fa-question-circle"></i></div>
@@ -134,8 +141,11 @@
             </div>
             <div class="stat-card">
                 <div>
-                    <div class="stat-value" style="color: {{ 50 - $questions->count() > 0 ? '#ef4444' : '#22c55e' }}">
-                        {{ 50 - $questions->count() }}
+                    @php
+                        $totalQ = $questions instanceof \Illuminate\Pagination\LengthAwarePaginator ? $questions->total() : $questions->count();
+                    @endphp
+                    <div class="stat-value" style="color: {{ 50 - $totalQ > 0 ? '#ef4444' : '#22c55e' }}">
+                        {{ 50 - $totalQ }}
                     </div>
                     <div class="stat-label">Kekurangan Soal</div>
                 </div>
@@ -222,6 +232,35 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    {{-- --- CUSTOM PAGINATION (GREEN STYLE) --- --}}
+                    @if($questions instanceof \Illuminate\Pagination\LengthAwarePaginator && $questions->hasPages())
+                    <div class="pagination-wrapper">
+                        <div style="font-size: 0.85rem; color: #64748b;">
+                            Halaman <span style="font-weight: 700; color: #22c55e;">{{ $questions->currentPage() }}</span> dari {{ $questions->lastPage() }}
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            {{-- Tombol Sebelumnya --}}
+                            @if ($questions->onFirstPage())
+                                <span class="btn-paginate disabled"><i class="fas fa-chevron-left"></i> Sebelumnya</span>
+                            @else
+                                <a href="{{ $questions->appends(request()->query())->previousPageUrl() }}" class="btn-paginate">
+                                    <i class="fas fa-chevron-left"></i> Sebelumnya
+                                </a>
+                            @endif
+
+                            {{-- Tombol Selanjutnya --}}
+                            @if ($questions->hasMorePages())
+                                <a href="{{ $questions->appends(request()->query())->nextPageUrl() }}" class="btn-paginate">
+                                    Selanjutnya <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <span class="btn-paginate disabled">Selanjutnya <i class="fas fa-chevron-right"></i></span>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
                 @else
                     <div style="text-align: center; padding: 4rem;">
                         <div style="background: #f1f5f9; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
@@ -238,44 +277,6 @@
                 @endif
             </div>
         </div>
-
-        @if($questions->count() > 0)
-        <div class="card" style="border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: none; margin-top: 1.5rem;">
-            <div class="card-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem;">
-                <h3 class="card-title" style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0;">
-                    <i class="fas fa-chart-pie mr-2 text-primary"></i> Distribusi Kompetensi
-                </h3>
-            </div>
-            <div class="card-body p-4">
-                <div class="row">
-                    @foreach($competencies as $competency)
-                        @php
-                            $count = $competencyStats[$competency->competency_code] ?? 0;
-                            // Asumsi target per kompetensi adalah 5 (jika total 50 soal dan 10 kompetensi, sesuaikan logika ini jika perlu)
-                            $targetPerCompetency = 5;
-                            $hasData = $count > 0;
-                            $isComplete = $count >= $targetPerCompetency;
-                        @endphp
-                        <div class="col-md-2 col-sm-4 col-6 mb-3">
-                            <div style="display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; background: {{ $hasData ? ($isComplete ? '#f0fdf4' : '#fefce8') : '#f8fafc' }}; border: 1px solid {{ $hasData ? ($isComplete ? '#bbf7d0' : '#fef08a') : '#f1f5f9' }};">
-                                <div style="display: flex; flex-direction: column;">
-                                    <span style="font-weight: 700; color: {{ $hasData ? '#0f172a' : '#94a3b8' }}; font-size: 0.85rem;">
-                                        {{ $competency->competency_code }}
-                                    </span>
-                                    <span style="font-size: 0.7rem; color: #64748b;">
-                                        {{ Str::limit($competency->competency_name, 15) }}
-                                    </span>
-                                </div>
-                                <span style="font-size: 0.9rem; font-weight: 700; color: {{ $isComplete ? '#15803d' : ($hasData ? '#854d0e' : '#cbd5e1') }}; margin-left: auto;">
-                                    {{ $count }}
-                                </span>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        @endif
 
     @else
         <div style="text-align: center; padding: 5rem 1rem;">

@@ -71,7 +71,7 @@
         <div style="display: flex; gap: 8px;">
             @if(Auth::user()->role === 'admin' || Auth::id() === $user->id)
                 <a href="{{ route('admin.users.edit', $user->id) }}" class="btn-action btn-edit">
-                    <i class="fas fa-pen"></i> Edit Profil
+                    <i class="fas fa-pen"></i> Edit
                 </a>
             @endif
             @if(Auth::user()->role === 'admin' && Auth::id() !== $user->id)

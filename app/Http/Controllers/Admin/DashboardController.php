@@ -80,7 +80,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Chart Data - Tests per day (last 7 days)
+        // Chart Data - Tests per day (last 7 days - Default View)
         $testsPerDay = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
@@ -95,65 +95,57 @@ class DashboardController extends Controller
         $completionRate = $totalTestSessions > 0 ? round(($completedTests / $totalTestSessions) * 100, 1) : 0;
 
         return view('admin.dashboard.index', compact(
-            // User Stats
             'totalUsers', 'totalAdmins', 'totalPICs', 'totalStaff', 'totalParticipants', 'activeUsers',
-
-            // Event Stats
             'totalEvents', 'activeEvents', 'upcomingEvents', 'expiredEvents',
-
-            // Test Stats
             'totalTestSessions', 'completedTests', 'ongoingTests', 'testsToday', 'testsThisWeek', 'testsThisMonth',
-
-            // Question Stats
             'totalQuestionVersions', 'activeVersions', 'totalST30Questions', 'totalSJTQuestions',
-
-            // Result Stats
             'totalResults', 'resultsWithPDF', 'emailsSent', 'pendingResults',
-
-            // Resend Stats
             'totalResendRequests', 'pendingResendRequests', 'approvedResendRequests', 'rejectedResendRequests',
-
-            // Recent Activities
             'recentTestSessions', 'recentResults', 'recentResendRequests',
-
-            // Chart Data
             'testsPerDay', 'completionRate'
         ));
     }
 
     public function getStatistics(Request $request)
     {
-        // AJAX endpoint untuk real-time statistics
-        $period = $request->get('period', 'today'); // today, week, month
+        $period = $request->get('period', 'week'); // default week
+        $labels = [];
+        $data = [];
 
-        switch ($period) {
-            case 'week':
-                $startDate = Carbon::now()->startOfWeek();
-                $endDate = Carbon::now()->endOfWeek();
-                break;
-            case 'month':
-                $startDate = Carbon::now()->startOfMonth();
-                $endDate = Carbon::now()->endOfMonth();
-                break;
-            default:
-                $startDate = Carbon::today();
-                $endDate = Carbon::today()->endOfDay();
+        if ($period === 'today') {
+            // Data per Jam (00:00 - 23:00)
+            $start = Carbon::today();
+            for ($i = 0; $i <= 23; $i++) {
+                $labels[] = sprintf('%02d:00', $i);
+                $data[] = TestSession::whereBetween('created_at', [
+                    $start->copy()->addHours($i),
+                    $start->copy()->addHours($i)->endOfHour()
+                ])->count();
+            }
+
+        } elseif ($period === 'month') {
+            // Data per Tanggal dalam bulan ini
+            $start = Carbon::now()->startOfMonth();
+            $daysInMonth = $start->daysInMonth;
+
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $date = $start->copy()->day($i);
+                $labels[] = $date->format('d M');
+                $data[] = TestSession::whereDate('created_at', $date)->count();
+            }
+
+        } else {
+            // Default: Data 7 Hari Terakhir
+            for ($i = 6; $i >= 0; $i--) {
+                $date = Carbon::now()->subDays($i);
+                $labels[] = $date->format('M d');
+                $data[] = TestSession::whereDate('created_at', $date)->count();
+            }
         }
 
-        $stats = [
-            'tests_completed' => TestSession::where('is_completed', true)
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->count(),
-            'new_users' => User::whereBetween('created_at', [$startDate, $endDate])
-                ->count(),
-            'results_sent' => TestResult::whereNotNull('email_sent_at')
-                ->whereBetween('email_sent_at', [$startDate, $endDate])
-                ->count(),
-            'pending_requests' => ResendRequest::where('status', 'pending')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count(),
-        ];
-
-        return response()->json($stats);
+        return response()->json([
+            'labels' => $labels,
+            'data' => $data
+        ]);
     }
 }

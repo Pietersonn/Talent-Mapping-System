@@ -35,10 +35,10 @@
         background: var(--bg-card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
-        padding: 1.25rem; /* Sedikit diperbesar agar lega */
+        padding: 1.25rem;
         display: flex;
         flex-direction: column;
-        justify-content: space-between; /* Default untuk kartu statistik angka */
+        justify-content: space-between;
         transition: transform 0.2s, box-shadow 0.2s;
         height: 100%;
         position: relative;
@@ -50,7 +50,7 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-    /* --- STATISTIC CARDS (Top Row) --- */
+    /* --- STATISTIC CARDS --- */
     .stat-header {
         display: flex;
         justify-content: space-between;
@@ -66,7 +66,6 @@
         justify-content: center;
         font-size: 1rem;
     }
-    /* Icon Colors */
     .icon-users { background: #eff6ff; color: #3b82f6; }
     .icon-events { background: #f0fdf4; color: #22c55e; }
     .icon-tests { background: #fefce8; color: #eab308; }
@@ -100,12 +99,8 @@
     .col-span-3 { grid-column: span 3; }
     .col-span-2 { grid-column: span 2; }
 
-    @media (max-width: 1024px) {
-        .col-span-3, .col-span-2 { grid-column: span 2; }
-    }
-    @media (max-width: 640px) {
-        .col-span-3, .col-span-2 { grid-column: span 1; }
-    }
+    @media (max-width: 1024px) { .col-span-3, .col-span-2 { grid-column: span 2; } }
+    @media (max-width: 640px) { .col-span-3, .col-span-2 { grid-column: span 1; } }
 
     .section-header {
         display: flex;
@@ -113,7 +108,6 @@
         align-items: center;
         padding-bottom: 0.5rem;
         border-bottom: 1px solid #f1f5f9;
-        /* Margin bottom dihapus disini, diatur via gap inline style */
     }
     .section-title {
         font-size: 0.95rem;
@@ -144,7 +138,6 @@
     }
     .compact-table tr:last-child td { border-bottom: none; }
 
-    /* User Avatar in Table */
     .user-cell { display: flex; align-items: center; gap: 0.75rem; }
     .avatar-xs {
         width: 28px; height: 28px;
@@ -154,7 +147,7 @@
         font-size: 0.75rem; font-weight: bold; color: #64748b;
     }
 
-    /* --- QUICK LIST (System Health) --- */
+    /* --- QUICK LIST --- */
     .quick-list { display: flex; flex-direction: column; gap: 1rem; }
     .quick-item {
         display: flex; justify-content: space-between; align-items: center;
@@ -175,7 +168,6 @@
         cursor: pointer; transition: all 0.2s;
     }
     .chart-filter.active { background: #22c55e; color: white; }
-
 </style>
 @endpush
 
@@ -247,7 +239,6 @@
     </div>
 
     {{-- QUICK PULSE / RINGKASAN --}}
-    {{-- Menggunakan justify-content: flex-start agar konten rapat ke atas --}}
     <div class="bento-card" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title"><i class="fas fa-bolt text-yellow-500"></i> Ringkasan</div>
@@ -282,7 +273,6 @@
 
 
     {{-- TABLE 1: Sesi Terbaru --}}
-    {{-- FIX: Menggunakan justify-content: flex-start agar tabel tidak terdorong ke bawah --}}
     <div class="bento-card col-span-2" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title">Sesi Terbaru</div>
@@ -329,7 +319,6 @@
     </div>
 
     {{-- TABLE 2: Permintaan Resend --}}
-    {{-- FIX: Menggunakan justify-content: flex-start agar tabel tidak terdorong ke bawah --}}
     <div class="bento-card col-span-2" style="justify-content: flex-start; gap: 1rem;">
         <div class="section-header">
             <div class="section-title">Permintaan Resend</div>
@@ -361,7 +350,6 @@
                         </td>
                     <td style="text-align: right;">
                         @if($request->status === 'pending')
-                            {{-- Mengarahkan ke admin.resend.show dengan membawa ID request --}}
                             <a href="{{ route('admin.resend.index', $request->id) }}"
                             style="font-size:0.7rem; font-weight:700; color:#3b82f6; text-decoration:none;">
                             TINJAU
@@ -383,32 +371,38 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('plugins/chart.js/Chart.min.js') }}"></script>
+{{-- Load jQuery first --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+{{-- FIXED: Load Chart.js via CDN karena file lokal tidak ditemukan --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+let testActivityChart = null;
+
 $(document).ready(function() {
     Chart.defaults.font.family = "'Figtree', sans-serif";
     Chart.defaults.color = '#94a3b8';
 
-    // --- Test Activity Chart ---
     const ctx = document.getElementById('testActivityChart').getContext('2d');
 
-    // Gradient Hijau Compact
+    // Gradient Hijau
     const gradient = ctx.createLinearGradient(0, 0, 0, 200);
     gradient.addColorStop(0, 'rgba(34, 197, 94, 0.15)');
     gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');
 
-    new Chart(ctx, {
+    testActivityChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: {!! json_encode(array_column($testsPerDay, 'date')) !!},
             datasets: [{
-                label: 'Tes', // Translate Label
+                label: 'Tes Selesai',
                 data: {!! json_encode(array_column($testsPerDay, 'count')) !!},
                 borderColor: '#22c55e',
                 backgroundColor: gradient,
                 borderWidth: 2,
-                pointRadius: 2,
-                pointHoverRadius: 4,
+                pointRadius: 3,
+                pointHoverRadius: 5,
                 fill: true,
                 tension: 0.3
             }]
@@ -420,11 +414,12 @@ $(document).ready(function() {
             scales: {
                 y: {
                     display: false,
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { font: { size: 9 }, maxTicksLimit: 7 }
+                    ticks: { font: { size: 10 }, maxTicksLimit: 7 }
                 }
             },
             layout: { padding: { top: 10, bottom: 0, left: -5, right: 0 } }
@@ -436,8 +431,22 @@ function updateStats(period) {
     $('.chart-filter').removeClass('active');
     $(event.target).addClass('active');
 
-    $.get('{{ route("admin.dashboard.stats") }}', { period: period })
-        .done(function(data) { console.log('Stats updated'); });
+    $.ajax({
+        url: '{{ route("admin.dashboard.stats") }}',
+        type: 'GET',
+        data: { period: period },
+        success: function(response) {
+            if (testActivityChart) {
+                testActivityChart.data.labels = response.labels;
+                testActivityChart.data.datasets[0].data = response.data;
+                testActivityChart.update();
+                console.log('Grafik diperbarui: ' + period);
+            }
+        },
+        error: function(err) {
+            console.error("Gagal mengambil data statistik", err);
+        }
+    });
 }
 </script>
 @endpush

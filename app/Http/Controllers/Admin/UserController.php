@@ -99,7 +99,8 @@ class UserController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Pengguna berhasil ditambahkan.');
     }
 
     /**
@@ -159,7 +160,8 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Data pengguna berhasil diperbarui.');
     }
 
     /**
@@ -168,10 +170,11 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if ($user->id === Auth::id()) {
-            return back()->with('error', 'Cannot delete your own account.');
+            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
         $user->delete();
-        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Pengguna berhasil dihapus.');
     }
 
     /**
@@ -180,10 +183,10 @@ class UserController extends Controller
     public function toggleStatus(User $user)
     {
         if ($user->id === Auth::id()) {
-            return back()->with('error', 'Cannot deactivate your own account.');
+            return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
         }
         $user->update(['is_active' => !$user->is_active]);
-        return back()->with('success', 'User status updated.');
+        return back()->with('success', 'Status pengguna berhasil diperbarui.');
     }
 
     /**
@@ -196,21 +199,25 @@ class UserController extends Controller
         $user->update(['password' => Hash::make($tempPassword)]);
 
         // Mengembalikan password sementara ke flash session agar bisa dicopy admin
-        return back()->with('success', 'Password reset to: ' . $tempPassword . ' (Please copy this)');
+        return back()->with('success', 'Password berhasil direset menjadi: ' . $tempPassword . ' (Mohon salin password ini)');
     }
-    public function exportPdf(Request $request)
+
+public function exportPdf(Request $request)
     {
         $query = User::query();
 
-        // 1. Filter Search (Nama & Email)
+        // 1. Filter Search (Perbaikan: Menambahkan Role dan Phone Number)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%")        // <-- Ditambahkan
+                    ->orWhere('phone_number', 'like', "%{$search}%"); // <-- Ditambahkan
             });
         }
 
+        // 2. Filter Role (Jika ada filter dropdown role)
         if ($request->filled('role')) {
             $query->where('role', $request->role);
         }
@@ -220,10 +227,12 @@ class UserController extends Controller
         $pdf = Pdf::loadView('admin.users.pdf.userReport', [
             'reportTitle' => 'Laporan Data Pengguna',
             'generatedBy' => Auth::user()->name,
-            'generatedAt' => now()->format('d M Y H:i'),
+            'generatedAt' => now()->format('d M Y'), // Format tanggal disesuaikan
             'rows'        => $users,
+            'search'      => $request->search // Mengirim variabel search ke view untuk subtitle filter
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream('Laporan_Pengguna.pdf');
     }
+
 }

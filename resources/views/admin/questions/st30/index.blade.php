@@ -27,6 +27,19 @@
     .custom-table td { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 0.9rem; color: #334155; background: white; }
     .custom-table tr:hover td { background-color: #f8fafc; }
 
+    /* --- PAGINATION (GREEN STYLE) --- */
+    .pagination-wrapper { padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .btn-paginate { background: white; border: 1px solid #e2e8f0; color: #22c55e; padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-paginate:hover:not(.disabled) { background: #f0fdf4; border-color: #22c55e; color: #15803d; transform: translateY(-1px); }
+    .btn-paginate.disabled { color: #94a3b8; background: #f8fafc; cursor: not-allowed; opacity: 0.7; }
+
+    /* Stats Adjustment */
+    .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+    .stat-label { font-size: 0.875rem; color: #64748b; }
+    .stat-icon { font-size: 1.5rem; color: #e2e8f0; align-self: flex-end; margin-top: -1.5rem; }
+
     /* --- COMPONENTS --- */
     .statement-text { font-size: 0.95rem; color: #0f172a; line-height: 1.5; }
     .text-expand-btn { color: #22c55e; border: none; background: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0; margin-left: 5px; }
@@ -45,13 +58,6 @@
     .btn-edit { background: #eff6ff; color: #2563eb; }
     .btn-delete { background: #fef2f2; color: #dc2626; }
     .btn-icon:hover { opacity: 0.8; transform: scale(1.05); }
-
-    /* Stats Adjustment */
-    .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .stat-card { background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; }
-    .stat-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
-    .stat-label { font-size: 0.875rem; color: #64748b; }
-    .stat-icon { font-size: 1.5rem; color: #e2e8f0; align-self: flex-end; margin-top: -1.5rem; }
 
     @media print { body { display: none; } }
 </style>
@@ -82,7 +88,7 @@
         </div>
 
         <div class="search-group">
-            <input type="text" id="searchQuestions" class="search-input" placeholder="Cari statement..." autocomplete="off">
+            <input type="text" id="searchQuestions" class="search-input" placeholder="Cari di halaman ini..." autocomplete="off">
             <i class="fas fa-search search-icon"></i>
             <i class="fas fa-circle-notch fa-spin loading-spinner"></i>
         </div>
@@ -107,7 +113,8 @@
         <div class="stats-container">
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">{{ $questions->count() }}</div>
+                    {{-- Gunakan total() karena sekarang $questions adalah object paginator --}}
+                    <div class="stat-value">{{ $questions instanceof \Illuminate\Pagination\LengthAwarePaginator ? $questions->total() : $questions->count() }}</div>
                     <div class="stat-label">Total Pertanyaan</div>
                 </div>
                 <div class="stat-icon"><i class="fas fa-question-circle"></i></div>
@@ -130,8 +137,11 @@
             </div>
             <div class="stat-card">
                 <div>
-                    <div class="stat-value" style="color: {{ 30 - $questions->count() > 0 ? '#ef4444' : '#22c55e' }}">
-                        {{ 30 - $questions->count() }}
+                    @php
+                        $totalQ = $questions instanceof \Illuminate\Pagination\LengthAwarePaginator ? $questions->total() : $questions->count();
+                    @endphp
+                    <div class="stat-value" style="color: {{ 30 - $totalQ > 0 ? '#ef4444' : '#22c55e' }}">
+                        {{ 30 - $totalQ }}
                     </div>
                     <div class="stat-label">Kekurangan Soal</div>
                 </div>
@@ -212,6 +222,36 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    {{-- --- CUSTOM PAGINATION (GREEN STYLE) --- --}}
+                    @if($questions instanceof \Illuminate\Pagination\LengthAwarePaginator && $questions->hasPages())
+                    <div class="pagination-wrapper">
+                        <div style="font-size: 0.85rem; color: #64748b;">
+                            Halaman <span style="font-weight: 700; color: #22c55e;">{{ $questions->currentPage() }}</span> dari {{ $questions->lastPage() }}
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            {{-- Tombol Sebelumnya --}}
+                            @if ($questions->onFirstPage())
+                                <span class="btn-paginate disabled"><i class="fas fa-chevron-left"></i> Sebelumnya</span>
+                            @else
+                                {{-- Gunakan appends() agar query params (version/search) terbawa --}}
+                                <a href="{{ $questions->appends(request()->query())->previousPageUrl() }}" class="btn-paginate">
+                                    <i class="fas fa-chevron-left"></i> Sebelumnya
+                                </a>
+                            @endif
+
+                            {{-- Tombol Selanjutnya --}}
+                            @if ($questions->hasMorePages())
+                                <a href="{{ $questions->appends(request()->query())->nextPageUrl() }}" class="btn-paginate">
+                                    Selanjutnya <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <span class="btn-paginate disabled">Selanjutnya <i class="fas fa-chevron-right"></i></span>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
                 @else
                     <div style="text-align: center; padding: 4rem;">
                         <div style="background: #f1f5f9; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">

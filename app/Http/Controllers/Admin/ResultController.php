@@ -101,13 +101,13 @@ class ResultController extends Controller
 
         // Load View PDF
         $pdf = Pdf::loadView('admin.results.pdf.resultReport', [
-            'reportTitle' => 'Laporan Hasil Assessment',
+            'reportTitle' => 'Laporan Peserta',
             'generatedBy' => Auth::user()->name,
             'generatedAt' => now()->format('d M Y H:i'),
             'rows'        => $results,
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Laporan_Hasil_Assessment.pdf');
+        return $pdf->stream('Laporan_Peserta.pdf');
     }
 
     /**

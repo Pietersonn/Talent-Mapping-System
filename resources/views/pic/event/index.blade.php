@@ -91,7 +91,6 @@
                                         @endif
                                         {{ $event->name }}
                                     </div>
-                                    <div class="event-code">{{ $event->event_code }}</div>
                                 </div>
                             </td>
                             <td style="color: #64748b; font-weight: 500;">{{ $event->company ?? '-' }}</td>

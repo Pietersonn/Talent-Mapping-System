@@ -108,7 +108,6 @@
                                         @endif
                                         {{ $event->name }}
                                     </div>
-                                    <div class="event-code">{{ $event->event_code }}</div>
                                 </div>
                             </td>
                             <td style="color: #64748b; font-weight: 500;">{{ $event->company ?? '-' }}</td>
@@ -121,12 +120,8 @@
                             <td>
                                 <div class="action-buttons">
                                     <a href="{{ route('admin.events.show', $event->id) }}" class="btn-icon btn-view" title="Detail"><i class="fas fa-eye text-xs"></i></a>
-                                    @if(Auth::user()->role === 'admin')
-                                        <a href="{{ route('admin.events.edit', $event->id) }}" class="btn-icon btn-edit" title="Edit"><i class="fas fa-pen text-xs"></i></a>
-                                        @if($event->participants_count == 0)
-                                            <button onclick="deleteEvent('{{ $event->name }}', '{{ route('admin.events.destroy', $event->id) }}')" class="btn-icon btn-delete" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
-                                        @endif
-                                    @endif
+                                    <a href="{{ route('admin.events.edit', $event->id) }}" class="btn-icon btn-edit" title="Edit"><i class="fas fa-pen text-xs"></i></a>
+                                    <button onclick="deleteEvent('{{ $event->name }}', '{{ route('admin.events.destroy', $event->id) }}')" class="btn-icon btn-delete" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
                                 </div>
                             </td>
                         </tr>

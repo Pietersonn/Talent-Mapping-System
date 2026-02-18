@@ -105,7 +105,7 @@
                                 </div>
                             </td>
                             <td style="color: #64748b;">{{ $user->email }}</td>
-                            <td><span class="badge-role role-{{ strtolower($user->role) }}">{{ ucfirst($user->role) }}</span></td>
+                            <td><span class="badge-role role-{{ strtolower($user->role) }}">{{ $user->role === 'user' ? 'Pengguna' : ucfirst($user->role) }}</span></td>
                             <td style="font-family: monospace; font-weight: 600; color: #334155;">{{ $user->phone_number ?? '-' }}</td>
                             <td>
                                 <div class="action-buttons">

@@ -60,7 +60,7 @@
 @section('header')
     <div class="header-wrapper">
         <div>
-            <h1 class="page-title"><i class="fas fa-user-edit"></i> Ubah Pengguna</h1>
+            <h1 class="page-title"><i class="fas fa-user-edit"></i> Edit Pengguna</h1>
         </div>
         <a href="{{ route('admin.users.index') }}" class="btn-cancel">
             <i class="fas fa-arrow-left"></i> Kembali
@@ -103,7 +103,7 @@
                 <div class="form-group">
                     <label class="form-label required">Peran (Role)</label>
                     <select name="role" class="form-control" required>
-                        <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>User (Peserta)</option>
+                        <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>Pengguna</option>
                         <option value="pic" {{ old('role', $user->role) == 'pic' ? 'selected' : '' }}>PIC (Manajer Event)</option>
                         <option value="staff" {{ old('role', $user->role) == 'staff' ? 'selected' : '' }}>Staff</option>
                         <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrator</option>

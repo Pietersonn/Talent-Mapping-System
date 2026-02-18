@@ -17,7 +17,7 @@
                     <div class="thank-you-content w-100">
                         <h1 class="thank-you-title">Terima Kasih Telah Mengikuti</h1>
                         <h2 class="thank-you-subtitle">
-                            <span class="highlight">Talent Competency Assessment!</span> 🎉
+                            <span class="highlight">Talent Mapping</span> 🎉
                         </h2>
 
                         <p class="thank-you-description">

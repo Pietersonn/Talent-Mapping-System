@@ -28,16 +28,24 @@ class ST30QuestionController extends Controller
             ->get();
 
         $questions = collect();
-        if ($selectedVersion) {
-            $questions = ST30Question::where('version_id', $selectedVersion->id)
-                ->with(['questionVersion', 'typologyDescription'])
-                ->orderBy('number')
-                ->get();
-        }
+        $typologyStats = [];
 
-        $typologyStats = $questions->groupBy('typology_code')
-            ->map(fn($items) => $items->count())
-            ->toArray();
+        if ($selectedVersion) {
+            // 1. Buat Query Dasar
+            $query = ST30Question::where('version_id', $selectedVersion->id)
+                ->with(['questionVersion', 'typologyDescription'])
+                ->orderBy('number');
+
+            // 2. Ambil SEMUA data khusus untuk menghitung Statistik (agar chart/total akurat)
+            $allDataForStats = $query->get();
+
+            $typologyStats = $allDataForStats->groupBy('typology_code')
+                ->map(fn($items) => $items->count())
+                ->toArray();
+
+            // 3. Ambil data PAGINATION (10 per halaman) untuk Tabel
+            $questions = $query->paginate(10);
+        }
 
         $typologies = TypologyDescription::orderBy('typology_code')->get();
 
@@ -65,7 +73,7 @@ class ST30QuestionController extends Controller
                 ->with('error', 'Tidak ada versi ST-30 yang tersedia. Silakan buat versi terlebih dahulu.');
         }
 
-        // [PERBAIKAN] Cek jumlah total soal (count), bukan nomor terakhir
+        // Cek jumlah total soal (count)
         $totalQuestions = ST30Question::where('version_id', $selectedVersion->id)->count();
 
         if ($totalQuestions >= 30) {
@@ -73,8 +81,7 @@ class ST30QuestionController extends Controller
                 ->with('error', 'Versi ini sudah memiliki 30 pertanyaan (maksimum).');
         }
 
-        // [FITUR BARU] Cari nomor kosong terkecil (1-30)
-        // Berguna jika user menghapus soal di tengah-tengah (misal hapus no 15)
+        // Cari nomor kosong terkecil (1-30)
         $existingNumbers = ST30Question::where('version_id', $selectedVersion->id)
             ->pluck('number')
             ->toArray();
@@ -240,7 +247,7 @@ class ST30QuestionController extends Controller
         if (!empty($search)) {
             $query->where(function($q) use ($search) {
                 $q->where('statement', 'like', '%' . $search . '%')
-                  ->orWhere('number', 'like', '%' . $search . '%') // <--- TAMBAHAN PENTING INI
+                  ->orWhere('number', 'like', '%' . $search . '%')
                   ->orWhere('typology_code', 'like', '%' . $search . '%')
                   ->orWhereHas('typologyDescription', function($subQ) use ($search) {
                       $subQ->where('typology_name', 'like', '%' . $search . '%');

@@ -35,17 +35,23 @@ class SJTQuestionController extends Controller
             ->get();
 
         $questions = collect();
-        if ($selectedVersion) {
-            $questions = SJTQuestion::where('version_id', $selectedVersion->id)
-                ->with(['questionVersion', 'competencyDescription', 'options'])
-                ->orderBy('number')
-                ->get();
-        }
+        $competencyStats = [];
 
-        // Get competency distribution
-        $competencyStats = $questions->groupBy('competency')
-            ->map(fn($items) => $items->count())
-            ->toArray();
+        if ($selectedVersion) {
+            // 1. Buat Query Dasar
+            $query = SJTQuestion::where('version_id', $selectedVersion->id)
+                ->with(['questionVersion', 'competencyDescription', 'options'])
+                ->orderBy('number');
+
+            // 2. Ambil SEMUA data khusus untuk menghitung Statistik (agar chart/total akurat)
+            $allDataForStats = $query->get();
+            $competencyStats = $allDataForStats->groupBy('competency')
+                ->map(fn($items) => $items->count())
+                ->toArray();
+
+            // 3. Ambil data PAGINATION (10 per halaman) untuk Tabel
+            $questions = $query->paginate(10);
+        }
 
         // Get all competencies for reference
         $competencies = CompetencyDescription::orderBy('competency_code')->get();

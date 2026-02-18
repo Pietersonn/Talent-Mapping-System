@@ -152,7 +152,7 @@
                     <label class="form-label required">Peran (Role)</label>
                     <select name="role" class="form-control" style="background-image: none;" required>
                         <option value="">-- Pilih Peran --</option>
-                        <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User (Peserta)</option>
+                        <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Pengguna (Peserta)</option>
                         <option value="pic" {{ old('role') == 'pic' ? 'selected' : '' }}>PIC (Event Manager)</option>
                         <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
                         <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option>

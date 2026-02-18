@@ -12,13 +12,18 @@
 
     // --- 2. Setup Tanggal & Lokasi ---
     Carbon::setLocale('id');
-    $currentDate  = Carbon::now()->isoFormat('D MMMM Y'); // Contoh: 21 Januari 2026
+    $currentDate  = Carbon::now()->isoFormat('D MMMM Y'); // Untuk Tanda Tangan
+    $generatedAt  = Carbon::now()->isoFormat('D MMMM Y'); // Untuk Header (Tanpa Jam)
     $cityLocation = 'Barito Kuala';
 
     // --- 3. Data Default ---
+    $reportTitle    = $reportTitle ?? 'Laporan Data Tipologi';
+    $generatedBy    = $generatedBy ?? 'Admin';
+
     $companyName    = 'BUSINESS & COMMUNICATION TRAINING INSTITUTE';
     $companyAddr1   = 'Kompleks Sekolah Global Islamic Boarding School (GIBS)';
-    $companyAddr2   = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2, Sungai Lumbah, Kec. Alalak, Kab. Barito Kuala, Kalimantan Selatan 70582';
+    $companyAddr2   = 'Gedung Nurhayati Kampus GIBS, Jl. Trans - Kalimantan Lantai 2,';
+    $companyAddr3   = 'Sungai Lumbah, Kec. Alalak, Kab. Barito Kuala, Kalimantan Selatan 70582';
     $companyContact = 'Email : bcti@hasnurcentre.org | Website: bcti.id';
 @endphp
 
@@ -28,121 +33,128 @@
 <meta charset="utf-8">
 <title>{{ $reportTitle }}</title>
 <style>
-  @page { size: A4 landscape; margin: 10mm; }
-  body { font-family: "Times New Roman", Times, serif; font-size: 11px; color: #000; }
+    /* A4 Landscape agar kolom deskripsi muat */
+    @page { size: A4 landscape; margin: 20mm 15mm 15mm 15mm; }
+    body { font-family: "Times New Roman", Times, serif; font-size: 10px; color: #000; line-height: 1.3; }
 
-  .header { margin-bottom: 8px; }
-  .h-left  { float:left;  width:38%; }
-  .h-right { float:right; width:60%; text-align:right; }
-  .h-logo  { height: 60px; width: auto; }
-  .company-name { font-weight: bold; font-size: 14px; letter-spacing:.25px; }
-  .company-sub  { font-size: 10px; line-height:1.3; color:#000; }
+    .clearfix:after { content: ""; display: table; clear: both; }
 
-  .divider { border:0; border-top:1px solid #000; margin: 6px 0 10px; }
-  .clearfix:after { content:""; display: table; clear: both; }
+    /* Header Style */
+    .header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+    .h-left { float: left; width: 12%; }
+    .h-right { float: right; width: 88%; text-align: right; }
+    .h-logo { height: 65px; width: auto; }
 
-  .title-wrap { text-align:center; margin: 4px 0 10px; }
-  .title   { font-size: 14px; font-weight:bold; text-transform:uppercase; margin:0 0 4px; }
-  .subtitle{ font-size: 10px; color:#000; }
+    .company-name { font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .company-sub { font-size: 10px; }
 
-  table { width:100%; border-collapse: collapse; background:#fff; margin-top: 10px; }
-  thead th {
-      background:#f0f0f0; border:1px solid #000; font-weight:bold;
-      font-size: 11px; padding: 5px; text-align:center; vertical-align: middle;
-  }
-  tbody td {
-      border:1px solid #000; padding: 5px; vertical-align: top; font-size: 10px; text-align: justify;
-  }
-  .text-center { text-align:center; }
-  .font-bold { font-weight: bold; }
+    /* Title Style */
+    .title-wrap { text-align: center; margin-bottom: 25px; }
+    .title { font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; text-decoration: underline; }
+    .subtitle { font-size: 11px; }
 
-  .footer { position: fixed; bottom: -8mm; left: 0; right: 0; text-align: right; font-size: 9px; color:#555; }
-  .pagenum:before { content: counter(page); }
+    /* Table Style */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
 
-  /* --- Tambahan CSS Tanda Tangan --- */
-  .signature-table { width: 100%; margin-top: 30px; border: none; page-break-inside: avoid; }
-  .signature-table td { border: none; padding: 0; vertical-align: top; }
+    thead th {
+        background: #e0e0e0;
+        border: 1px solid #000;
+        font-weight: bold;
+        font-size: 10px;
+        padding: 8px 4px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    tbody td {
+        border: 1px solid #000;
+        padding: 6px;
+        vertical-align: top;
+        font-size: 10px;
+        word-wrap: break-word;
+    }
+
+    /* Helper Classes */
+    .text-center { text-align: center; }
+    .font-bold { font-weight: bold; }
+
+    /* Signature Style */
+    .signature-table { width: 100%; margin-top: 30px; border: none; page-break-inside: avoid; }
+    .signature-table td { border: none; padding: 0; vertical-align: top; text-align: center; }
+
+    /* Footer Style */
+    .footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: right; font-size: 9px; font-style: italic; }
+    .pagenum:before { content: counter(page); }
 </style>
 </head>
 <body>
 
-  <div class="header clearfix">
-    <div class="h-left">
-      @if(!empty($logoBase64))
-        <img class="h-logo" src="{{ $logoBase64 }}" alt="BCTI">
-      @else
-        <strong class="company-name">BCTI</strong>
-      @endif
+    {{-- HEADER --}}
+    <div class="header clearfix">
+        <div class="h-left">
+            @if(!empty($logoBase64))
+                <img src="{{ $logoBase64 }}" class="h-logo" alt="BCTI">
+            @else
+                <strong>BCTI</strong>
+            @endif
+        </div>
+        <div class="h-right">
+            <div class="company-name">{{ $companyName }}</div>
+            <div class="company-sub">{{ $companyAddr1 }}<br>{{ $companyAddr2 }}<br>{{ $companyAddr3 }}<br>{{ $companyContact }}</div>
+        </div>
     </div>
-    <div class="h-right">
-      <div class="company-name">{{ $companyName }}</div>
-      <div class="company-sub">{!! $companyAddr1 !!}<br>{!! $companyAddr2 !!}<br>{!! $companyContact !!}</div>
+
+    {{-- JUDUL LAPORAN --}}
+    <div class="title-wrap">
+        <div class="title">{{ $reportTitle }}</div>
+        <div class="subtitle">Dicetak oleh: {{ $generatedBy }} • {{ $generatedAt }}</div>
     </div>
-  </div>
 
-  <hr class="divider">
+    {{-- TABEL DATA --}}
+    <table>
+        <thead>
+            <tr>
+                {{-- Penyesuaian Lebar Kolom (Total 100%) --}}
+                <th style="width: 5%;">No</th>
+                <th style="width: 10%;">Kode</th>
+                <th style="width: 15%;">Nama Tipologi</th>
+                <th style="width: 35%;">Kekuatan (Strength)</th>
+                <th style="width: 35%;">Kelemahan (Weakness)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($rows as $index => $item)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td class="text-center font-bold">{{ $item->typology_code }}</td>
+                    <td class="font-bold">{{ $item->typology_name }}</td>
+                    <td>{{ $item->strength_description ?? '-' }}</td>
+                    <td>{{ $item->weakness_description ?? '-' }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="5" class="text-center" style="padding:15px;">Tidak ada data tipologi.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
 
-  <div class="title-wrap">
-    <div class="title">{{ $reportTitle }}</div>
-    <div class="subtitle">Dicetak oleh: {{ $generatedBy }} • Tanggal: {{ $generatedAt }}</div>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th style="width:30px;">No</th>
-        <th style="width:50px;">Kode</th>
-        <th style="width:120px;">Nama Tipologi</th>
-        <th>Kekuatan (Strength)</th>
-        <th>Kelemahan (Weakness)</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($rows as $index => $item)
+    {{-- TANDA TANGAN --}}
+    <table class="signature-table">
         <tr>
-          <td class="text-center">{{ $index + 1 }}</td>
-          <td class="text-center font-bold">{{ $item->typology_code }}</td>
-          <td class="font-bold">{{ $item->typology_name }}</td>
-          <td>{{ $item->strength_description ?? '-' }}</td>
-          <td>{{ $item->weakness_description ?? '-' }}</td>
+            {{-- Spacer Kiri (65%) --}}
+            <td style="width: 65%;"></td>
+
+            {{-- Blok Tanda Tangan Kanan (35%) --}}
+            <td style="width: 35%;">
+                <div style="margin-bottom: 5px;">{{ $cityLocation }}, {{ $currentDate }}</div>
+                <div style="margin-bottom: 60px;">Mengetahui, Pimpinan Unit</div>
+                <div style="font-weight: bold; text-decoration: underline;">Muhammad Zain Mahbuby, B.Eng</div>
+                <div>Koordinator BCTI</div>
+            </td>
         </tr>
-      @empty
-        <tr><td colspan="5" class="text-center" style="padding:20px;">Tidak ada data tipologi.</td></tr>
-      @endforelse
-    </tbody>
-  </table>
+    </table>
 
-  {{-- BAGIAN TANDA TANGAN (STYLE SURAT RESMI - LANDSCAPE) --}}
-  <table class="signature-table">
-    <tr>
-      {{-- Spacer Kiri (65%) - Karena Landscape lebih lebar, spacer diperbesar agar ttd pas di kanan --}}
-      <td style="width: 65%;"></td>
+    {{-- FOOTER --}}
+    <div class="footer">Halaman <span class="pagenum"></span></div>
 
-      {{-- Blok Tanda Tangan Kanan (35%) --}}
-      <td style="width: 35%; text-align: center;">
-        {{-- Tanggal --}}
-        <div style="margin-bottom: 5px;">
-            {{ $cityLocation }}, {{ $currentDate }}
-        </div>
-
-        {{-- Jabatan Atas --}}
-        <div style="margin-bottom: 60px;">
-            Mengetahui, Pimpinan Unit
-        </div>
-
-        {{-- Nama (Bold & Underline) --}}
-        <div style="font-weight: bold; text-decoration: underline;">
-            Muhammad Zain Mahbuby, B.Eng
-        </div>
-
-        {{-- Jabatan Bawah --}}
-        <div>
-            Koordinator BCTI
-        </div>
-      </td>
-    </tr>
-  </table>
-
-  <div class="footer">Halaman <span class="pagenum"></span></div>
 </body>
-</html> 
+</html>
