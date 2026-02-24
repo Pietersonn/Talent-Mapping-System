@@ -112,15 +112,18 @@
 
                 <div class="form-group">
                     <label class="form-label required">Kompetensi Target</label>
-                    <select name="competency_code" class="form-control @error('competency_code') border-red-500 @enderror" required>
+                    {{-- PERBAIKAN DI SINI: ubah name='competency_code' jadi 'competency' --}}
+                    <select name="competency" class="form-control @error('competency') border-red-500 @enderror" required>
                         @foreach($competencies as $competency)
+                            {{-- PERBAIKAN DI SINI: ubah old('competency_code'...) jadi old('competency'...) --}}
                             <option value="{{ $competency->competency_code }}"
-                                {{ old('competency_code', $sjtQuestion->competency) == $competency->competency_code ? 'selected' : '' }}>
+                                {{ old('competency', $sjtQuestion->competency) == $competency->competency_code ? 'selected' : '' }}>
                                 {{ $competency->competency_name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('competency_code') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    {{-- PERBAIKAN DI SINI: ubah error('competency_code') jadi error('competency') --}}
+                    @error('competency') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="p-3 bg-blue-50 rounded-xl mt-4 border border-blue-100">

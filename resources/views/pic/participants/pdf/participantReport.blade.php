@@ -92,20 +92,23 @@
     <tbody>
       @php $no = 1; @endphp
       @forelse($rows as $result)
-        @php
+        {{-- HAPUS BAGIAN INI KARENA TIDAK PERLU DAN MENYEBABKAN ERROR --}}
+        {{-- @php
             $session = $result->session;
             $user = $session->user ?? null;
-        @endphp
+        @endphp --}}
+
         <tr>
           <td class="text-center">{{ $no++ }}</td>
           <td class="name-col">
-              <strong>{{ $session->participant_name ?? '-' }}</strong><br>
-              <span style="color:#555;">{{ $user->email ?? '' }}</span>
+              {{-- Gunakan property langsung dari hasil select controller --}}
+              <strong>{{ $result->name ?? '-' }}</strong><br>
+              <span style="color:#555;">{{ $result->email ?? '' }}</span>
           </td>
-          <td class="text-center">{{ $user->phone_number ?? '-' }}</td>
-          <td>{{ $session->event->name ?? '-' }}</td>
-          <td>{{ $session->participant_background ?? '-' }}</td>
-          <td>{{ $session->position ?? '-' }}</td>
+          <td class="text-center">{{ $result->phone_number ?? '-' }}</td>
+          <td>{{ $result->event_name ?? '-' }}</td>
+          <td>{{ $result->instansi ?? '-' }}</td>
+          <td>{{ $result->jabatan ?? '-' }}</td>
         </tr>
       @empty
         <tr><td colspan="6" class="text-center" style="padding:20px;">Tidak ada data hasil assessment untuk event Anda.</td></tr>

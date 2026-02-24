@@ -72,7 +72,7 @@
                         <textarea name="reason" class="tmprof-textarea" rows="3"
                             placeholder="Contoh: minta dikirim ulang ke email akun saya / butuh salinan terbaru">{{ old('reason') }}</textarea>
 
-                        <button type="submit" class="tmprof-button">Ajukan Resend</button>
+                        <button type="submit" class="tmprof-button">Ajukan Kirim Ulang</button>
                     </form>
 
                     <div class="tmprof-requests">

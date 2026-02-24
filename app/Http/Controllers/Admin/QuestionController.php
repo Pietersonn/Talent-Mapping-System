@@ -143,16 +143,16 @@ class QuestionController extends Controller
     public function destroy(QuestionVersion $questionVersion)
     {
         $hasResponses = false;
-        // Cek manual respons
+
+        // Cek langsung ke tabel response menggunakan question_version_id
+        // Tidak perlu join ke tabel questions karena di tabel response sudah ada question_version_id
         if ($questionVersion->type === 'st30') {
             $hasResponses = DB::table('st30_responses')
-                ->join('st30_questions', 'st30_responses.question_id', '=', 'st30_questions.id')
-                ->where('st30_questions.version_id', $questionVersion->id)
+                ->where('question_version_id', $questionVersion->id)
                 ->exists();
         } else {
             $hasResponses = DB::table('sjt_responses')
-                ->join('sjt_questions', 'sjt_responses.question_id', '=', 'sjt_questions.id')
-                ->where('sjt_questions.version_id', $questionVersion->id)
+                ->where('question_version_id', $questionVersion->id)
                 ->exists();
         }
 

@@ -104,15 +104,15 @@
 
                 <div class="form-group">
                     <label class="form-label required">Kompetensi Target</label>
-                    <select name="competency_code" class="form-control @error('competency_code') border-red-500 @enderror" required>
+                    <select name="competency" class="form-control @error('competency') border-red-500 @enderror" required>
                         <option value="">-- Pilih Kompetensi --</option>
                         @foreach($competencies as $competency)
-                            <option value="{{ $competency->competency_code }}" {{ old('competency_code') == $competency->competency_code ? 'selected' : '' }}>
+                            <option value="{{ $competency->competency_code }}" {{ old('competency') == $competency->competency_code ? 'selected' : '' }}>
                                 {{ $competency->competency_name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('competency_code') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    @error('competency') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="p-3 bg-blue-50 rounded-xl mt-4 border border-blue-100">

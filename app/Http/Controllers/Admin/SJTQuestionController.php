@@ -89,7 +89,6 @@ class SJTQuestionController extends Controller
             ->max('number') + 1;
 
         if ($nextNumber > 50) {
-            // FIX: Route updated to admin.questions.sjt.index
             return redirect()->route('admin.questions.sjt.index', ['version' => $selectedVersion->id])
                 ->with('error', 'Versi ini sudah mencapai batas maksimum 50 pertanyaan.');
         }
@@ -132,13 +131,12 @@ class SJTQuestionController extends Controller
         }
 
         DB::transaction(function () use ($request) {
-            // Create the question
+            // Create the question (TANPA page_number)
             $question = SJTQuestion::create([
                 'version_id' => $request->version_id,
                 'number' => $request->number,
                 'question_text' => $request->question_text,
                 'competency' => $request->competency,
-                'page_number' => ceil($request->number / 10), // Auto-calculate page number
             ]);
 
             // Create options (A, B, C, D, E)
@@ -154,7 +152,6 @@ class SJTQuestionController extends Controller
             }
         });
 
-        // FIX: Route updated to admin.questions.sjt.index
         return redirect()->route('admin.questions.sjt.index', ['version' => $request->version_id])
             ->with('success', 'Pertanyaan SJT beserta opsi berhasil dibuat.');
     }
@@ -208,12 +205,11 @@ class SJTQuestionController extends Controller
         }
 
         DB::transaction(function () use ($request, $sjtQuestion) {
-            // Update the question
+            // Update the question (TANPA page_number)
             $sjtQuestion->update([
                 'number' => $request->number,
                 'question_text' => $request->question_text,
                 'competency' => $request->competency,
-                'page_number' => ceil($request->number / 10), // Auto-calculate page number
             ]);
 
             // Update options
@@ -230,7 +226,6 @@ class SJTQuestionController extends Controller
             }
         });
 
-        // FIX: Route updated to admin.questions.sjt.index
         return redirect()->route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id])
             ->with('success', 'Pertanyaan SJT berhasil diperbarui.');
     }
@@ -242,7 +237,6 @@ class SJTQuestionController extends Controller
     {
         // Check if question is used in responses
         if ($sjtQuestion->hasResponses()) {
-            // FIX: Route updated to admin.questions.sjt.index
             return redirect()->route('admin.questions.sjt.index', ['version' => $sjtQuestion->version_id])
                 ->with('error', 'Tidak dapat menghapus pertanyaan yang sudah digunakan dalam tes.');
         }
@@ -256,7 +250,6 @@ class SJTQuestionController extends Controller
             $sjtQuestion->delete();
         });
 
-        // FIX: Route updated to admin.questions.sjt.index
         return redirect()->route('admin.questions.sjt.index', ['version' => $versionId])
             ->with('success', 'Pertanyaan SJT berhasil dihapus.');
     }
@@ -287,7 +280,7 @@ class SJTQuestionController extends Controller
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('question_text', 'like', '%' . $search . '%')
-                    ->orWhere('number', 'like', '%' . $search . '%') // <--- TAMBAHAN PENTING INI
+                    ->orWhere('number', 'like', '%' . $search . '%')
                     ->orWhere('competency', 'like', '%' . $search . '%')
                     ->orWhereHas('competencyDescription', function ($subQ) use ($search) {
                         $subQ->where('competency_name', 'like', '%' . $search . '%');
@@ -310,6 +303,7 @@ class SJTQuestionController extends Controller
 
         return $pdf->stream('Laporan-Soal-SJT-v' . $version->version . '.pdf');
     }
+
     /**
      * Reorder questions
      */
@@ -327,7 +321,7 @@ class SJTQuestionController extends Controller
                 SJTQuestion::where('id', $questionData['id'])
                     ->update([
                         'number' => $questionData['number'],
-                        'page_number' => ceil($questionData['number'] / 10)
+                        // 'page_number' dihapus dari sini
                     ]);
             }
         });

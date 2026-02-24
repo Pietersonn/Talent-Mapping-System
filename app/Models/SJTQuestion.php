@@ -22,14 +22,12 @@ class SJTQuestion extends Model
         'number',
         'question_text',
         'competency',
-        'page_number',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'number' => 'integer',
-        'page_number' => 'integer',
     ];
 
     /**
@@ -191,7 +189,11 @@ class SJTQuestion extends Model
 
     public function scopeByPage($query, int $pageNumber)
     {
-        return $query->where('page_number', $pageNumber);
+        // Logika: Halaman 1 = 1-10, Halaman 2 = 11-20, dst.
+        $start = ($pageNumber - 1) * 10 + 1;
+        $end = $pageNumber * 10;
+
+        return $query->whereBetween('number', [$start, $end]);
     }
 
     public function scopeByNumberRange($query, int $start, int $end)
