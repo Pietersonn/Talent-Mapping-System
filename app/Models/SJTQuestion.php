@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasCustomId; // <-- Import Trait di sini
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,13 +10,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SJTQuestion extends Model
 {
-    use HasFactory;
+    use HasFactory, HasCustomId; // <-- Gunakan Trait di sini
 
     protected $table = 'sjt_questions';
 
     protected $primaryKey = 'id';
     protected $keyType = 'string';
     public $incrementing = false;
+
+    // =============================
+    // KONFIGURASI CUSTOM ID (SJ001, SJ002, ...)
+    // =============================
+    protected $customIdPrefix = 'SJ';
+    protected $customIdLength = 3;
 
     protected $fillable = [
         'version_id',
@@ -29,36 +36,6 @@ class SJTQuestion extends Model
         'is_active' => 'boolean',
         'number' => 'integer',
     ];
-
-    /**
-     * =============================
-     * AUTO GENERATE ID (001,002,...)
-     * =============================
-     */
-    protected static function booted()
-    {
-        static::creating(function ($model) {
-            if (empty($model->id)) {
-                $model->id = $model->generateNextId();
-            }
-        });
-    }
-
-    /**
-     * Generate next ID: 001, 002, 003 ...
-     */
-    public function generateNextId(): string
-    {
-        $lastId = static::orderBy('id', 'desc')->value('id');
-
-        if (!$lastId) {
-            return '001';
-        }
-
-        $nextNumber = ((int) $lastId) + 1;
-
-        return str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-    }
 
     /**
      * =============================

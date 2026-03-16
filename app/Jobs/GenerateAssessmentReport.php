@@ -147,10 +147,7 @@ class GenerateAssessmentReport implements ShouldQueue
                 'updated_at'          => now(),
             ]);
 
-            // ---- 7) Generate Public URL (Local) ----
-            // Menghasilkan URL seperti: http://localhost/storage/reports/NamaFile.pdf
-            // Pastikan 'php artisan storage:link' sudah dijalankan
-            //$publicUrl = url('storage/' . $relativePath);
+
 
             // ---- 8) Kirim email via SMTP
             if ($recipientEmail) {

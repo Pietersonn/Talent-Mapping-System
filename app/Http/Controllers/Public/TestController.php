@@ -364,10 +364,11 @@ class TestController extends BaseController
             Log::error('ScoringHelper failed: ' . $e->getMessage(), ['session' => $session->id]);
         }
 
-        // 3. Dispatch Job & Kirim Email (Setelah Response / Background)
+        // 3. Dispatch Job & Kirim Email (Background Menggunakan Queue Database)
         try {
-            // dispatchAfterResponse: Mengirim response ke user dulu, baru jalankan job ini di server
-            GenerateAssessmentReport::dispatchAfterResponse($session->id);
+            // Gunakan dispatch() alih-alih dispatchAfterResponse()
+            // Ini akan memasukkan job ke tabel `jobs` dan dijalankan oleh Queue Worker
+            GenerateAssessmentReport::dispatch($session->id);
         } catch (\Throwable $e) {
             Log::error('Failed to dispatch report generation: ' . $e->getMessage());
         }
